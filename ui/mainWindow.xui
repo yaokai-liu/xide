@@ -1,0 +1,15 @@
+
+mainWindow = Window(0, 0, width, height) [] {
+    !loadPreset();
+    .topBar = () <> {};
+    .rightBar = () <> {};
+    .bottomBar = () <> {};
+    .leftBar = () <> {};
+    .central = () <
+        fileExplorer = Widget(0, 0, 0.3 * width, height) { };
+        $(var i = 0; 0.1 * i * width < 0.7 * width; i++) [
+             editor##i = Widget(0, ., ., height) { };
+        ] { ..count = 1 + i; }
+    > {};
+    .title = f"xIDE - {.projectName}";
+}
