@@ -1,7 +1,7 @@
 /**
  * Project Name: xide
  * Module Name: runtime
- * Filename: drawUI.h
+ * Filename: draw.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-7
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
@@ -17,7 +17,8 @@
 enum TASK_TYPE_ENUM {
   TT_LINES = 1,
   TT_SOLID_AREA = 2,
-  TT_POLYLINE = 3,
+  TT_TRIANGULATED_AREA = 3,
+  TT_POLYLINE = 4,
 };
 
 typedef struct DrawTask {
@@ -31,16 +32,20 @@ typedef struct DrawTask {
 } DrawTask;
 
 DrawTask *xglCreateDrawTask(Array *vertex_array, Array *color_array, Array *index_array,
-                            MainWindow *window);
+                            const Allocator *allocator);
 void xglDestroyDrawTask(DrawTask *task);
 
-DrawTask *xglCreateLines(Line *lines, int count, int plane_index, MainWindow *window);
-DrawTask *xglCreateSolidPolygon(Vertex *vertices, int count, int plane_index, MainWindow *window);
-DrawTask *xglCreatePolyline(Vertex *vertices, int count, bool cycle, int plane_index,
-                            MainWindow *window);
+DrawTask *xglCreateLines(Line *lines, int count, int plane_index, const Allocator *allocator);
+DrawTask *xglCreatePolygon(Vertex *vertices, int count, int plane_index, bool solid,
+                           const Allocator *allocator);
+DrawTask *xglCreatePolyline(Vertex *vertices, int count, int plane_index, bool cycle,
+                            const Allocator * const allocator);
 
-void xglDrawLines(DrawTask *task, const GLfloat windowSize[2]);
-void xglDrawSolidArea(DrawTask *task, const GLfloat windowSize[2]);
-void xglDrawPolyline(DrawTask *task, const GLfloat windowSize[2]);
+void xglBindShaderProgram(DrawTask *task, GLuint program);
+
+void xglDrawLines(const DrawTask *task, const GLfloat viewportSize[2]);
+void xglDrawArea(const DrawTask *task, const GLfloat viewportSize[2]);
+void xglDrawPolyline(const DrawTask *task, const GLfloat viewportSize[2]);
+void xglDraw(const DrawTask *task, const IdeWindow *window);
 
 #endif  // XIDE_DRAW_H

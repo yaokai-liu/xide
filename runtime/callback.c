@@ -11,42 +11,30 @@
 #include "widgets.h"
 #include <stdbool.h>
 #include <stdio.h>
-extern DrawTask *TASK;
-extern GLfloat viewSize[2];
 extern iXGLshProg BUILTIN_GRADUAL_SHADER_PROGRAM;
-void setWindowSize(GLFWwindow *window, int width, int height) {
+void ideSetWindowSize(GLFWwindow *handle, int width, int height) {
   glViewport(0, 0, width, height);
-  viewSize[0] = (float) width;
-  viewSize[1] = (float) height;
+  IdeWindow *window = glfwGetWindowUserPointer(handle);
+  GLint viewport[4] = {};
+  glGetIntegerv(GL_VIEWPORT, viewport);
+  window->viewport[0] = (float) viewport[0];
+  window->viewport[1] = (float) viewport[1];
+  window->viewport[2] = (float) viewport[2];
+  window->viewport[3] = (float) viewport[3];
 }
 
-void windowRefreshCallback(GLFWwindow *window) {
-  drawUI(window);
+void ideWindowRefreshCallback(GLFWwindow *handle) {
+  IdeWindow *window = glfwGetWindowUserPointer(handle);
+  ideDrawUI(window);
   glFinish();
 }
 
-void processInput(GLFWwindow *window) {
+void ideProcessInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(window, true); }
 }
 
-MainWindow *setupWindow(GLFWwindow *handle, const Allocator *allocator) {
-  // TODO: loadPluginsFrom(directory) async;
-  // TODO: loadProjectFrom(directory) async;
-  // TODO: setupUiFrom(filepath) main thread;
-  MainWindow *mainWindow = MainWindow_new(allocator);
-  mainWindow->info.handle = handle;
-  int pos_x, pos_y, width, height;
-  glfwGetWindowPos(handle, &pos_x, &pos_y);
-  glfwGetWindowSize(handle, &width, &height);
-  mainWindow->info.posX = pos_x;
-  mainWindow->info.posY = pos_y;
-  mainWindow->info.width = width;
-  mainWindow->info.height = height;
-  return mainWindow;
-}
-
-void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                            const GLchar *message, const void *userParam) {
+void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                             const GLchar *message, const void *userParam) {
   if (id == 131169 || id == 131185 || id == 131218 || id == 131204) { return; }
   rt_debug("Debug message (%d): %s", id, message);
 

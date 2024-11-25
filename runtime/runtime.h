@@ -21,12 +21,18 @@
 #define rt_warning(fmt, ...) fprintf(stdout, "[WARNING] " fmt ".\n", __VA_ARGS__)
 #define rt_debug(fmt, ...)   fprintf(stdout, "[DEBUG] " fmt ".\n", __VA_ARGS__)
 
-void drawUI(GLFWwindow *window);
+void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                             const GLchar *message, const void *userParam);
 
-void setWindowSize(GLFWwindow *window, int width, int height);
-void windowRefreshCallback(GLFWwindow *window);
-void processInput(GLFWwindow *window);
-MainWindow *setupWindow(GLFWwindow *handle, const Allocator *allocator);
-void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                            const GLchar *message, const void *userParam);
+GLFWmonitor *switchMonitor(int index, int *width, int *height);
+
+void ideSetWindowSize(GLFWwindow *handle, int width, int height);
+void ideWindowRefreshCallback(GLFWwindow *handle);
+void ideProcessInput(GLFWwindow *window);
+IdeWindow *ideCreateWindow(GLFWwindow *handle, const Allocator *allocator);
+void ideDestroyWindow(IdeWindow *window);
+
+void ideDrawUI(IdeWindow *window);
+void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int count);
+
 #endif  // XIDE_RUNTIME_H

@@ -11,6 +11,7 @@
 #define XIDE_WINDOW_H
 
 #include "allocator.h"
+#include "array.h"
 #include "widget.h"
 #include <stdint.h>
 
@@ -35,7 +36,8 @@ typedef struct MainWindow {
   Widget *bottomBar;
   Widget *leftBar;
   Widget *central;
-} MainWindow;
+  Array *drawTaskList;  // Array<DrawTask>
+  float viewport[4];
+} IdeWindow;
 
-MainWindow *MainWindow_new(const Allocator *allocator);
 #endif  // XIDE_WINDOW_H
