@@ -9,11 +9,8 @@
 
 #include "cg2d.h"
 #include "definition.h"
-#include "runtime.h"
 #include <float.h>
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #ifndef max
   #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -27,8 +24,8 @@
 #define vert_distance(x, y) \
   sqrtf(square((x)[AXIS_X] - (y)[AXIS_X]) + square((x)[AXIS_Y] - (y)[AXIS_Y]))
 
-typedef float Point[2];
-
+typedef float CG2DVertex[2];
+typedef int CG2DEdge[2];
 struct Triangle {
   float vertices[3][2];
   int indices[3];
@@ -40,14 +37,14 @@ struct Circle {
   float radius;
 };
 
-bool isSameEdge(const int (*edge1)[2], const int (*edge2)[2]) {
+bool isSameEdge(CG2DEdge *edge1, CG2DEdge *edge2) {
   bool b = ((*edge1)[0] == (*edge2)[0] && (*edge1)[1] == (*edge2)[1])
            || ((*edge1)[0] == (*edge2)[1] && (*edge1)[1] == (*edge2)[0]);
   return b;
 }
 
-bool edgeInTriangle(const int (*edge)[2], const struct Triangle *triangle) {
-  int edges[3][2] = {
+bool edgeInTriangle(CG2DEdge *edge, const struct Triangle *triangle) {
+  CG2DEdge edges[3] = {
     {triangle->indices[0], triangle->indices[1]},
     {triangle->indices[1], triangle->indices[2]},
     {triangle->indices[2], triangle->indices[0]},
@@ -64,12 +61,18 @@ bool notExterior(const struct Triangle *triangle) {
   return !triangle->isExterior;
 }
 
-bool intersectSegment(const int l1[2], const int l2[2]) {
-  const Point a = {};
+#define vec_cross(o, p1, p2) \
+  (((p1)[0] - (o)[0]) * ((p2)[1] - (o)[1]) - ((p1)[1] - (o)[1]) * ((p2)[0] - (o)[0]))
+bool intersectedSegment(const CG2DVertex *vertices, const int l1[2], const int l2[2]) {
+  float AC_AD = vec_cross(vertices[l1[0]], vertices[l2[0]], vertices[l2[1]]);
+  float BC_BD = vec_cross(vertices[l1[1]], vertices[l2[0]], vertices[l2[1]]);
+  float CA_CB = vec_cross(vertices[l2[0]], vertices[l1[0]], vertices[l1[1]]);
+  float DA_DB = vec_cross(vertices[l2[1]], vertices[l1[0]], vertices[l1[1]]);
+  return AC_AD * BC_BD <= 0 && CA_CB * DA_DB <= 0;
 }
 
 void createSuperTriangle(const Array * const vertex_array, struct Triangle * const triangle) {
-  const Point *vertices = Array_get(vertex_array, 0);
+  const CG2DVertex *vertices = Array_get(vertex_array, 0);
   const int count = (int) Array_length(vertex_array);
   float min_x = FLT_MAX;
   float max_x = FLT_MIN;
@@ -101,7 +104,7 @@ void createSuperTriangle(const Array * const vertex_array, struct Triangle * con
 
 #define x(i) (triangle->vertices[(i) - 1][AXIS_X])
 #define y(i) (triangle->vertices[(i) - 1][AXIS_Y])
-void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circle) {
+inline void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circle) {
   const float A1 = 2 * (x(2) - x(1));
   const float A2 = 2 * (x(3) - x(2));
   const float B1 = 2 * (y(2) - y(1));
@@ -125,94 +128,110 @@ void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circ
   (((triangle)->indices[0] >= count) || ((triangle)->indices[1] >= count) \
    || ((triangle)->indices[2] >= count))
 
+#define releaseArray(_array)      \
+  do {                            \
+    Array_reset(_array, nullptr); \
+    Array_destroy(_array);        \
+  } while (false)
+#define filterArray(_array, _filter)                                             \
+  do {                                                                           \
+    Array *temp_array = Array_filter(_array, (bool (*)(const void *))(_filter)); \
+    releaseArray(_array);                                                        \
+    (_array) = temp_array;                                                       \
+  } while (false)
+#define deduplicateArray(_array, _filter)                                         \
+  do {                                                                            \
+    Array *temp_array =                                                           \
+      Array_deduplicate(_array, (bool (*)(const void *, const void *))(_filter)); \
+    releaseArray(_array);                                                         \
+    (_array) = temp_array;                                                        \
+  } while (false)
+#define edgeOfTriangle(triangle)                      \
+  {                                                   \
+    {(triangle)->indices[0], (triangle)->indices[1]}, \
+    {(triangle)->indices[1], (triangle)->indices[2]}, \
+    {(triangle)->indices[2], (triangle)->indices[0]}, \
+  }
+#define populateTriangle(edge, vertex)                                       \
+  {                                                                          \
+    .vertices = {{vertices[(edge)[0]][AXIS_X], vertices[(edge)[0]][AXIS_Y]}, \
+                 {vertices[(edge)[1]][AXIS_X], vertices[(edge)[1]][AXIS_Y]}, \
+                 {(vertex)[AXIS_X], (vertex)[AXIS_Y]}},                      \
+    .indices = {(edge)[0],(edge)[1], i},                                     \
+    .isBad = false,                                                          \
+  }
+
+inline Array *getBadTriangleArray(const Array *triangle_array, const CG2DVertex *vertex,
+                                  const Allocator *allocator) {
+  Array *bad_triangles = Array_new(sizeof(struct Triangle), allocator);
+  for (int j = 0; j < Array_length(triangle_array); j++) {
+    struct Triangle *triangle = Array_get(triangle_array, j);
+    struct Circle circle = {};
+    getCircumscribedCircle(triangle, &circle);
+    if (vert_distance(*vertex, circle.center) <= circle.radius) {
+      // the vertex is in the circle,
+      // means the triangle is not a Delaunay triangle
+      triangle->isBad = true;
+      Array_append(bad_triangles, triangle, 1);
+    }
+  }
+  return bad_triangles;
+}
+
+inline Array *populateExteriorEdges(const Array *triangle_array, const Allocator *allocator) {
+  Array *polygon_edges = Array_new(sizeof(CG2DEdge), allocator);
+  for (int j = 0; j < Array_length(triangle_array); j++) {
+    struct Triangle *triangle = Array_get(triangle_array, j);
+    CG2DEdge edges[3] = edgeOfTriangle(triangle);
+    for (int e = 0; e < 3; e++) {
+      CG2DEdge *edge = &edges[e];
+      for (int k = 0; k < Array_length(triangle_array); k++) {
+        if (k == j) { continue; }
+        struct Triangle *bad_triangle = Array_get(triangle_array, k);
+        if (edgeInTriangle(edge, bad_triangle)) { goto __edge_is_shared; }
+      }
+      Array_append(polygon_edges, edge, 1);
+__edge_is_shared:;
+    }
+  }
+  deduplicateArray(polygon_edges, isSameEdge);
+  return polygon_edges;
+}
+
 Array *xglCreateDelaunayIndexArray(Array *vertex_array, const Allocator *allocator) {
   const int count = (int) Array_length(vertex_array);
 
   struct Triangle super_triangle = {};
   createSuperTriangle(vertex_array, &super_triangle);
   Array_append(vertex_array, &(super_triangle.vertices), 3);
-  const Point *vertices = Array_get(vertex_array, 0);
+  const CG2DVertex *vertices = Array_get(vertex_array, 0);
 
   Array *triangles = Array_new(sizeof(struct Triangle), allocator);
   Array_append(triangles, &super_triangle, 1);
   for (int i = 0; i < count; i++) {
-    const Point *vertex = Array_get(vertex_array, i);
-    Array *bad_triangles = Array_new(sizeof(struct Triangle), allocator);
-    for (int j = 0; j < Array_length(triangles); j++) {
-      struct Triangle *triangle = Array_get(triangles, j);
-      struct Circle circle = {};
-      getCircumscribedCircle(triangle, &circle);
-      if (vert_distance(*vertex, circle.center) <= circle.radius) {
-        // the vertex is in the circle,
-        // means the triangle is not a Delaunay triangle
-        triangle->isBad = true;
-        Array_append(bad_triangles, triangle, 1);
-      }
-    }
-    Array *temp_array = Array_filter(triangles, (bool (*)(const void *)) notBadTriangle);
-    Array_reset(triangles, nullptr);
-    Array_destroy(triangles);
-    triangles = temp_array;
+    const CG2DVertex *vertex = Array_get(vertex_array, i);
+    Array *bad_triangles = getBadTriangleArray(triangles, vertex, allocator);
+    filterArray(triangles, notBadTriangle);
 
-    Array *polygon_edges = Array_new(sizeof(int[2]), allocator);
-    for (int j = 0; j < Array_length(bad_triangles); j++) {
-      struct Triangle *triangle = Array_get(bad_triangles, j);
-      int edges[3][2] = {
-        {triangle->indices[0], triangle->indices[1]},
-        {triangle->indices[1], triangle->indices[2]},
-        {triangle->indices[2], triangle->indices[0]},
-      };
-      for (int e = 0; e < 3; e++) {
-        int(*edge)[2] = &edges[e];
-        for (int k = 0; k < Array_length(bad_triangles); k++) {
-          if (k == j) { continue; }
-          struct Triangle *bad_triangle = Array_get(bad_triangles, k);
-          if (edgeInTriangle(edge, bad_triangle)) { goto __edge_is_shared; }
-        }
-        Array_append(polygon_edges, edge, 1);
-__edge_is_shared:;
-      }
-    }
-    Array_reset(bad_triangles, nullptr);
-    Array_destroy(bad_triangles);
-    temp_array =
-      Array_deduplicate(polygon_edges, (bool (*)(const void *, const void *)) isSameEdge);
-    Array_reset(polygon_edges, nullptr);
-    Array_destroy(polygon_edges);
-    polygon_edges = temp_array;
+    Array *polygon_edges = populateExteriorEdges(bad_triangles, allocator);
 
     for (int j = 0; j < Array_length(polygon_edges); j++) {
-      const int(*edge)[2] = Array_get(polygon_edges, j);
-      Point edgeVertices[2] = {};
-      edgeVertices[0][AXIS_X] = vertices[(*edge)[0]][AXIS_X];
-      edgeVertices[0][AXIS_Y] = vertices[(*edge)[0]][AXIS_Y];
-      edgeVertices[1][AXIS_X] = vertices[(*edge)[1]][AXIS_X];
-      edgeVertices[1][AXIS_Y] = vertices[(*edge)[1]][AXIS_Y];
-      struct Triangle triangle = {
-        .vertices = {{edgeVertices[0][AXIS_X], edgeVertices[0][AXIS_Y]},
-                     {edgeVertices[1][AXIS_X], edgeVertices[1][AXIS_Y]},
-                     {(*vertex)[AXIS_X], (*vertex)[AXIS_Y]},},
-        .indices = {(*edge)[0], (*edge)[1], i},
-        .isBad = false,
-      };
+      const CG2DEdge *edge = Array_get(polygon_edges, j);
+      struct Triangle triangle = populateTriangle(*edge, *vertex);
       triangle.isExterior = isRelatedSuperTriangle(&triangle);
       Array_append(triangles, &triangle, 1);
     }
-    Array_reset(polygon_edges, nullptr);
-    Array_destroy(polygon_edges);
+    releaseArray(bad_triangles);
+    releaseArray(polygon_edges);
   }
-  Array *temp_array = Array_filter(triangles, (bool (*)(const void *)) notExterior);
-  Array_reset(triangles, nullptr);
-  Array_destroy(triangles);
-  triangles = temp_array;
+  filterArray(triangles, notExterior);
 
   Array *index_array = Array_new(sizeof(int), allocator);
   for (int i = 0; i < Array_length(triangles); i++) {
     const struct Triangle *triangle = Array_get(triangles, i);
     Array_append(index_array, &(triangle->indices), 3);
   }
-  Array_reset(triangles, nullptr);
-  Array_destroy(triangles);
+  releaseArray(triangles);
 
   return index_array;
 }

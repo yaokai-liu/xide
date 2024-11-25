@@ -10,7 +10,7 @@
 #ifndef COMPUTATION_GEOMETRY_2D_H
 #define COMPUTATION_GEOMETRY_2D_H
 
-#include "shape2D.h"
+#include "array.h"
 #include <stdint.h>
 
 Array *xglCreateDelaunayIndexArray(Array *vertex_array, const Allocator *allocator);

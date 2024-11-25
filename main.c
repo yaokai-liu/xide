@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-    int width = 200, height = 200; GLFWmonitor *monitor = NULL;
+    int width = 1000, height = 800; GLFWmonitor *monitor = NULL;
     if (argc == -1) { monitor = switchMonitor(0, &width, &height); }
     GLFWwindow * glfwWindow = glfwCreateWindow(width, height, "glfwWindow title", monitor, NULL);
     if (!glfwWindow) {
@@ -110,14 +110,14 @@ int main(int argc, char * argv[]) {
 //    TASK = xglCreateLines(lines, 4, 0, mainWindow);
 
     Vertex vertices[] = {
-        {.coord = {20, 40}, .color = 0xFFFFFFFF},
-        {.coord = {30, 20}, .color = 0xFFFFFFFF},
-        {.coord = {70, 10}, .color = 0xFFFFFFFF},
-        {.coord = {80, 30}, .color = 0xFFFFFFFF},
-        {.coord = {70, 60}, .color = 0xFFFFFFFF},
-        {.coord = {90, 80}, .color = 0xFFFFFFFF},
-        {.coord = {60, 70}, .color = 0xFFFFFFFF},
-        {.coord = {40, 60}, .color = 0xFFFFFFFF},
+        {.coord = {200, 400}, .color = 0xFFFFFFFF},
+        {.coord = {300, 200}, .color = 0xFFFFFFFF},
+        {.coord = {700, 100}, .color = 0xFFFFFFFF},
+        {.coord = {800, 300}, .color = 0xFFFFFFFF},
+        {.coord = {700, 600}, .color = 0xFFFFFFFF},
+        {.coord = {900, 800}, .color = 0xFFFFFFFF},
+        {.coord = {600, 700}, .color = 0xFFFFFFFF},
+        {.coord = {400, 600}, .color = 0xFFFFFFFF},
     };
     TASK = xglCreateSolidPolygon(vertices, 8, 0, mainWindow);
 //    TASK = xglCreatePolyline(vertices, 5, false, 0, mainWindow);

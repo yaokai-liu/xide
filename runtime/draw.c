@@ -195,8 +195,8 @@ void xglDrawLines(DrawTask *task, const GLfloat windowSize[2]) {
 void xglDrawSolidArea(DrawTask *task, const GLfloat windowSize[2]) {
   glUseProgram(task->program);
   glBindVertexArray(task->VAO);
-  //    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   for (uint32_t i = 0; i < Array_length(task->uniforms); i++) {
     iXGLVUniform *uniform = (iXGLVUniform *) Array_get(task->uniforms, i);
     glProgramUniform2fv(task->program, uniform->u_locate, 1, windowSize);
