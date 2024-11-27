@@ -20,7 +20,7 @@ extern const size_t sizeof_array;
 
 Array *Array_new(uint32_t ele_size, const Allocator *allocator);
 
-uint32_t Array_init(struct Array *array, uint32_t ele_size);
+uint32_t Array_init(Array *array, const uint32_t ele_size, const Allocator *allocator);
 
 uint32_t Array_length(const struct Array *array);
 

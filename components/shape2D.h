@@ -17,6 +17,11 @@ typedef struct Vertex {
   uint32_t color;
 } Vertex;
 
+typedef struct FloatVertex {
+  float coord[2];
+  uint32_t color;
+} FloatVertex;
+
 typedef struct Line {
   uint32_t start[2];
   uint32_t end[2];

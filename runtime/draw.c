@@ -110,6 +110,48 @@ DrawTask *xglCreateLines(Line *lines, int count, int plane_index,
   return task;
 }
 
+DrawTask *xglCreateFloatPolygon(FloatVertex *vertices, int count, int plane_index, bool solid,
+                           const Allocator *allocator) {
+  Array *vertex_array = Array_new(sizeof(XGLVertex), allocator);
+  Array *color_array = Array_new(sizeof(XGLColor), allocator);
+  for (int i = 0; i < count; i++) {
+    XGLVertex vertex = {};
+    XGLColor color = {};
+    rgba2XGLColor(vertices[i].color, &color);
+    vertex[AXIS_X] = vertices[i].coord[AXIS_X];
+    vertex[AXIS_Y] = vertices[i].coord[AXIS_Y];
+    vertex[AXIS_Z] = atanf((float) plane_index) * 100.0f;
+    vertex[AXIS_W] = 0.0f;
+    Array_append(vertex_array, vertex, 1);
+    Array_append(color_array, color, 1);
+  }
+  Array *coord_array = Array_new(sizeof(float[2]), allocator);
+  for (int i = 0; i < count; i++) {
+    const float coord[2] = {
+        (float) vertices[i].coord[AXIS_X],
+        (float) vertices[i].coord[AXIS_Y]
+    };
+    Array_append(coord_array, coord, 1);
+  }
+//  Array *index_array = xglConvexTriangulate(coord_array, allocator);
+  Array *index_array = xglEarClippingTriangulate(coord_array, allocator);
+  Array_reset(coord_array, nullptr);
+  Array_destroy(coord_array);
+
+  DrawTask *const task = xglCreateDrawTask(vertex_array, color_array, index_array, allocator);
+  task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
+
+  Array_reset(vertex_array, nullptr);
+  Array_reset(color_array, nullptr);
+  Array_reset(index_array, nullptr);
+  Array_destroy(vertex_array);
+  Array_destroy(color_array);
+  Array_destroy(index_array);
+
+  return task;
+}
+
+
 DrawTask *xglCreatePolygon(Vertex *vertices, int count, int plane_index, bool solid,
                            const Allocator *allocator) {
   Array *vertex_array = Array_new(sizeof(XGLVertex), allocator);
@@ -130,7 +172,8 @@ DrawTask *xglCreatePolygon(Vertex *vertices, int count, int plane_index, bool so
     const float coord[2] = {(float) vertices[i].coord[AXIS_X], (float) vertices[i].coord[AXIS_Y]};
     Array_append(coord_array, coord, 1);
   }
-  Array *index_array = xglCreateDelaunayIndexArray(coord_array, allocator);
+//  Array *index_array = xglConvexTriangulate(coord_array, allocator);
+  Array *index_array = xglEarClippingTriangulate(coord_array, allocator);
   Array_reset(coord_array, nullptr);
   Array_destroy(coord_array);
 

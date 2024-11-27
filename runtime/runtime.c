@@ -33,9 +33,10 @@ void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int count) {
 void ideDrawUI(IdeWindow *window) {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-  for (int i = 0; i < Array_length(window->drawTaskList); i++) {
-    DrawTask *task = Array_get(window->drawTaskList, i);
-    xglDraw(task, window);
+  const int n_tasks = (int) Array_length(window->drawTaskList);
+  const DrawTask * tasks = Array_get(window->drawTaskList, 0);
+  for (int i = 0; i < n_tasks; i++) {
+    xglDraw(&tasks[i], window);
   }
   glfwSwapBuffers(window->info.handle);
 }
@@ -68,9 +69,10 @@ IdeWindow *ideCreateWindow(GLFWwindow *handle, const Allocator *allocator) {
 }
 
 void ideDestroyWindow(IdeWindow *window) {
-  for (int i = 0; i < Array_length(window->drawTaskList); i++) {
-    DrawTask *task = Array_get(window->drawTaskList, i);
-    xglDestroyDrawTask(task);
+  const int n_tasks = (int) Array_length(window->drawTaskList);
+  DrawTask *tasks = Array_get(window->drawTaskList, 0);
+  for (int i = 0; i < n_tasks; i++) {
+    xglDestroyDrawTask(&tasks[i]);
   }
   Array_reset(window->drawTaskList, nullptr);
   Array_destroy(window->drawTaskList);

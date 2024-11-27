@@ -1,6 +1,6 @@
 /**
  * Project Name: xide
- * Module Name: computation-geometry
+ * Module Name: com-geo
  * Filename: com-geo.h
  * Creator: Yaokai Liu
  * Create Date: 2024-11-21
@@ -13,6 +13,6 @@
 #include "array.h"
 #include <stdint.h>
 
-Array *xglCreateDelaunayIndexArray(Array *vertex_array, const Allocator *allocator);
-
+Array *xglConvexTriangulate(Array *vertex_array, const Allocator *allocator);
+Array *xglEarClippingTriangulate(const Array *vert_array, const Allocator *allocator);
 #endif  // COMPUTATION_GEOMETRY_2D_H

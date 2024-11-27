@@ -2,6 +2,7 @@
 #include "shader.h"
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 int main(int argc, char *argv[]) {
   const Allocator * const allocator = &STDAllocator;
@@ -44,9 +45,11 @@ int main(int argc, char *argv[]) {
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
   }
 
+  IdeWindow *mainWindow = ideCreateWindow(handle, allocator);
+
   // shader program
-  GLuint vertexShader = compileShader("shader/vertex.glsl", GL_VERTEX_SHADER, allocator);
-  GLuint fragmentShader = compileShader("shader/fragment.glsl", GL_FRAGMENT_SHADER, allocator);
+  GLuint vertexShader = compileShader("shader/vert-default.glsl", GL_VERTEX_SHADER, allocator);
+  GLuint fragmentShader = compileShader("shader/frag-default.glsl", GL_FRAGMENT_SHADER, allocator);
   GLuint shaderProgram = glCreateProgram();
   glAttachShader(shaderProgram, vertexShader);
   glAttachShader(shaderProgram, fragmentShader);
@@ -60,7 +63,6 @@ int main(int argc, char *argv[]) {
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
 
-  IdeWindow *mainWindow = ideCreateWindow(handle, allocator);
   DrawTask *task;
   //    Line lines[] = {
   //        {
@@ -89,22 +91,41 @@ int main(int argc, char *argv[]) {
   //  ideWindowAddTasks(mainWindow, task, 1);
   //  allocator->free(task);
 
-  Vertex vertices[] = {
-    {.coord = {200, 400}, .color = 0xFFFFFFFF},
-    {.coord = {300, 200}, .color = 0xFFFFFFFF},
-    {.coord = {700, 100}, .color = 0xFFFFFFFF},
-    {.coord = {800, 300}, .color = 0xFFFFFFFF},
-    {.coord = {700, 600}, .color = 0xFFFFFFFF},
-    {.coord = {900, 800}, .color = 0xFFFFFFFF},
-    {.coord = {600, 700}, .color = 0xFFFFFFFF},
-    {.coord = {400, 600}, .color = 0xFFFFFFFF},
-  };
+//  Vertex vertices[] = {
+//    {.coord = {200, 400}, .color = 0xFFFFFFFF},
+//    {.coord = {300, 200}, .color = 0xFF00FFFF},
+//    {.coord = {500, 100}, .color = 0xFFFF00FF},
+//    {.coord = {600, 300}, .color = 0x00FFFFFF},
+//    {.coord = {700, 600}, .color = 0xFF00FFFF},
+//    {.coord = {800, 800}, .color = 0xFFFF00FF},
+//    {.coord = {900, 700}, .color = 0x00FFFFFF},
+//    {.coord = {800, 900}, .color = 0xFFFF00FF},
+//    {.coord = {500, 800}, .color = 0xFFFF00FF},
+//    {.coord = {300, 600}, .color = 0xFFFF00FF},
+//  };
+////  task = xglCreatePolyline(vertices, 8, 0, true, allocator);
+//  task = xglCreatePolygon(vertices, 10, 0, false, allocator);
+//  xglBindShaderProgram(task, shaderProgram);
+//  ideWindowAddTasks(mainWindow, task, 1);
+//  allocator->free(task);
 
-  task = xglCreatePolygon(vertices, 8, 0, true, allocator);
+  Array * vertex_array = Array_new(sizeof(FloatVertex), allocator);
+  for (int i = 0; i < 1000; i ++) {
+    FloatVertex vert = {
+        .coord = {
+          400 + 200 * cosf(2 * (float) M_PI / 1000 * (float) i),
+          400 + 200 * sinf(2 * (float) M_PI / 1000 * (float) i)
+        },
+        .color = 0xFFFF00FF
+    };
+    Array_append(vertex_array, &vert, 1);
+  }
+  task = xglCreateFloatPolygon(Array_get(vertex_array, 0), 1000, 0, true, allocator);
   xglBindShaderProgram(task, shaderProgram);
   ideWindowAddTasks(mainWindow, task, 1);
   allocator->free(task);
 
+  glLineWidth(2);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

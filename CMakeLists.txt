@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 project(xide C)
 
 set(CMAKE_C_STANDARD 11)
-add_compile_options("-O3")
+add_compile_options("-O0")
 add_compile_definitions("nullptr=NULL")
 
 #if(CMAKE_)
@@ -22,7 +22,7 @@ include_directories(
         runtime
         components
         style
-        computation-geometry
+        com-geo
 )
 
 aux_source_directory(runtime RT_SRC)
@@ -35,7 +35,7 @@ add_library(components STATIC ${UI_SRC})
 aux_source_directory(style STYLE_SRC)
 add_library(style STATIC ${STYLE_SRC})
 
-aux_source_directory(computation-geometry COM_GEO_SRC)
+aux_source_directory(com-geo COM_GEO_SRC)
 add_library(com-geo STATIC ${COM_GEO_SRC})
 
 add_executable(xide main.c)

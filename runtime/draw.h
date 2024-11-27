@@ -35,11 +35,14 @@ DrawTask *xglCreateDrawTask(Array *vertex_array, Array *color_array, Array *inde
                             const Allocator *allocator);
 void xglDestroyDrawTask(DrawTask *task);
 
+DrawTask *xglCreateFloatPolygon(FloatVertex *vertices, int count, int plane_index, bool solid,
+                                const Allocator *allocator);
+
 DrawTask *xglCreateLines(Line *lines, int count, int plane_index, const Allocator *allocator);
 DrawTask *xglCreatePolygon(Vertex *vertices, int count, int plane_index, bool solid,
                            const Allocator *allocator);
 DrawTask *xglCreatePolyline(Vertex *vertices, int count, int plane_index, bool cycle,
-                            const Allocator * const allocator);
+                            const Allocator *allocator);
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);
 
