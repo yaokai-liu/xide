@@ -37,7 +37,37 @@ struct Circle {
   float radius;
 };
 
-bool isSameEdge(const CG2DEdge * const edge1, const CG2DEdge * const edge2) {
+typedef struct vertNdxInfo {
+  int left;
+  int right;
+  int index;
+  bool isConvex;
+  bool outOfCount;
+  int nInnerVert;
+} VNI;
+
+struct SharedEdge {
+  CG2DEdge edge;
+  int triangles[2];
+};
+
+float triangleArea(const struct Triangle *triangle);
+bool vertInPolygon(const Array *vert_array, const XGLCoord vert);
+bool vertInTriangle(const XGLCoord angle_verts[3], const XGLCoord vert);
+bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert);
+void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circle);
+struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge);
+bool isPositiveAngle(const XGLCoord *vertices, const VNI *vni);
+Array *buildVniAndIncArray(const Array *vert_array, Array *inc_arrays, const Allocator *allocator);
+bool isEarVNI(const VNI *vni);
+VNI *findEarVNI(VNI *vnies, int count);
+int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge);
+bool vertInAngle(XGLCoord angle_verts[3], const XGLCoord vert);
+bool isSameEdge(const CG2DEdge *edge1, const CG2DEdge *edge2);
+bool edgeInTriangle(const CG2DEdge *edge, const struct Triangle *triangle);
+bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DEdge l2);
+
+inline bool isSameEdge(const CG2DEdge * const edge1, const CG2DEdge * const edge2) {
   bool b = ((*edge1)[0] == (*edge2)[0] && (*edge1)[1] == (*edge2)[1])
            || ((*edge1)[0] == (*edge2)[1] && (*edge1)[1] == (*edge2)[0]);
   return b;
@@ -56,7 +86,7 @@ bool edgeInTriangle(const CG2DEdge * const edge, const struct Triangle * const t
 #define vec_cross(o, p1, p2)                                   \
   (((p1)[AXIS_X] - (o)[AXIS_X]) * ((p2)[AXIS_Y] - (o)[AXIS_Y]) \
    - ((p1)[AXIS_Y] - (o)[AXIS_Y]) * ((p2)[AXIS_X] - (o)[AXIS_X]))
-bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DEdge l2) {
+inline bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DEdge l2) {
   float AC_AD = vec_cross(vertices[l1[0]], vertices[l2[0]], vertices[l2[1]]);
   float BC_BD = vec_cross(vertices[l1[1]], vertices[l2[0]], vertices[l2[1]]);
   float CA_CB = vec_cross(vertices[l2[0]], vertices[l1[0]], vertices[l1[1]]);
@@ -64,7 +94,7 @@ bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DE
   return AC_AD * BC_BD <= 0 && CA_CB * DA_DB <= 0;
 }
 
-float triangleArea(const struct Triangle *triangle) {
+inline float triangleArea(const struct Triangle *triangle) {
 #define x(i)     (triangle->vertices[i][AXIS_X])
 #define y(i)     (triangle->vertices[i][AXIS_Y])
 #define pm(i)    (((i) + 1) % 3)
@@ -78,7 +108,7 @@ float triangleArea(const struct Triangle *triangle) {
 
 #define x(i) (triangle->vertices[(i) - 1][AXIS_X])
 #define y(i) (triangle->vertices[(i) - 1][AXIS_Y])
-void getCircumscribedCircle(const struct Triangle * const triangle, struct Circle *circle) {
+inline void getCircumscribedCircle(const struct Triangle * const triangle, struct Circle *circle) {
   const float A1 = 2 * (x(2) - x(1));
   const float A2 = 2 * (x(3) - x(2));
   const float B1 = 2 * (y(2) - y(1));
@@ -98,13 +128,7 @@ void getCircumscribedCircle(const struct Triangle * const triangle, struct Circl
 #undef x
 #undef y
 
-#define releaseArray(_array)      \
-  do {                            \
-    Array_reset(_array, nullptr); \
-    Array_destroy(_array);        \
-  } while (false)
-
-bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert) {
+inline bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert) {
   if (seg_verts[0][AXIS_Y] == seg_verts[1][AXIS_Y]) { return false; }
   const float min_y = min(seg_verts[0][AXIS_Y], seg_verts[1][AXIS_Y]);
   const float max_y = max(seg_verts[0][AXIS_Y], seg_verts[1][AXIS_Y]);
@@ -116,7 +140,7 @@ bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert) {
   return y_y1 / y2_y1 * x2_x1 > x_x1;
 }
 
-bool vertInPolygon(const Array *vert_array, const XGLCoord vert) {
+inline bool vertInPolygon(const Array *vert_array, const XGLCoord vert) {
   int count = 0;
   const int n_verts = (int) Array_length(vert_array);
   const XGLCoord * const vertices = Array_get(vert_array, 0);
@@ -127,34 +151,12 @@ bool vertInPolygon(const Array *vert_array, const XGLCoord vert) {
   return count & 1;
 }
 
-bool vertInTriangle(const XGLCoord angle_verts[3], const XGLCoord vert) {
+inline bool vertInTriangle(const XGLCoord angle_verts[3], const XGLCoord vert) {
   const float s0 = vec_cross(angle_verts[1], angle_verts[0], angle_verts[2]);
   const float s1 = vec_cross(angle_verts[1], angle_verts[0], vert);
   const float s2 = vec_cross(angle_verts[1], angle_verts[2], vert);
   return 0 < s1 - s2 && s1 - s2 < s0 - epsilon;
 }
-
-typedef struct vertNdxInfo {
-  int left;
-  int right;
-  int index;
-  bool isConvex;
-  bool outOfCount;
-  int nInnerVert;
-} VNI;
-
-struct SharedEdge {
-  CG2DEdge edge;
-  int triangles[2];
-};
-
-struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge);
-bool isPositiveAngle(const XGLCoord *vertices, const VNI *vni);
-Array *buildVniAndIncArray(const Array *vert_array, Array *inc_arrays, const Allocator *allocator);
-bool isEarVNI(const VNI *vni);
-VNI *findEarVNI(VNI *vnies, int count);
-int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge);
-bool vertInAngle(XGLCoord angle_verts[3], const XGLCoord vert);
 
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
   const int count = (int) Array_length(edge_array);
@@ -177,6 +179,34 @@ bool isPositiveAngle(const XGLCoord * const vertices, const VNI *vni) {
     {vertices[vni->right][AXIS_X], vertices[vni->right][AXIS_Y]},
   };
   return angle_cross(angle_verts) > 0;
+}
+
+inline bool isEarVNI(const VNI *vni) {
+  return vni->isConvex && vni->nInnerVert == 0;
+}
+
+inline VNI *findEarVNI(VNI * const vnies, const int count) {
+  for (int i = 0; i < count; i++) {
+    VNI *vni = &vnies[i];
+    if (!vni->outOfCount && isEarVNI(vni)) {
+      vni->outOfCount = true;
+      return vni;
+    }
+  }
+  return nullptr;
+}
+
+inline int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge) {
+  for (int i = 0; i < 3; i++) {
+    if (pTriangle->indices[i] != edge[0] && pTriangle->indices[i] != edge[1]) { return i; }
+  }
+  return -1;
+}
+
+inline bool vertInAngle(XGLCoord angle_verts[3], const XGLCoord vert) {
+  const float a = vec_cross(angle_verts[1], angle_verts[0], vert);
+  const float b = vec_cross(angle_verts[1], angle_verts[2], vert);
+  return a * b <= 0;
 }
 
 #define arrays_get(arrays, ndx) ((Array *) (((void *) inc_arrays) + (ndx) * sizeof_array))
@@ -212,37 +242,11 @@ Array *buildVniAndIncArray(const Array * const vert_array, Array * const inc_arr
   return pVNI_array;
 }
 
-inline bool isEarVNI(const VNI *vni) {
-  return vni->isConvex && vni->nInnerVert == 0;
-}
-
-inline VNI *findEarVNI(VNI * const vnies, const int count) {
-  for (int i = 0; i < count; i++) {
-    VNI *vni = &vnies[i];
-    if (!vni->outOfCount && isEarVNI(vni)) {
-      vni->outOfCount = true;
-      return vni;
-    }
-  }
-  return nullptr;
-}
-
-int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge) {
-  for (int i = 0; i < 3; i++) {
-    if (pTriangle->indices[i] != edge[0] && pTriangle->indices[i] != edge[1]) { return i; }
-  }
-  return -1;
-}
-
-bool vertInAngle(XGLCoord angle_verts[3], const XGLCoord vert) {
-  const float a = vec_cross(angle_verts[1], angle_verts[0], vert);
-  const float b = vec_cross(angle_verts[1], angle_verts[2], vert);
-  return a * b <= 0;
-}
 void legalizeTriangulation(struct Triangle * const triangles, struct SharedEdge * const edges,
                            const int n_edges) {
   bool flipped = false;
   do {
+    flipped = false;
     for (int i = 0; i < n_edges; i++) {
       if (edges[i].triangles[1] < 0) { continue; }
       struct Triangle *triangle1 = &triangles[edges[i].triangles[0]];

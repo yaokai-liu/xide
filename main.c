@@ -64,69 +64,65 @@ int main(int argc, char *argv[]) {
   glDeleteShader(fragmentShader);
 
   DrawTask *task;
-      Line lines[] = {
-          {
-              .start = {100, 100},
-              .end = {700, 100},
-              .colors = {0x00FF00FF, 0x00FF00FF},
-          },
-          {
-              .start = {700, 100},
-              .end = {700, 500},
-              .colors = {0x00FF00FF, 0x00FF00FF},
-          },
-          {
-              .start = {700, 500},
-              .end = {100, 500},
-              .colors = {0x00FF00FF, 0x00FF00FF},
-          },
-          {
-              .start = {100, 500},
-              .end = {100, 100},
-              .colors = {0x00FF00FF, 0x00FF00FF},
-          },
-      };
-    task = xglCreatePixelLines(lines, 4, 0, allocator);
-    xglBindShaderProgram(task, shaderProgram);
-    ideWindowAddTasks(mainWindow, task, 1);
-    allocator->free(task);
-//
-//  Vertex vertices[] = {
-//    {.coord = {200, 400}, .color = 0xFFFFFFFF},
-//    {.coord = {300, 200}, .color = 0xFF00FFFF},
-//    {.coord = {500, 100}, .color = 0xFFFF00FF},
-//    {.coord = {600, 300}, .color = 0x00FFFFFF},
-//    {.coord = {700, 600}, .color = 0xFF00FFFF},
-//    {.coord = {800, 800}, .color = 0xFFFF00FF},
-//    {.coord = {900, 700}, .color = 0x00FFFFFF},
-//    {.coord = {800, 900}, .color = 0xFFFF00FF},
-//    {.coord = {500, 800}, .color = 0xFFFF00FF},
-//    {.coord = {300, 600}, .color = 0xFFFF00FF},
-//  };
-////  task = xglCreatePixelPolyline(vertices, 8, 0, true, allocator);
-//  task = xglCreatePolygon(vertices, 10, 0, false, allocator);
-//  xglBindShaderProgram(task, shaderProgram);
-//  ideWindowAddTasks(mainWindow, task, 1);
-//  allocator->free(task);
 
-//  Array * vertex_array = Array_new(sizeof(Vertex), allocator);
-//  for (int i = 0; i < 100; i ++) {
-//    Vertex vert = {
-//        .coord = {
-//          400 + 200 * cosf(2 * (float) M_PI / 100 * (float) i),
-//          400 + 200 * sinf(2 * (float) M_PI / 100 * (float) i)
-//        },
-//        .color = 0xFFFF00FF
-//    };
-//    Array_append(vertex_array, &vert, 1);
-//  }
-////  Vertex center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
-////  Array_append(vertex_array, &center, 1);
-//  task = xglCreatePolyline2D(vertex_array, 0, true, allocator);
-//  xglBindShaderProgram(task, shaderProgram);
-//  ideWindowAddTasks(mainWindow, task, 1);
-//  allocator->free(task);
+  Vertex vertices[] = {
+    {.coord = {200.0f, 400.0f}, .color = 0xFFFFFFFF},
+    {.coord = {300.0f, 200.0f}, .color = 0xFF00FFFF},
+    {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF},
+    {.coord = {600.0f, 300.0f}, .color = 0x00FFFFFF},
+    {.coord = {700.0f, 600.0f}, .color = 0xFF00FFFF},
+    {.coord = {800.0f, 800.0f}, .color = 0xFFFF00FF},
+    {.coord = {900.0f, 700.0f}, .color = 0x00FFFFFF},
+    {.coord = {800.0f, 900.0f}, .color = 0xFFFF00FF},
+    {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
+    {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
+  };
+  Array *vertex_array = Array_new(sizeof(Vertex), allocator);
+  Array_append(vertex_array, vertices, 10);
+  task = xglCreatePolygon2D(vertex_array, 0, true, allocator);
+  xglBindShaderProgram(task, shaderProgram);
+  ideWindowAddTasks(mainWindow, task, 1);
+  allocator->free(task);
+  Array_reset(vertex_array, nullptr);
 
+  for (int i = 0; i < 100; i ++) {
+    Vertex vert = {
+        .coord = {
+          400 + 200 * cosf(2 * (float) M_PI / 100 * (float) i),
+          400 + 200 * sinf(2 * (float) M_PI / 100 * (float) i)
+        },
+        .color = 0xFFFF00FF
+    };
+    Array_append(vertex_array, &vert, 1);
+  }
+  Vertex center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
+  Array_append(vertex_array, &center, 1);
+  task = xglCreateCurveArea2D(vertex_array, 0, true, true, allocator);
+  xglBindShaderProgram(task, shaderProgram);
+  ideWindowAddTasks(mainWindow, task, 1);
+  allocator->free(task);
+
+  Line lines[] = {
+      {{100, 100, 0x00FF00FF},
+       {700, 100, 0x00FF00FF},
+      },
+      {
+        {700, 100, 0x00FF00FF},
+        {700, 500, 0x00FF00FF},
+      },
+      {
+        {700, 500, 0x00FF00FF},
+        {100, 500, 0x00FF00FF},
+      },
+      {
+        {100, 500, 0x00FF00FF},
+        {100, 100, 0x00FF00FF},
+      },
+  };
+  task = xglCreatePixelLines(lines, 5, 0, allocator);
+  xglBindShaderProgram(task, shaderProgram);
+  ideWindowAddTasks(mainWindow, task, 1);
+  allocator->free(task);
   glLineWidth(2);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);

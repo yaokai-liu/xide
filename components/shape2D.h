@@ -12,20 +12,17 @@
 
 #include "array.h"
 
-typedef struct Vertex {
+typedef struct PixelVertex {
   uint32_t coord[2];
   uint32_t color;
 } PixelVertex;
 
-typedef struct FloatVertex {
+typedef struct Vertex {
   float coord[2];
   uint32_t color;
 } Vertex;
 
-typedef struct Line {
-  uint32_t start[2];
-  uint32_t end[2];
-  uint32_t colors[2];
-} Line;
+typedef PixelVertex Line[2];
+float SLine_length(const Line line);
 
 #endif  // XIDE_SHAPE2D_H

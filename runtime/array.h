@@ -51,4 +51,10 @@ uint32_t Array_reset(struct Array *array, void (*fn_free)(void *, const Allocato
 // Maybe cause memory leak if not reset array before destroy it.
 void Array_destroy(struct Array *array);
 
+#define releaseArray(_array)      \
+  do {                            \
+    Array_reset(_array, nullptr); \
+    Array_destroy(_array);        \
+  } while (false)
+
 #endif  // XIDE_ARRAY_H

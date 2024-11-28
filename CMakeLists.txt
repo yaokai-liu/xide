@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 project(xide C)
 
 set(CMAKE_C_STANDARD 11)
-add_compile_options("-O0")
+add_compile_options("-O3")
 add_compile_definitions("nullptr=NULL")
 
 #if(CMAKE_)
