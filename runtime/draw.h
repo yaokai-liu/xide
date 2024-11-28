@@ -31,21 +31,21 @@ typedef struct DrawTask {
   Array *uniforms;  // Array<iXGLVUniform>
 } DrawTask;
 
-DrawTask *xglCreateDrawTask(Array *vertex_array, Array *color_array, Array *index_array,
-                            const Allocator *allocator);
+DrawTask *xglCreateDrawTask(const Array *vertex_array, const Array *color_array,
+                            const Array *index_array, const Allocator *allocator);
 void xglDestroyDrawTask(DrawTask *task);
 
-DrawTask *xglCreatePolygon2D(Array *array, int plane_index, bool solid, const Allocator *allocator);
-DrawTask *xglCreateCurveArea2D(Array *array, int plane_index, bool cycle, bool solid,
+DrawTask *xglCreatePolygon2D(const Array *vertex_array, int plane_index, bool solid,
+                             const Allocator *allocator);
+DrawTask *xglCreateCurveArea2D(const Array *vertex_array, int plane_index, bool cycle, bool solid,
                                const Allocator *allocator);
-
-DrawTask *xglCreatePixelLines(Line *lines, int count, int plane_index, const Allocator *allocator);
-DrawTask *xglCreatePixelPolygon(PixelVertex *vertices, int count, int plane_index, bool solid,
-                                const Allocator *allocator);
-
-DrawTask *xglCreatePolyline2D(Array *vertex_array, int plane_index, bool cycle,
+DrawTask *xglCreatePolyline2D(const Array *vertex_array, int plane_index, bool cycle,
                               const Allocator *allocator);
-DrawTask *xglCreatePixelPolyline(PixelVertex *vertices, int count, int plane_index, bool cycle,
+
+DrawTask *xglCreatePixelLines(const Array *line_array, int plane_index, const Allocator *allocator);
+DrawTask *xglCreatePixelPolygon(const Array *vertex_array, int plane_index, bool solid,
+                                const Allocator *allocator);
+DrawTask *xglCreatePixelPolyline(const Array *vertex_array, int plane_index, bool cycle,
                                  const Allocator *allocator);
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);

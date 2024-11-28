@@ -101,6 +101,7 @@ int main(int argc, char *argv[]) {
   xglBindShaderProgram(task, shaderProgram);
   ideWindowAddTasks(mainWindow, task, 1);
   allocator->free(task);
+  releaseArray(vertex_array);
 
   Line lines[] = {
       {{100, 100, 0x00FF00FF},
@@ -119,10 +120,14 @@ int main(int argc, char *argv[]) {
         {100, 100, 0x00FF00FF},
       },
   };
-  task = xglCreatePixelLines(lines, 5, 0, allocator);
+  Array *line_array = Array_new(sizeof(Line), allocator);
+  Array_append(line_array, lines, 4);
+  task = xglCreatePixelLines(line_array, 0, allocator);
   xglBindShaderProgram(task, shaderProgram);
   ideWindowAddTasks(mainWindow, task, 1);
   allocator->free(task);
+  releaseArray(line_array);
+
   glLineWidth(2);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
