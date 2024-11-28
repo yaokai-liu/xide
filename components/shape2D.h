@@ -15,12 +15,12 @@
 typedef struct Vertex {
   uint32_t coord[2];
   uint32_t color;
-} Vertex;
+} PixelVertex;
 
 typedef struct FloatVertex {
   float coord[2];
   uint32_t color;
-} FloatVertex;
+} Vertex;
 
 typedef struct Line {
   uint32_t start[2];

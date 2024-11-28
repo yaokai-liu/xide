@@ -25,7 +25,7 @@ typedef GLuint iXGLVbo;
 typedef GLuint iXGLIbo;
 typedef GLuint iXGLshProg;
 
-typedef GLfloat XGLVertex[4];
+typedef GLfloat XGLCoord[4];
 typedef GLfloat XGLColor[4];
 typedef GLfloat Matrix[4][4];
 

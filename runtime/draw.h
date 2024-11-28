@@ -35,14 +35,18 @@ DrawTask *xglCreateDrawTask(Array *vertex_array, Array *color_array, Array *inde
                             const Allocator *allocator);
 void xglDestroyDrawTask(DrawTask *task);
 
-DrawTask *xglCreateFloatPolygon(FloatVertex *vertices, int count, int plane_index, bool solid,
+DrawTask *xglCreatePolygon2D(Array *array, int plane_index, bool solid, const Allocator *allocator);
+DrawTask *xglCreateCurveArea2D(Array *array, int plane_index, bool cycle, bool solid,
+                               const Allocator *allocator);
+
+DrawTask *xglCreatePixelLines(Line *lines, int count, int plane_index, const Allocator *allocator);
+DrawTask *xglCreatePixelPolygon(PixelVertex *vertices, int count, int plane_index, bool solid,
                                 const Allocator *allocator);
 
-DrawTask *xglCreateLines(Line *lines, int count, int plane_index, const Allocator *allocator);
-DrawTask *xglCreatePolygon(Vertex *vertices, int count, int plane_index, bool solid,
-                           const Allocator *allocator);
-DrawTask *xglCreatePolyline(Vertex *vertices, int count, int plane_index, bool cycle,
-                            const Allocator *allocator);
+DrawTask *xglCreatePolyline2D(Array *vertex_array, int plane_index, bool cycle,
+                              const Allocator *allocator);
+DrawTask *xglCreatePixelPolyline(PixelVertex *vertices, int count, int plane_index, bool cycle,
+                                 const Allocator *allocator);
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);
 

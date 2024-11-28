@@ -13,6 +13,8 @@
 #include "array.h"
 #include <stdint.h>
 
-Array *xglConvexTriangulate(Array *vertex_array, const Allocator *allocator);
-Array *xglEarClippingTriangulate(const Array *vert_array, const Allocator *allocator);
+Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *allocator);
+
+Array *xglRadialTriangulation2D(const Array *vert_array, bool cycle, const Allocator *allocator);
+
 #endif  // COMPUTATION_GEOMETRY_2D_H

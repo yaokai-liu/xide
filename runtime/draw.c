@@ -26,7 +26,7 @@ inline DrawTask *xglCreateDrawTask(Array *vertex_array, Array *color_array, Arra
 
   iXGLVbo VBOs[3] = {};
   glCreateBuffers(3, VBOs);
-  glNamedBufferStorage(VBOs[0], Array_length(vertex_array) * (GLsizeiptr) sizeof(XGLVertex),
+  glNamedBufferStorage(VBOs[0], Array_length(vertex_array) * (GLsizeiptr) sizeof(XGLCoord),
                        Array_get(vertex_array, 0), 0);
   glNamedBufferStorage(VBOs[1], Array_length(color_array) * (GLsizeiptr) sizeof(XGLColor),
                        Array_get(color_array, 0), 0);
@@ -34,9 +34,9 @@ inline DrawTask *xglCreateDrawTask(Array *vertex_array, Array *color_array, Arra
                        Array_get(index_array, 0), 0);
 
   glVertexArrayAttribBinding(VAO, LOC_VERTEX, 0);
-  glVertexArrayAttribFormat(VAO, LOC_VERTEX, sizeof(XGLVertex) / sizeof(GLfloat), GL_FLOAT,
-                            GL_FALSE, 0);
-  glVertexArrayVertexBuffer(VAO, 0, VBOs[0], 0, sizeof(XGLVertex));
+  glVertexArrayAttribFormat(VAO, LOC_VERTEX, sizeof(XGLCoord) / sizeof(GLfloat), GL_FLOAT, GL_FALSE,
+                            0);
+  glVertexArrayVertexBuffer(VAO, 0, VBOs[0], 0, sizeof(XGLCoord));
 
   glVertexArrayAttribBinding(VAO, LOC_COLOR, 1);
   glVertexArrayAttribFormat(VAO, LOC_COLOR, sizeof(XGLColor) / sizeof(GLfloat), GL_FLOAT, GL_FALSE,
@@ -74,13 +74,12 @@ void xglBindShaderProgram(DrawTask *task, GLuint program) {
   task->program = program;
 }
 
-DrawTask *xglCreateLines(Line *lines, int count, int plane_index,
-                         const Allocator * const allocator) {
-  Array *vertex_array = Array_new(sizeof(XGLVertex), allocator);
+DrawTask *xglCreatePixelLines(Line *lines, int count, int plane_index, const Allocator *allocator) {
+  Array *vertex_array = Array_new(sizeof(XGLCoord), allocator);
   Array *color_array = Array_new(sizeof(XGLColor), allocator);
   Array *index_array = Array_new(sizeof(GLint), allocator);
   for (int i = 0; i < count; i++) {
-    XGLVertex vertices[2] = {};
+    XGLCoord vertices[2] = {};
     XGLColor colors[2] = {};
     GLint indices[2] = {2 * i, 2 * i + 1};
     rgba2XGLColor(lines[i].colors[0], &colors[0]);
@@ -99,6 +98,7 @@ DrawTask *xglCreateLines(Line *lines, int count, int plane_index,
   }
 
   DrawTask * const task = xglCreateDrawTask(vertex_array, color_array, index_array, allocator);
+  task->task_type = TT_LINES;
 
   Array_reset(vertex_array, nullptr);
   Array_reset(color_array, nullptr);
@@ -110,93 +110,147 @@ DrawTask *xglCreateLines(Line *lines, int count, int plane_index,
   return task;
 }
 
-DrawTask *xglCreateFloatPolygon(FloatVertex *vertices, int count, int plane_index, bool solid,
-                           const Allocator *allocator) {
-  Array *vertex_array = Array_new(sizeof(XGLVertex), allocator);
+DrawTask *xglCreatePolygon2D(Array *array, int plane_index, bool solid,
+                             const Allocator *allocator) {
+  const int count = (int) Array_length(array);
+  const Vertex * const vertices = Array_get(array, 0);
+  Array *vert_array = Array_new(sizeof(XGLCoord), allocator);
   Array *color_array = Array_new(sizeof(XGLColor), allocator);
   for (int i = 0; i < count; i++) {
-    XGLVertex vertex = {};
+    XGLCoord vertex = {};
     XGLColor color = {};
     rgba2XGLColor(vertices[i].color, &color);
     vertex[AXIS_X] = vertices[i].coord[AXIS_X];
     vertex[AXIS_Y] = vertices[i].coord[AXIS_Y];
     vertex[AXIS_Z] = atanf((float) plane_index) * 100.0f;
     vertex[AXIS_W] = 0.0f;
-    Array_append(vertex_array, vertex, 1);
+    Array_append(vert_array, vertex, 1);
     Array_append(color_array, color, 1);
   }
-  Array *coord_array = Array_new(sizeof(float[2]), allocator);
-  for (int i = 0; i < count; i++) {
-    const float coord[2] = {
-        (float) vertices[i].coord[AXIS_X],
-        (float) vertices[i].coord[AXIS_Y]
-    };
-    Array_append(coord_array, coord, 1);
-  }
-//  Array *index_array = xglConvexTriangulate(coord_array, allocator);
-  Array *index_array = xglEarClippingTriangulate(coord_array, allocator);
-  Array_reset(coord_array, nullptr);
-  Array_destroy(coord_array);
+  Array *index_array = xglEarClippingTriangulate2D(vert_array, allocator);
 
-  DrawTask *const task = xglCreateDrawTask(vertex_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateDrawTask(vert_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
 
-  Array_reset(vertex_array, nullptr);
+  Array_reset(vert_array, nullptr);
   Array_reset(color_array, nullptr);
   Array_reset(index_array, nullptr);
-  Array_destroy(vertex_array);
+  Array_destroy(vert_array);
   Array_destroy(color_array);
   Array_destroy(index_array);
 
   return task;
 }
 
-
-DrawTask *xglCreatePolygon(Vertex *vertices, int count, int plane_index, bool solid,
-                           const Allocator *allocator) {
-  Array *vertex_array = Array_new(sizeof(XGLVertex), allocator);
+DrawTask *xglCreateCurveArea2D(Array *array, int plane_index, bool cycle, bool solid,
+                               const Allocator *allocator) {
+  const int count = (int) Array_length(array);
+  const Vertex * const vertices = Array_get(array, 0);
+  Array *vert_array = Array_new(sizeof(XGLCoord), allocator);
   Array *color_array = Array_new(sizeof(XGLColor), allocator);
   for (int i = 0; i < count; i++) {
-    XGLVertex vertex = {};
+    XGLCoord vertex = {};
+    XGLColor color = {};
+    rgba2XGLColor(vertices[i].color, &color);
+    vertex[AXIS_X] = vertices[i].coord[AXIS_X];
+    vertex[AXIS_Y] = vertices[i].coord[AXIS_Y];
+    vertex[AXIS_Z] = atanf((float) plane_index) * 100.0f;
+    vertex[AXIS_W] = 0.0f;
+    Array_append(vert_array, vertex, 1);
+    Array_append(color_array, color, 1);
+  }
+  Array *index_array = xglRadialTriangulation2D(vert_array, cycle, allocator);
+
+  DrawTask * const task = xglCreateDrawTask(vert_array, color_array, index_array, allocator);
+  task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
+
+  Array_reset(vert_array, nullptr);
+  Array_reset(color_array, nullptr);
+  Array_reset(index_array, nullptr);
+  Array_destroy(vert_array);
+  Array_destroy(color_array);
+  Array_destroy(index_array);
+
+  return task;
+}
+
+DrawTask *xglCreatePixelPolygon(PixelVertex *vertices, int count, int plane_index, bool solid,
+                                const Allocator *allocator) {
+  Array *vert_array = Array_new(sizeof(XGLCoord), allocator);
+  Array *color_array = Array_new(sizeof(XGLColor), allocator);
+  for (int i = 0; i < count; i++) {
+    XGLCoord vertex = {};
     XGLColor color = {};
     rgba2XGLColor(vertices[i].color, &color);
     vertex[AXIS_X] = (float) vertices[i].coord[AXIS_X];
     vertex[AXIS_Y] = (float) vertices[i].coord[AXIS_Y];
     vertex[AXIS_Z] = atanf((float) plane_index) * 100.0f;
     vertex[AXIS_W] = 0.0f;
-    Array_append(vertex_array, vertex, 1);
+    Array_append(vert_array, vertex, 1);
     Array_append(color_array, color, 1);
   }
-  Array *coord_array = Array_new(sizeof(float[2]), allocator);
-  for (int i = 0; i < count; i++) {
-    const float coord[2] = {(float) vertices[i].coord[AXIS_X], (float) vertices[i].coord[AXIS_Y]};
-    Array_append(coord_array, coord, 1);
-  }
-//  Array *index_array = xglConvexTriangulate(coord_array, allocator);
-  Array *index_array = xglEarClippingTriangulate(coord_array, allocator);
-  Array_reset(coord_array, nullptr);
-  Array_destroy(coord_array);
+  Array *index_array = xglEarClippingTriangulate2D(vert_array, allocator);
 
-  DrawTask * const task = xglCreateDrawTask(vertex_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateDrawTask(vert_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
 
-  Array_reset(vertex_array, nullptr);
+  Array_reset(vert_array, nullptr);
   Array_reset(color_array, nullptr);
   Array_reset(index_array, nullptr);
-  Array_destroy(vertex_array);
+  Array_destroy(vert_array);
   Array_destroy(color_array);
   Array_destroy(index_array);
 
   return task;
 }
 
-DrawTask *xglCreatePolyline(Vertex *vertices, int count, int plane_index, bool cycle,
-                            const Allocator * const allocator) {
-  Array *vertex_array = Array_new(sizeof(XGLVertex), allocator);
+DrawTask *xglCreatePolyline2D(Array *vertex_array, int plane_index, bool cycle,
+                              const Allocator *allocator) {
+  const int count = (int) Array_length(vertex_array);
+  const Vertex * const vertices = Array_get(vertex_array, 0);
+  Array *vert_array = Array_new(sizeof(XGLCoord), allocator);
   Array *color_array = Array_new(sizeof(XGLColor), allocator);
   Array *index_array = Array_new(sizeof(GLint), allocator);
   for (int i = 0; i < count; i++) {
-    XGLVertex vertex = {};
+    XGLCoord vertex = {};
+    XGLColor color = {};
+    rgba2XGLColor(vertices[i].color, &color);
+    vertex[AXIS_X] = vertices[i].coord[AXIS_X];
+    vertex[AXIS_Y] = vertices[i].coord[AXIS_Y];
+    vertex[AXIS_Z] = atanf((float) plane_index) * 100.0f;
+    vertex[AXIS_W] = 0.0f;
+    Array_append(vert_array, vertex, 1);
+    Array_append(color_array, color, 1);
+  }
+  for (int i = 0; i < count - 1; i++) {
+    int indices[2] = {i, i + 1};
+    Array_append(index_array, indices, 2);
+  }
+  if (cycle) {
+    int indices[2] = {count - 1, 0};
+    Array_append(index_array, indices, 2);
+  }
+
+  DrawTask * const task = xglCreateDrawTask(vert_array, color_array, index_array, allocator);
+  task->task_type = TT_POLYLINE;
+
+  Array_reset(vert_array, nullptr);
+  Array_reset(color_array, nullptr);
+  Array_reset(index_array, nullptr);
+  Array_destroy(vert_array);
+  Array_destroy(color_array);
+  Array_destroy(index_array);
+
+  return task;
+}
+
+DrawTask *xglCreatePixelPolyline(PixelVertex *vertices, int count, int plane_index, bool cycle,
+                                 const Allocator *allocator) {
+  Array *vertex_array = Array_new(sizeof(XGLCoord), allocator);
+  Array *color_array = Array_new(sizeof(XGLColor), allocator);
+  Array *index_array = Array_new(sizeof(GLint), allocator);
+  for (int i = 0; i < count; i++) {
+    XGLCoord vertex = {};
     XGLColor color = {};
     rgba2XGLColor(vertices[i].color, &color);
     vertex[AXIS_X] = (float) vertices[i].coord[AXIS_X];
