@@ -8,6 +8,3 @@
  **/
 
 #include "context.h"
-
-Array *DRAW_TASK_ARRAY;
-

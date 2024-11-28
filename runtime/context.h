@@ -12,6 +12,4 @@
 
 #include "draw.h"
 
-extern Array *DRAW_TASK_ARRAY;
-
 #endif  // XIDE_CONTEXT_H
