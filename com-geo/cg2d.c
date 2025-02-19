@@ -143,7 +143,7 @@ inline bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert
 inline bool vertInPolygon(const Array *vert_array, const XGLCoord vert) {
   int count = 0;
   const int n_verts = (int) Array_length(vert_array);
-  const XGLCoord * const vertices = Array_get(vert_array, 0);
+  const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
   for (int i = 0; i < n_verts - 1; i++) {
     const XGLCoord * const edge_verts = &vertices[i];
     count += vertAtLeftOfSegment(edge_verts, vert);
@@ -160,7 +160,7 @@ inline bool vertInTriangle(const XGLCoord angle_verts[3], const XGLCoord vert) {
 
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
   const int count = (int) Array_length(edge_array);
-  struct SharedEdge * const edges = Array_get(edge_array, 0);
+  struct SharedEdge * const edges = Array_real_addr(edge_array, 0);
   for (int i = 0; i < count; i++) {
     if (isSameEdge(edge, &edges[i].edge)) { return &edges[i]; }
   }
@@ -216,8 +216,8 @@ Array *buildVniAndIncArray(const Array * const vert_array, Array * const inc_arr
   const int n_verts = (int) Array_length(vert_array);
   if (n_verts < 3) { return nullptr; }
 
-  Array *pVNI_array = Array_new(sizeof(VNI), allocator);
-  const XGLCoord * const vertices = Array_get(vert_array, 0);
+  Array *pVNI_array = Array_new(sizeof(VNI), -1, allocator);
+  const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
   for (int ndx = 0; ndx < n_verts; ndx++) {
     const int v1 = (ndx + n_verts - 1) % n_verts;
     const int v2 = (ndx + n_verts + 1) % n_verts;
@@ -288,7 +288,7 @@ void legalizeTriangulation(struct Triangle * const triangles, struct SharedEdge 
   } while (false)
 Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *allocator) {
   const int count = (int) Array_length(vert_array);
-  const XGLCoord * const vertices = Array_get(vert_array, 0);
+  const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
 
   // arrays for every vertex that records those angle the vertex in.
   Array *inc_arrays = allocator->calloc(count, sizeof_array);
@@ -298,9 +298,9 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
 
   // allocate triangles
   struct Triangle * const triangles = allocator->calloc(count - 2, sizeof(struct Triangle));
-  Array *edge_array = Array_new(sizeof(struct SharedEdge), allocator);
+  Array *edge_array = Array_new(sizeof(struct SharedEdge), -1, allocator);
 
-  VNI * const vnies = Array_get(pVNI_array, 0);
+  VNI * const vnies = Array_real_addr(pVNI_array, 0);
   int n_triangles = 0;
   VNI *ear_vni = findEarVNI(vnies, count);
   while (ear_vni) {
@@ -334,7 +334,7 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
 
     // update number of inner vertices for angles those include current vertex
     const Array * const inc_array = arrays_get(inc_arrays, ear_vni->index);
-    const int * const indices = Array_get(inc_array, 0);
+    const int * const indices = Array_real_addr(inc_array, 0);
     const int n_indices = (int) Array_length(inc_array);
     for (int i = 0; i < n_indices; i++) { vnies[indices[i]].nInnerVert--; }
 
@@ -342,18 +342,18 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
     ear_vni = findEarVNI(vnies, count);
   }
   const int n_edges = (int) Array_length(edge_array);
-  struct SharedEdge * const edges = Array_get(edge_array, 0);
+  struct SharedEdge * const edges = Array_real_addr(edge_array, 0);
   legalizeTriangulation(triangles, edges, n_edges);
-  releaseArray(edge_array);
+  releasePrimeArray(edge_array);
 
-  Array *index_array = Array_new(sizeof(int), allocator);
+  Array *index_array = Array_new(sizeof(int), -1, allocator);
   for (int i = 0; i < n_triangles; i++) {
     const struct Triangle *triangle = &triangles[i];
     Array_append(index_array, &(triangle->indices), 3);
   }
   allocator->free(triangles);
 
-  releaseArray(pVNI_array);
+  releasePrimeArray(pVNI_array);
   for (int i = 0; i < count; i++) { Array_reset(arrays_get(inc_arrays, i), nullptr); }
   allocator->free(inc_arrays);
 
@@ -374,9 +374,9 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
   } while (false)
 Array *xglRadialTriangulation2D(const Array *vert_array, bool cycle, const Allocator *allocator) {
   const int n_verts = (int) Array_length(vert_array);
-  const XGLCoord * const vertices = Array_get(vert_array, 0);
+  const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
   if (n_verts < 4) {
-    Array *index_array = Array_new(sizeof(int), allocator);
+    Array *index_array = Array_new(sizeof(int), -1, allocator);
     int indices[3] = {0, 1, 2};
     Array_append(index_array, indices, 3);
     return index_array;
@@ -408,7 +408,7 @@ Array *xglRadialTriangulation2D(const Array *vert_array, bool cycle, const Alloc
   }
   legalizeTriangulation(triangles, edges, n_triangles);
 
-  Array *index_array = Array_new(sizeof(int), allocator);
+  Array *index_array = Array_new(sizeof(int), -1, allocator);
   for (int i = 0; i < n_triangles; i++) {
     const struct Triangle *triangle = &triangles[i];
     Array_append(index_array, &(triangle->indices), 3);

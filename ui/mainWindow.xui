@@ -1,5 +1,5 @@
 
-mainWindow = Window(0, 0, width, height) [] {
+mainWindow = Window([0, 0, width, height]) [] {
     !loadPreset();
     .topBar = () <> {};
     .rightBar = () <> {};

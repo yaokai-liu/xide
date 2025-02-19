@@ -11,8 +11,9 @@
 #define XIDE_SHADER_H
 
 #include "allocator.h"
+#include "char_t.h"
 #include "glad/glad.h"
 
-GLuint compileShader(char *path, GLenum type, const Allocator *allocator);
+GLuint compileShader(const char_t *path, GLenum type, const Allocator *allocator);
 
 #endif  // XIDE_SHADER_H

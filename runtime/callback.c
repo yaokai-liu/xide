@@ -11,26 +11,27 @@
 #include "widgets.h"
 #include <stdbool.h>
 #include <stdio.h>
-extern iXGLshProg BUILTIN_GRADUAL_SHADER_PROGRAM;
+
 void ideSetWindowSize(GLFWwindow *handle, int width, int height) {
   glViewport(0, 0, width, height);
   IdeWindow *window = glfwGetWindowUserPointer(handle);
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
-  window->viewport[0] = (float) viewport[0];
-  window->viewport[1] = (float) viewport[1];
-  window->viewport[2] = (float) viewport[2];
-  window->viewport[3] = (float) viewport[3];
+  window->info.viewport[0] = (float) viewport[0];
+  window->info.viewport[1] = (float) viewport[1];
+  window->info.viewport[2] = (float) viewport[2];
+  window->info.viewport[3] = (float) viewport[3];
 }
 
 void ideWindowRefreshCallback(GLFWwindow *handle) {
   IdeWindow *window = glfwGetWindowUserPointer(handle);
-  ideDrawUI(window);
+  ideDrawUiOnce(window);
   glFinish();
 }
 
-void ideProcessInput(GLFWwindow *window) {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(window, true); }
+void ideProcessInput(IdeWindow *window) {
+  GLFWwindow *handle = window->info.handle;
+  if (glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(handle, true); }
 }
 
 void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,

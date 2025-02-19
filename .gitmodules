@@ -1,3 +1,7 @@
 [submodule "glfw"]
 	path = glfw
 	url = git@github.com:yaokai-liu/glfw.git
+[submodule "meman"]
+	path = meman
+	url = git@github.com:yaokai-liu/meman.git
+	branch = LIU

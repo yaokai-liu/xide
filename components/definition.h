@@ -39,6 +39,13 @@ enum CONFIG {
   CONFIG_H = 3
 };
 
+enum WIDGET_STATUS {
+  PLAIN = 0,
+  ON_FOCUS = 1,
+  ON_HOVER = 2,
+  ON_CLICK = 3,
+};
+
 // Do not promise that direction order will be clockwise or counter-clockwise.
 enum VERTEX {
   VERTEX_LT = 0,

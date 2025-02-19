@@ -12,15 +12,15 @@
 
 #include "allocator.h"
 #include "array.h"
+#include "char_t.h"
 #include "widget.h"
 #include <stdint.h>
 
 struct WinMetaInfo {
-  uint32_t posX;
-  uint32_t posY;
-  uint32_t width;
-  uint32_t height;
   void *handle;
+  int geometry[4];
+  float viewport[4];
+  const char_t *title;
 };
 
 typedef struct Dialog {
@@ -31,13 +31,15 @@ typedef struct Dialog {
 typedef struct MainWindow {
   struct WinMetaInfo info;
   const Allocator *allocator;
+  const char_t *workdir;
+  Array *drawTaskArray;  // Array<DrawTask>
+  Array *shaderArray;  // Array<GLuint>
+  Array *shaderProgramArray;  // Array<GLuint>
   Widget *topBar;
   Widget *rightBar;
   Widget *bottomBar;
   Widget *leftBar;
   Widget *central;
-  Array *drawTaskList;  // Array<DrawTask>
-  float viewport[4];
 } IdeWindow;
 
 #endif  // XIDE_WINDOW_H

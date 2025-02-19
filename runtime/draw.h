@@ -33,13 +33,13 @@ typedef struct DrawTask {
 
 DrawTask *xglCreateDrawTask(const Array *vertex_array, const Array *color_array,
                             const Array *index_array, const Allocator *allocator);
-void xglDestroyDrawTask(DrawTask *task);
+void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
-DrawTask *xglCreatePolygon2D(const Array *vertex_array, int plane_index, bool solid,
+DrawTask *xglCreatePolygon2D(const Array *vertex_array, float plane_index, bool solid,
                              const Allocator *allocator);
-DrawTask *xglCreateCurveArea2D(const Array *vertex_array, int plane_index, bool cycle, bool solid,
+DrawTask *xglCreateCurveArea2D(const Array *vertex_array, float plane_index, bool cycle, bool solid,
                                const Allocator *allocator);
-DrawTask *xglCreatePolyline2D(const Array *vertex_array, int plane_index, bool cycle,
+DrawTask *xglCreatePolyline2D(const Array *vertex_array, float plane_index, bool cycle,
                               const Allocator *allocator);
 
 DrawTask *xglCreatePixelLines(const Array *line_array, int plane_index, const Allocator *allocator);
@@ -50,9 +50,9 @@ DrawTask *xglCreatePixelPolyline(const Array *vertex_array, int plane_index, boo
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);
 
-void xglDrawLines(const DrawTask *task, const GLfloat viewportSize[2]);
-void xglDrawArea(const DrawTask *task, const GLfloat viewportSize[2]);
-void xglDrawPolyline(const DrawTask *task, const GLfloat viewportSize[2]);
+void xglDrawLines(const DrawTask *task, const GLfloat viewport[2]);
+void xglDrawArea(const DrawTask *task, const GLfloat viewport[2]);
+void xglDrawPolyline(const DrawTask *task, const GLfloat viewport[2]);
 void xglDraw(const DrawTask *task, const IdeWindow *window);
 
 #endif  // XIDE_DRAW_H

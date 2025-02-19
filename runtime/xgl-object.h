@@ -13,6 +13,30 @@
 #include "array.h"
 #include "glad/glad.h"
 
+enum OBJECT : uint32_t {
+  enum_NONE = 0x00,
+  enum_XGL_VAO = 0x0001,
+  enum_XGL_VBO = 0x0002,
+  enum_XGL_EBO = 0x0003,
+
+  enum_XGL_VERTEX = 0x0010,
+  enum_XGL_COLOR = 0x0020,
+  enum_XGL_TEXTURE = 0x0030,
+  enum_XGL_INDEX = 0x0040,
+
+  enum_XGL_UNIFORM = 0x0100,
+
+  enum_XGL_POINT = 0x1000,
+  enum_XGL_LINE = 0x2000,
+  enum_XGL_AERA = 0x3000,
+
+  enum_XGL_DRAW_TASK = 0x00010000,
+  enum_XGL_SHADER_PROG = 0x00020000,
+  enum_XGL_SHADER = 0x00030000,
+
+  enum_ANY = 0xffffffff,
+};
+
 enum LOCATION_LAYER {
   LOC_VERTEX = 0,
   LOC_COLOR = 1,

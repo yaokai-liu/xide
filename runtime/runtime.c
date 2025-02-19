@@ -8,70 +8,175 @@
  **/
 
 #include "runtime.h"
+#include "char_t.h"
+#include "shader.h"
+#include <minmax.h>
+#include <pthread.h>
 #include <stdio.h>
 
-GLFWmonitor *switchMonitor(int index, int *width, int *height) {
+GLuint ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t count) {
+  int status;
+  // shader program
+  GLuint shaderProgram = glCreateProgram();
+  for (int i = 0; i < min(4, count); i++) {
+    const char_t *path = shaderInfo[i].path;
+    const GLenum type = shaderInfo[i].type;
+    if (path && type) {
+      GLuint shader = compileShader(path, type, window->allocator);
+      glAttachShader(shaderProgram, shader);
+      glDeleteShader(shader);
+    } else if (!path) {
+      rt_message("not given shader file path for type %d, skip", type);
+    } else {
+      rt_message("not given type %d of shader, skip", type);
+    }
+  }
+  glLinkProgram(shaderProgram);
+  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
+  if (!status) {
+    GLchar infoLog[512];
+    glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+    rt_error("Failed to link shader program: \n%s", infoLog);
+    glfwTerminate();
+    return -1;
+  }
+  Array_append(window->shaderProgramArray, &shaderProgram, 1);
+  return shaderProgram;
+}
+
+int initializeGlad() {
+  int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+  if (!status) {
+    rt_error("failed to initialize GLAD%s", "");
+    return -1;
+  }
+  rt_message("OpenGL Vendor: %s", glGetString(GL_VENDOR));
+  rt_message("Using OpenGL Version: %s", glGetString(GL_VERSION));
+  int flags;
+  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+  if (flags) {
+    rt_message("%s", "Debug Enabled");
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(xglDebugOutput, nullptr);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+  }
+  return 0;
+}
+
+void switchWindow(IdeWindow *window) {
+  glfwMakeContextCurrent(window->info.handle);
+  glfwSwapInterval(1);
+}
+
+GLFWmonitor *switchMonitor(int index) {
   int monitorCount;
   GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
   rt_message("found monitors: %d", monitorCount);
   for (int i = 0; i < monitorCount; i++) {
     const GLFWvidmode *mode = glfwGetVideoMode(monitors[i]);
-    rt_message("size of monitor[i]: %dx%d", mode->width, mode->height);
+    rt_message("size of monitor[%d]: %dx%d", i, mode->width, mode->height);
   }
   GLFWmonitor *monitor = monitors[index];
   const GLFWvidmode *mode = glfwGetVideoMode(monitors[index]);
-  *width = mode->width;
-  *height = mode->height;
-  rt_message("switch to monitor[i]: %dx%d", mode->width, mode->height);
+  rt_message("switch to monitor[%d]: %dx%d", index, mode->width, mode->height);
   return monitor;
 }
 
-void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int count) {
-  Array_append(window->drawTaskList, task, count);
+void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int shaderProgramId) {
+  const GLuint * const sp = Array_real_addr(window->shaderProgramArray, shaderProgramId);
+  xglBindShaderProgram(task, *sp);
+  Array_append(window->drawTaskArray, task, 1);
 }
 
-void ideDrawUI(IdeWindow *window) {
+void ideDrawUiOnce(IdeWindow *window) {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-  const int n_tasks = (int) Array_length(window->drawTaskList);
-  const DrawTask *tasks = Array_get(window->drawTaskList, 0);
-  for (int i = 0; i < n_tasks; i++) { xglDraw(&tasks[i], window); }
+  const uint32_t n_tasks = Array_length(window->drawTaskArray);
+  const DrawTask *tasks = Array_real_addr(window->drawTaskArray, 0);
+  for (uint32_t i = 0; i < n_tasks; i++) { xglDraw(&tasks[i], window); }
   glfwSwapBuffers(window->info.handle);
 }
 
-IdeWindow *ideCreateWindow(GLFWwindow *handle, const Allocator *allocator) {
+inline void ideSetWindowTitle(IdeWindow *handle, const char_t *title) {
+  handle->info.title = title;
+}
+
+IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title,
+                           const Allocator *allocator) {
   // TODO: loadPluginsFrom(directory) async;
   // TODO: loadProjectFrom(directory) async;
   // TODO: setupUiFrom(filepath) main thread;
-  IdeWindow *window = allocator->calloc(1, sizeof(IdeWindow));
-  window->info.handle = handle;
-  int pos_x, pos_y, width, height;
-  glfwGetWindowPos(handle, &pos_x, &pos_y);
-  glfwGetWindowSize(handle, &width, &height);
+
+  GLFWwindow *handle = glfwCreateWindow(width, height, title, NULL, NULL);
+  // make context
+  glfwMakeContextCurrent(handle);
+  // set swap interval
+  glfwSwapInterval(1);
+  // initialize glad
+  if (initializeGlad()) { return nullptr; }
+  // set opengl viewport
+  glViewport(0, 0, width, height);
+
+  glfwSetWindowSizeCallback(handle, ideSetWindowSize);
+  glfwSetWindowRefreshCallback(handle, ideWindowRefreshCallback);
+
+  IdeWindow * const window = allocator->calloc(1, sizeof(IdeWindow));
   glfwSetWindowUserPointer(handle, window);
-  window->info.posX = pos_x;
-  window->info.posY = pos_y;
-  window->info.width = width;
-  window->info.height = height;
 
-  GLint viewport[4] = {};
-  glGetIntegerv(GL_VIEWPORT, viewport);
-  window->viewport[0] = (float) viewport[0];
-  window->viewport[1] = (float) viewport[1];
-  window->viewport[2] = (float) viewport[2];
-  window->viewport[3] = (float) viewport[3];
+  window->info.handle = handle;
 
-  window->drawTaskList = Array_new(sizeof(DrawTask), allocator);
+  int pos_x, pos_y;
+  glfwGetWindowPos(handle, &pos_x, &pos_y);
+  window->info.geometry[0] = pos_x;
+  window->info.geometry[0] = pos_y;
+  window->info.geometry[0] = width;
+  window->info.geometry[0] = height;
+
+  window->info.title = title;
+
+  GLint viewport[4] = {0, 0, width, height};
+  window->info.viewport[0] = (float) viewport[0];
+  window->info.viewport[1] = (float) viewport[1];
+  window->info.viewport[2] = (float) viewport[2];
+  window->info.viewport[3] = (float) viewport[3];
+
+  window->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
+  window->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
+  window->shaderArray = Array_new(sizeof(GLuint), enum_XGL_SHADER, allocator);
+
   window->allocator = allocator;
+
   return window;
 }
 
 void ideDestroyWindow(IdeWindow *window) {
-  const int n_tasks = (int) Array_length(window->drawTaskList);
-  DrawTask *tasks = Array_get(window->drawTaskList, 0);
-  for (int i = 0; i < n_tasks; i++) { xglDestroyDrawTask(&tasks[i]); }
-  Array_reset(window->drawTaskList, nullptr);
-  Array_destroy(window->drawTaskList);
+  Array_reset(window->drawTaskArray, (destruct_t *) xglDestroyDrawTask);
+  Array_destroy(window->drawTaskArray);
+  releasePrimeArray(window->shaderProgramArray);
   glfwDestroyWindow(window->info.handle);
   window->allocator->free(window);
+}
+
+void *ideRepeatDrawUi(IdeWindow *window) {
+  while (!ideShouldStopRender(window)) {
+    ideProcessInput(window);
+    ideDrawUiOnce(window);
+    glfwPollEvents();
+  }
+  return nullptr;
+}
+
+bool ideShouldStopRender(IdeWindow *window) {
+  return glfwWindowShouldClose(window->info.handle);
+}
+
+void ideShow(IdeWindow *window) {
+  ideDrawUiOnce(window);
+  pthread_t uiThread;
+  pthread_create(&uiThread, nullptr, (void *(*) (void *) ) ideRepeatDrawUi, window);
+  pthread_detach(uiThread);
+  while (!ideShouldStopRender(window)) { glfwPollEvents(); }
+  void *res;
+  pthread_join(uiThread, &res);
 }

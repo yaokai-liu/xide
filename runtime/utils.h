@@ -13,7 +13,7 @@
 #include "glad/glad.h"
 #include "xgl-object.h"
 
-float XGL_normalize(float *vertex, int dim);
+float xglNormalize(float *vertex, int dim);
 
 void rgba2XGLColor(uint32_t rgba, XGLColor *gl_color);
 

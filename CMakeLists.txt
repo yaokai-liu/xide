@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(xide C)
 
-set(CMAKE_C_STANDARD 11)
-add_compile_options("-O3")
+set(CMAKE_C_STANDARD 23)
+#add_compile_options("-O3")
 add_compile_definitions("nullptr=NULL")
 
 #if(CMAKE_)
@@ -23,11 +23,17 @@ include_directories(
         components
         style
         com-geo
+        meman
 )
+
+aux_source_directory(meman MEMAN_SRC)
+add_library(meman SHARED ${MEMAN_SRC})
+
+link_libraries(meman)
 
 aux_source_directory(runtime RT_SRC)
 add_library(runtime STATIC ${RT_SRC})
-target_link_libraries(runtime PRIVATE com-geo components)
+target_link_libraries(runtime PRIVATE com-geo components style)
 
 aux_source_directory(components UI_SRC)
 add_library(components STATIC ${UI_SRC})

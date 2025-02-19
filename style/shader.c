@@ -11,7 +11,7 @@
 #include "runtime.h"
 #include <stdio.h>
 
-GLuint compileShader(char *path, GLenum type, const Allocator *allocator) {
+GLuint compileShader(const char_t *path, const GLenum type, const Allocator *allocator) {
   FILE *file = NULL;
   if (fopen_s(&file, path, "r") != 0) {
     rt_error("Failed to open shader file: '%s'", path);

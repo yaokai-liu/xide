@@ -24,15 +24,27 @@
 void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                              const GLchar *message, const void *userParam);
 
-GLFWmonitor *switchMonitor(int index, int *width, int *height);
+typedef struct {
+  char_t *path;
+  GLenum type;
+} ShaderInfo;
+GLuint ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t count);
+int initializeGlad();
+GLFWmonitor *switchMonitor(int index);
+void switchWindow(IdeWindow *window);
 
+void ideSetWindowTitle(IdeWindow *handle, const char_t *title);
 void ideSetWindowSize(GLFWwindow *handle, int width, int height);
 void ideWindowRefreshCallback(GLFWwindow *handle);
-void ideProcessInput(GLFWwindow *window);
-IdeWindow *ideCreateWindow(GLFWwindow *handle, const Allocator *allocator);
+void ideProcessInput(IdeWindow *window);
+IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title,
+                           const Allocator *allocator);
 void ideDestroyWindow(IdeWindow *window);
 
-void ideDrawUI(IdeWindow *window);
-void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int count);
+void ideDrawUiOnce(IdeWindow *window);
+void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int shaderProgramId);
+
+bool ideShouldStopRender(IdeWindow *window);
+void ideShow(IdeWindow *window);
 
 #endif  // XIDE_RUNTIME_H

@@ -18,10 +18,11 @@ void rgba2XGLColor(uint32_t rgba, XGLColor *gl_color) {
   (*gl_color)[CAX_A] = (float) ((rgba >> 0x00) & 255) / 255.0f;
 }
 
-float XGL_normalize(float *vertex, int dim) {
+float xglNormalize(float *vertex, int dim) {
   float norm = 0;
   for (int i = 0; i < dim; i++) { norm += vertex[i] * vertex[i]; }
   norm = sqrtf(norm);
   for (int i = 0; i < dim; i++) { vertex[i] /= norm; }
   return norm;
 }
+
