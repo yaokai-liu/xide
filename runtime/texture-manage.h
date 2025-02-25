@@ -1,0 +1,44 @@
+/* License
+ *
+ * ${PROJ_DESCRIPTION}
+ * Copyright (C) 2025 Yaokai Liu
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *
+ * Project Name: xide
+ * Module Name: runtime
+ * Filename: texture-manage.h
+ * Creator: Yaokai Liu
+ * Create Date: 2025-02-25
+ * Copyright (c) 2025 Yaokai Liu. All rights reserved.
+ **/
+
+#ifndef XIDE_TEXTURE_MANAGE_H
+#define XIDE_TEXTURE_MANAGE_H
+
+#include "allocator.h"
+#include "array.h"
+#include <stdint.h>
+
+typedef struct TextureAtlas {
+  uint32_t unit;
+  uint32_t texture;
+  uint32_t width;
+  uint32_t height;
+} TextureAtlas;
+
+typedef Array /*<TextureAtlas>*/ TextureAtlasManager;
+
+#endif  // XIDE_TEXTURE_MANAGE_H

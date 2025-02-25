@@ -33,10 +33,12 @@
 #include "widgets.h"
 #include "xgl-object.h"
 
-#define rt_error(fmt, ...)   fprintf(stderr, "[ERROR] " fmt ".\n", __VA_ARGS__)
-#define rt_message(fmt, ...) fprintf(stdout, "[INFO] " fmt ".\n", __VA_ARGS__)
-#define rt_warning(fmt, ...) fprintf(stdout, "[WARNING] " fmt ".\n", __VA_ARGS__)
-#define rt_debug(fmt, ...)   fprintf(stdout, "[DEBUG] " fmt ".\n", __VA_ARGS__)
+#define REFER(a)             a *
+
+#define rt_error(fmt, ...)   fprintf(stderr, "[ERROR] " fmt ".\n", ##__VA_ARGS__)
+#define rt_message(fmt, ...) fprintf(stdout, "[INFO] " fmt ".\n", ##__VA_ARGS__)
+#define rt_warning(fmt, ...) fprintf(stdout, "[WARNING] " fmt ".\n", ##__VA_ARGS__)
+#define rt_debug(fmt, ...)   fprintf(stdout, "[DEBUG] " fmt ".\n", ##__VA_ARGS__)
 
 void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                              const GLchar *message, const void *userParam);
@@ -45,7 +47,7 @@ typedef struct {
   char_t *path;
   GLenum type;
 } ShaderInfo;
-GLuint ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t count);
+GLuint *ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t count);
 int initializeGlad();
 GLFWmonitor *switchMonitor(int index);
 void switchWindow(IdeWindow *window);
@@ -54,12 +56,11 @@ void ideSetWindowTitle(IdeWindow *handle, const char_t *title);
 void ideSetWindowSize(GLFWwindow *handle, int width, int height);
 void ideWindowRefreshCallback(GLFWwindow *handle);
 void ideProcessInput(IdeWindow *window);
-IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title,
-                           const Allocator *allocator);
+IdeWindow *ideCreateWindow(int width, int height, const char_t *title, const Allocator *allocator);
 void ideDestroyWindow(IdeWindow *window);
 
 void ideDrawUiOnce(IdeWindow *window);
-void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int shaderProgramId);
+void ideWindowAddTasks(IdeWindow *window, DrawTask *task, GLuint *shaderProgram);
 
 bool ideShouldStopRender(IdeWindow *window);
 void ideShow(IdeWindow *window);

@@ -29,17 +29,30 @@
 
 #include "array.h"
 
-typedef struct PixelVertex {
+typedef struct PixelVertex2D {
   uint32_t coord[2];
   uint32_t color;
-} PixelVertex;
+} PixelVertex2D;
 
-typedef struct Vertex {
+typedef struct Vertex2D {
   float coord[2];
   uint32_t color;
-} Vertex;
+} Vertex2D;
 
-typedef PixelVertex Line[2];
+typedef struct PixelRect2D {
+  uint32_t leftUp[2];
+  uint32_t rightDown[2];
+  uint32_t radius[4];
+} PixelRect2D;
+
+typedef struct Rect2D {
+  float leftUp[2];
+  float rightDown[2];
+  float radius[4];
+  uint32_t color;
+} Rect2D;
+
+typedef PixelVertex2D Line[2];
 float SLine_length(const Line line);
 
 #endif  // XIDE_SHAPE2D_H

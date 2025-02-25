@@ -28,14 +28,16 @@
 #define XIDE_DRAW_H
 
 #include "array.h"
+#include "texture-manage.h"
 #include "widgets.h"
 #include "xgl-object.h"
 
 enum TASK_TYPE_ENUM {
   TT_LINES = 1,
-  TT_SOLID_AREA = 2,
-  TT_TRIANGULATED_AREA = 3,
-  TT_POLYLINE = 4,
+  TT_SOLID_AREA,
+  TT_TRIANGULATED_AREA,
+  TT_POLYLINE,
+  TT_TEXT,
 };
 
 typedef struct DrawTask {
@@ -46,10 +48,15 @@ typedef struct DrawTask {
   GLsizei n_index;
   Array *VBOs;  // Array<iXGLVbo>
   Array *uniforms;  // Array<iXGLVUniform>
+  uint32_t texture;
+  uint32_t texture_unit;
 } DrawTask;
 
-DrawTask *xglCreateDrawTask(const Array *vertex_array, const Array *color_array,
-                            const Array *index_array, const Allocator *allocator);
+DrawTask *xglCreateIndexedDrawTask(const Array *vertex_array, const Array *color_array,
+                                   const Array *index_array, const Allocator *allocator);
+DrawTask *xglCreateTexturedDrawTask(const Array * const vertex_array,
+                                    const Array * const color_array, const Array * const tex_array,
+                                    const Array *index_array, const Allocator * const allocator);
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
 DrawTask *xglCreatePolygon2D(const Array *vertex_array, float plane_index, bool solid,
@@ -60,10 +67,10 @@ DrawTask *xglCreatePolyline2D(const Array *vertex_array, float plane_index, bool
                               const Allocator *allocator);
 
 DrawTask *xglCreatePixelLines(const Array *line_array, int plane_index, const Allocator *allocator);
-DrawTask *xglCreatePixelPolygon(const Array *vertex_array, int plane_index, bool solid,
-                                const Allocator *allocator);
-DrawTask *xglCreatePixelPolyline(const Array *vertex_array, int plane_index, bool cycle,
-                                 const Allocator *allocator);
+DrawTask *xglCreatePixelPolygon2D(const Array *vertex_array, int plane_index, bool solid,
+                                  const Allocator *allocator);
+DrawTask *xglCreatePixelPolyline2D(const Array *vertex_array, int plane_index, bool cycle,
+                                   const Allocator *allocator);
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);
 

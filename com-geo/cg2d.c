@@ -181,7 +181,7 @@ struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
   for (int i = 0; i < count; i++) {
     if (isSameEdge(edge, &edges[i].edge)) { return &edges[i]; }
   }
-  return NULL;
+  return nullptr;
 }
 
 #define angle_cross(angle_verts)                             \

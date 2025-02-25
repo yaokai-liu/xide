@@ -1,8 +1,39 @@
+/**
+ * xide - An integrated development environment
+ * Copyright (C) 2024 Yaokai Liu
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *
+ * Project Name: xide
+ * Module Name:
+ * Filename: main.c
+ * Creator: Yaokai Liu
+ * Create Date: 2025-2-22
+ * Copyright (c) 2024 Yaokai Liu. All rights reserved.
+ **/
+
+#include "ft2build.h"
 #include "runtime.h"
+#include "shader.h"
+#include <math.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <math.h>
-#include "shader.h"
+#include FT_FREETYPE_H
+#include "enum.h"
+#include "ide.h"
+#include "print.h"
 
 int main(int argc, char *argv[]) {
   const Allocator * const allocator = &STDAllocator;
@@ -11,9 +42,7 @@ int main(int argc, char *argv[]) {
   {
     int length = 0;
     for (int i = 0; argv[0][i]; i++) {
-      if (argv[0][i] == '\\' || argv[0][i] == '/') {
-        length = i;
-      }
+      if (argv[0][i] == '\\' || argv[0][i] == '/') { length = i; }
     }
     allocator->memcpy(workdir, argv[0], length);
     workdir[length] = '\0';
@@ -37,15 +66,14 @@ int main(int argc, char *argv[]) {
   }
   mainWindow->workdir = workdir;
   ShaderInfo shaderInfos[] = {
-          {"shader/vert-default.glsl", GL_VERTEX_SHADER},
-          {"shader/frag-default.glsl", GL_FRAGMENT_SHADER}
+    {"shaders/vert-default.glsl", GL_VERTEX_SHADER  },
+    {"shaders/frag-default.glsl", GL_FRAGMENT_SHADER}
   };
-  ideCompileShaders(mainWindow, shaderInfos, 2);
-
+  GLuint *shader = ideCompileShaders(mainWindow, shaderInfos, 2);
 
   DrawTask *task;
 
-  Vertex vertices[] = {
+  Vertex2D vertices[] = {
     {.coord = {200.0f, 400.0f}, .color = 0xFFFFFFFF},
     {.coord = {300.0f, 200.0f}, .color = 0xFF00FFFF},
     {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF},
@@ -57,53 +85,72 @@ int main(int argc, char *argv[]) {
     {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
     {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
   };
-  Array *vertex_array = Array_new(sizeof(Vertex), enum_XGL_VERTEX, allocator);
-  Array_append(vertex_array, vertices, 10);
-  task = xglCreatePolygon2D(vertex_array, 0, false, allocator);
-  ideWindowAddTasks(mainWindow, task, 0);
-  allocator->free(task);
-  Array_reset(vertex_array, nullptr);
+  Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_VERTEX, allocator);
+  //  Array_append(vertex_array, vertices, 10);
+  //  task = xglCreatePolygon2D(vertex_array, 0, false, allocator);
+  //  ideWindowAddTasks(mainWindow, task, shader);
+  //  allocator->free(task);
+  //  Array_reset(vertex_array, nullptr);
 
-  for (int i = 0; i < 100; i ++) {
-    Vertex vert = {
-        .coord = {
-          400 + 200 * cosf(2 * (float) M_PI / 100 * (float) i),
-          400 + 200 * sinf(2 * (float) M_PI / 100 * (float) i)
-        },
-        .color = 0xFFFF00FF
-    };
-    Array_append(vertex_array, &vert, 1);
-  }
-  Vertex center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
-  Array_append(vertex_array, &center, 1);
-  task = xglCreateCurveArea2D(vertex_array, 0, true, true, allocator);
-  ideWindowAddTasks(mainWindow, task, 0);
-  allocator->free(task);
-  releasePrimeArray(vertex_array);
+  //  for (int i = 0; i < 100; i ++) {
+  //    Vertex2D vert = {
+  //        .coord = {
+  //          400 + 200 * cosf(2 * (float) M_PI / 100 * (float) i),
+  //          400 + 200 * sinf(2 * (float) M_PI / 100 * (float) i)
+  //        },
+  //        .color = 0xFFFF00FF
+  //    };
+  //    Array_append(vertex_array, &vert, 1);
+  //  }
+  //  Vertex2D center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
+  //  Array_append(vertex_array, &center, 1);
+  //  task = xglCreateCurveArea2D(vertex_array, 0, true, true, allocator);
+  //  ideWindowAddTasks(mainWindow, task, 0);
+  //  allocator->free(task);
+  //  releasePrimeArray(vertex_array);
 
   Line lines[] = {
-      {{100, 100, 0x00FF00FF},
-       {700, 100, 0x00FF00FF},
-      },
-      {
-        {700, 100, 0x00FF00FF},
-        {700, 500, 0x00FF00FF},
-      },
-      {
-        {700, 500, 0x00FF00FF},
-        {100, 500, 0x00FF00FF},
-      },
-      {
-        {100, 500, 0x00FF00FF},
-        {100, 100, 0x00FF00FF},
-      },
+    {
+     {100, 100, 0x00FF00FF},
+     {700, 100, 0x00FF00FF},
+     },
+    {
+     {700, 100, 0x00FF00FF},
+     {700, 500, 0x00FF00FF},
+     },
+    {
+     {700, 500, 0x00FF00FF},
+     {100, 500, 0x00FF00FF},
+     },
+    {
+     {100, 500, 0x00FF00FF},
+     {100, 100, 0x00FF00FF},
+     },
   };
-  Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
-  Array_append(line_array, lines, 4);
-  task = xglCreatePixelLines(line_array, 0, allocator);
-  ideWindowAddTasks(mainWindow, task, 0);
-  allocator->free(task);
-  releasePrimeArray(line_array);
+  //  Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
+  //  Array_append(line_array, lines, 4);
+  //  task = xglCreatePixelLines(line_array, 0, allocator);
+  //  ideWindowAddTasks(mainWindow, task, 0);
+  //  allocator->free(task);
+  //  releasePrimeArray(line_array);
+
+  IDE *ide = IDE_new(allocator);
+  Font font = {
+    .path = "C:\\Users\\16975\\Downloads\\SourceHanSerifSC-VF.ttf", .index = 0, .size = 32};
+  ShaderInfo shaderInfos2[] = {
+    {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
+    {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
+  };
+  shader = ideCompileShaders(mainWindow, shaderInfos2, 2);
+
+  Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
+  Array_append(char_array, "BC", 2);
+  Vertex2D vertices2[] = {
+    {.coord = {400.0f, 400.0f}, .color = 0xFFFFFFFF},
+  };
+  Array_append(vertex_array, vertices2, 1);
+  task = ideCreatePrint2D(ide, char_array, vertex_array, 0, &font);
+  ideWindowAddTasks(mainWindow, task, shader);
 
   glLineWidth(1);
   glEnable(GL_MULTISAMPLE);

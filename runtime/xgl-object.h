@@ -30,8 +30,8 @@
 #include "array.h"
 #include "glad/glad.h"
 
-enum OBJECT : uint32_t {
-  enum_NONE = 0x00,
+enum XGL_OBJECT : uint32_t {
+  enum_XGL_NONE = 0x00,
   enum_XGL_VAO = 0x0001,
   enum_XGL_VBO = 0x0002,
   enum_XGL_EBO = 0x0003,
@@ -58,7 +58,8 @@ enum LOCATION_LAYER {
   LOC_VERTEX = 0,
   LOC_COLOR = 1,
   LOC_TEXTURE = 2,
-  LOC_WINDOW_SIZE = 3,
+  LOC_VIEWPORT = 3,
+  LOC_TEX_UNIT = 4,
 };
 
 typedef GLuint iXGLVao;
@@ -68,6 +69,8 @@ typedef GLuint iXGLshProg;
 
 typedef GLfloat XGLCoord[4];
 typedef GLfloat XGLColor[4];
+typedef GLfloat XGLTexCoord[2];
+typedef uint32_t XGLRgba;
 typedef GLfloat Matrix[4][4];
 
 enum UNIFORM_DATA_TYPE {
@@ -97,7 +100,7 @@ enum UNIFORM_SHAPE {
   US_4x4M,
 };
 
-#define uniform_type(u_shape, u_dtype) ((u_dtype) << 5 | (u_shape & 0x1f))
+#define uniform_type(u_shape, u_dtype) ((u_dtype) << 5 | ((u_shape) & 0x1f))
 #define uniform_shape(u_type)          ((u_type) & 0x1f)
 #define uniform_dtype(u_type)          ((u_type) >> 5)
 

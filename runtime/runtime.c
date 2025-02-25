@@ -31,7 +31,7 @@
 #include <pthread.h>
 #include <stdio.h>
 
-GLuint ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t count) {
+GLuint *ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t count) {
   int status;
   // shader program
   GLuint shaderProgram = glCreateProgram();
@@ -43,9 +43,9 @@ GLuint ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t co
       glAttachShader(shaderProgram, shader);
       glDeleteShader(shader);
     } else if (!path) {
-      rt_message("not given shader file path for type %d, skip", type);
+      rt_message("not given shaders file path for type %d, skip", type);
     } else {
-      rt_message("not given type %d of shader, skip", type);
+      rt_message("not given type %d of shaders, skip", type);
     }
   }
   glLinkProgram(shaderProgram);
@@ -53,12 +53,12 @@ GLuint ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t co
   if (!status) {
     GLchar infoLog[512];
     glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-    rt_error("Failed to link shader program: \n%s", infoLog);
+    rt_error("Failed to link shaders program: \n%s", infoLog);
     glfwTerminate();
-    return -1;
+    return nullptr;
   }
   Array_append(window->shaderProgramArray, &shaderProgram, 1);
-  return shaderProgram;
+  return Array_last_virt(window->shaderProgramArray);
 }
 
 int initializeGlad() {
@@ -100,13 +100,14 @@ GLFWmonitor *switchMonitor(int index) {
   return monitor;
 }
 
-void ideWindowAddTasks(IdeWindow *window, DrawTask *task, int shaderProgramId) {
-  const GLuint * const sp = Array_real_addr(window->shaderProgramArray, shaderProgramId);
-  xglBindShaderProgram(task, *sp);
+void ideWindowAddTasks(IdeWindow *window, DrawTask *task, GLuint *shaderProgram) {
+  shaderProgram = Array_vert2real(window->shaderProgramArray, shaderProgram);
+  xglBindShaderProgram(task, *shaderProgram);
   Array_append(window->drawTaskArray, task, 1);
 }
 
 void ideDrawUiOnce(IdeWindow *window) {
+  if (window->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   const uint32_t n_tasks = Array_length(window->drawTaskArray);
@@ -139,6 +140,7 @@ IdeWindow *ideCreateWindow(const int width, const int height, const char_t *titl
   glfwSetWindowRefreshCallback(handle, ideWindowRefreshCallback);
 
   IdeWindow * const window = allocator->calloc(1, sizeof(IdeWindow));
+  window->allocator = allocator;
   glfwSetWindowUserPointer(handle, window);
 
   window->info.handle = handle;
@@ -161,8 +163,6 @@ IdeWindow *ideCreateWindow(const int width, const int height, const char_t *titl
   window->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   window->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
   window->shaderArray = Array_new(sizeof(GLuint), enum_XGL_SHADER, allocator);
-
-  window->allocator = allocator;
 
   return window;
 }

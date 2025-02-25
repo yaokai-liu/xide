@@ -5,3 +5,7 @@
 	path = meman
 	url = git@github.com:yaokai-liu/meman.git
 	branch = LIU
+[submodule "freetype"]
+	path = freetype
+	url = git@github.com:yaokai-liu/freetype.git
+	branch = master

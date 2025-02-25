@@ -29,10 +29,15 @@
 
 // Do not promise that direction order will be clockwise or counter-clockwise.
 enum DIRECTION {
-  DIRECTION_TOP = 0,
-  DIRECTION_LEFT = 1,
-  DIRECTION_RIGHT = 2,
-  DIRECTION_BOTTOM = 3
+  DIRECTION_C = 0,
+  DIRECTION_TC = 1,
+  DIRECTION_BC = 2,
+  DIRECTION_LC = 3,
+  DIRECTION_RC = 4,
+  DIRECTION_TL = 5,
+  DIRECTION_TR = 6,
+  DIRECTION_BL = 7,
+  DIRECTION_BR = 8
 };
 
 enum AXIS {
