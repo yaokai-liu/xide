@@ -40,6 +40,7 @@ typedef struct Font {
 } Font;
 
 typedef struct CharModel {
+  uint32_t code;
   uint32_t texture;
   uint32_t size[2];
 } CharModel;

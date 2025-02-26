@@ -1,6 +1,6 @@
 #BasedOnStyle: GNU
 Language: Cpp
-ColumnLimit: 100
+ColumnLimit: 120
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: Left
 AlignConsecutiveAssignments: false

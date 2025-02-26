@@ -27,8 +27,10 @@
 
 #include "font-manage.h"
 #include "enum.h"
+#include "ft2build.h"
 #include "runtime.h"
 #include "xgl-object.h"
+#include FT_FREETYPE_H
 
 typedef struct FontManager {
   const Allocator *allocator;
@@ -75,9 +77,8 @@ CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font) {
   }
   FT_Set_Pixel_Sizes(face, 0, font->size);
   CharModelSet set = {
-    .face = face,
-    .font = {.path = font->path, .index = font->index, .size = font->size},
-    .atlas = 0
+    .face = face, .font = {.path = font->path, .index = font->index, .size = font->size},
+         .atlas = 0
   };
   set.modelArray = Array_new(sizeof(CharModel), enum_IDE_CHAR_MODEL, manager->allocator);
   set.charTree = AVLTree_new(manager->allocator, nullptr);

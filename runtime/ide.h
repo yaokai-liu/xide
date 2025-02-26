@@ -36,7 +36,6 @@ typedef struct IDE IDE;
 
 IDE *IDE_new(const Allocator *allocator);
 
-DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array,
-                           Array /*<PixelVertex2D>*/ *vertex_array, uint32_t plane_index,
-                           Font *font);
+DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array, Array /*<PixelVertex2D>*/ *vertex_array,
+                           uint32_t plane_index, Font *font);
 #endif  // XIDE_IDE_H

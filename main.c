@@ -24,16 +24,12 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "ft2build.h"
-#include "runtime.h"
-#include "shader.h"
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include FT_FREETYPE_H
 #include "enum.h"
 #include "ide.h"
 #include "print.h"
+#include "runtime.h"
+#include "shader.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[]) {
   const Allocator * const allocator = &STDAllocator;
@@ -86,9 +82,9 @@ int main(int argc, char *argv[]) {
     {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
   };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_VERTEX, allocator);
-  //  Array_append(vertex_array, vertices, 10);
-  //  task = xglCreatePolygon2D(vertex_array, 0, false, allocator);
-  //  ideWindowAddTasks(mainWindow, task, shader);
+  Array_append(vertex_array, vertices, 10);
+  task = xglCreatePolygon2D(vertex_array, 0, false, allocator);
+  ideWindowAddTasks(mainWindow, task, shader);
   //  allocator->free(task);
   //  Array_reset(vertex_array, nullptr);
 
@@ -135,8 +131,7 @@ int main(int argc, char *argv[]) {
   //  releasePrimeArray(line_array);
 
   IDE *ide = IDE_new(allocator);
-  Font font = {
-    .path = "C:\\Users\\16975\\Downloads\\SourceHanSerifSC-VF.ttf", .index = 0, .size = 32};
+  Font font = {.path = "C:\\Users\\16975\\Downloads\\SourceHanSerifSC-Regular.otf", .index = 0, .size = 32};
   ShaderInfo shaderInfos2[] = {
     {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
     {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
@@ -144,11 +139,7 @@ int main(int argc, char *argv[]) {
   shader = ideCompileShaders(mainWindow, shaderInfos2, 2);
 
   Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
-  Array_append(char_array, "BC", 2);
-  Vertex2D vertices2[] = {
-    {.coord = {400.0f, 400.0f}, .color = 0xFFFFFFFF},
-  };
-  Array_append(vertex_array, vertices2, 1);
+  Array_append(char_array, "OpenGLForFun", 12);
   task = ideCreatePrint2D(ide, char_array, vertex_array, 0, &font);
   ideWindowAddTasks(mainWindow, task, shader);
 

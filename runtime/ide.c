@@ -81,9 +81,9 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
     }
     Array_append(update_array, character, 1);
     xglGetCharModel(character);
-    width += model.size[AXIS_X];
     max_width = max(max_width, model.size[AXIS_X]);
     max_height = max(max_height, model.size[AXIS_Y]);
+    width += model.size[AXIS_X] + 1;
   }
   if (Array_length(update_array) == 0) {
     releasePrimeArray(update_array);
@@ -93,10 +93,12 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
   glCreateTextures(GL_TEXTURE_2D, 1, &atlas->texture);
   glTextureStorage2D(atlas->texture, 1, GL_R8, (GLsizei) width, (GLsizei) max_height);
   if (old_texture) {
-    glCopyImageSubData(old_texture, GL_TEXTURE_2D, 0, 0, 0, 0, atlas->texture, GL_TEXTURE_2D, 0, 0,
-                       0, 0, (GLsizei) atlas->width, (GLsizei) atlas->height, 0);
+    glCopyImageSubData(old_texture, GL_TEXTURE_2D, 0, 0, 0, 0, atlas->texture, GL_TEXTURE_2D, 0, 0, 0, 0,
+                       (GLsizei) atlas->width, (GLsizei) atlas->height, 0);
     glDeleteTextures(1, &old_texture);
   }
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   uint32_t x = atlas->width;
   character = Array_first_real(update_array);
   last = Array_last_real(update_array);
@@ -104,13 +106,15 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
     FT_Load_Char(set->face, *character, FT_LOAD_RENDER);
     xglGetCharModel(character);
     const uint8_t *data = set->face->glyph->bitmap.buffer;
-    glTextureSubImage2D(atlas->texture, 0, (GLint) x, 0, (GLsizei) model.size[AXIS_X],
-                        (GLsizei) model.size[AXIS_Y], GL_RED, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(atlas->texture, 0, (GLint) x, 0, (GLsizei) model.size[AXIS_X], (GLsizei) model.size[AXIS_Y],
+                        GL_RED, GL_UNSIGNED_BYTE, data);
+    model.code = (uint32_t) *character;
     model.texture = x;
     Array_append(set->modelArray, &model, 1);
     AVLTree_set(set->charTree, *character, Array_last_virt(set->modelArray));
-    x += model.size[AXIS_X];
+    x += model.size[AXIS_X] + 1;
   }
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   atlas->width = width;
   atlas->height = max_height;
 
@@ -118,6 +122,8 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
   glTextureParameteri(atlas->texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
   glTextureParameteri(atlas->texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTextureParameteri(atlas->texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  float borderColor[] = {1.0f, 1.0f, 1.0f, 0.0f};
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
   uint32_t count = Array_length(update_array);
   releasePrimeArray(update_array);
@@ -131,9 +137,9 @@ enum RECT_CORNER {
   RC_RB,
 };
 
-inline DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array,
-                                  Array /*<PixelVertex2D>*/ *vertex_array, uint32_t plane_index,
-                                  Font *font) {
+#define lenof(array) (sizeof(array) / sizeof(typeof((array)[0])))
+inline DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array, Array /*<PixelVertex2D>*/ *vertex_array,
+                                  uint32_t plane_index, Font *font) {
   if (!ide || !char_array || !vertex_array || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
   CharModelSet *set = ideGenCharModelSet(ide, font);
@@ -142,60 +148,51 @@ inline DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array,
   TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
   Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_VERTEX, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
-  Array *tex_coord_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
+  Array *tex_coord_array = Array_new(sizeof(XGLTexCoord), enum_XGL_COLOR, allocator);
   Array *index_array = Array_new(sizeof(GLuint), enum_XGL_INDEX, allocator);
   uint32_t count = min(Array_length(vertex_array), Array_length(char_array));
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
   const char_t * const string = Array_real_addr(char_array, 0);
   for (uint32_t i = 0; i < count; i++) {
-    CharModel *model = AVLTree_get(set->charTree, string[i]);
+    const CharModel *model = AVLTree_get(set->charTree, string[i]);
     model = Array_vert2real(set->modelArray, model);
     XGLCoord coords[4] = {};
     XGLColor colors[4] = {};
     XGLTexCoord tex_coords[4] = {};
-    coords[RC_LT][AXIS_X] =
-      (float) vertices[i].coord[AXIS_X] - ((float) model->size[AXIS_X]) * scale;
-    coords[RC_LT][AXIS_Y] =
-      (float) vertices[i].coord[AXIS_Y] - ((float) model->size[AXIS_Y]) * scale;
+    coords[RC_LT][AXIS_X] = (float) vertices[i].coord[AXIS_X] - ((float) model->size[AXIS_X]) * scale;
+    coords[RC_LT][AXIS_Y] = (float) vertices[i].coord[AXIS_Y] - ((float) model->size[AXIS_Y]) * scale;
     coords[RC_LT][AXIS_Z] = (float) plane_index;
     coords[RC_LT][AXIS_W] = 0.0f;
-    coords[RC_RT][AXIS_X] =
-      (float) vertices[i].coord[AXIS_X] + ((float) model->size[AXIS_X]) * scale;
-    coords[RC_RT][AXIS_Y] =
-      (float) vertices[i].coord[AXIS_Y] - ((float) model->size[AXIS_Y]) * scale;
+    coords[RC_RT][AXIS_X] = (float) vertices[i].coord[AXIS_X] + ((float) model->size[AXIS_X]) * scale;
+    coords[RC_RT][AXIS_Y] = (float) vertices[i].coord[AXIS_Y] - ((float) model->size[AXIS_Y]) * scale;
     coords[RC_RT][AXIS_Z] = (float) plane_index;
     coords[RC_RT][AXIS_W] = 0.0f;
-    coords[RC_LB][AXIS_X] =
-      (float) vertices[i].coord[AXIS_X] - ((float) model->size[AXIS_X]) * scale;
-    coords[RC_LB][AXIS_Y] =
-      (float) vertices[i].coord[AXIS_Y] + ((float) model->size[AXIS_Y]) * scale;
+    coords[RC_LB][AXIS_X] = (float) vertices[i].coord[AXIS_X] - ((float) model->size[AXIS_X]) * scale;
+    coords[RC_LB][AXIS_Y] = (float) vertices[i].coord[AXIS_Y] + ((float) model->size[AXIS_Y]) * scale;
     coords[RC_LB][AXIS_Z] = (float) plane_index;
     coords[RC_LB][AXIS_W] = 0.0f;
-    coords[RC_RB][AXIS_X] =
-      (float) vertices[i].coord[AXIS_X] + ((float) model->size[AXIS_X]) * scale;
-    coords[RC_RB][AXIS_Y] =
-      (float) vertices[i].coord[AXIS_Y] + ((float) model->size[AXIS_Y]) * scale;
+    coords[RC_RB][AXIS_X] = (float) vertices[i].coord[AXIS_X] + ((float) model->size[AXIS_X]) * scale;
+    coords[RC_RB][AXIS_Y] = (float) vertices[i].coord[AXIS_Y] + ((float) model->size[AXIS_Y]) * scale;
     coords[RC_RB][AXIS_Z] = (float) plane_index;
     coords[RC_RB][AXIS_W] = 0.0f;
     for (int j = 0; j < 4; j++) { rgba2XGLColor(vertices[i].color, &colors[j]); }
     tex_coords[RC_LT][AXIS_X] = (float) model->texture / (float) atlas->width;
     tex_coords[RC_LT][AXIS_Y] = (float) 0.0f;
-    tex_coords[RC_RT][AXIS_X] =
-      (float) (model->texture + model->size[AXIS_X]) / (float) atlas->width;
+    tex_coords[RC_RT][AXIS_X] = (float) (model->texture + model->size[AXIS_X]) / (float) atlas->width;
     tex_coords[RC_RT][AXIS_Y] = (float) 0.0f;
     tex_coords[RC_LB][AXIS_X] = (float) model->texture / (float) atlas->width;
     tex_coords[RC_LB][AXIS_Y] = (float) model->size[AXIS_Y] / (float) atlas->height;
-    tex_coords[RC_RB][AXIS_X] =
-      (float) (model->texture + model->size[AXIS_X]) / (float) atlas->width;
+    tex_coords[RC_RB][AXIS_X] = (float) (model->texture + model->size[AXIS_X]) / (float) atlas->width;
     tex_coords[RC_RB][AXIS_Y] = (float) model->size[AXIS_Y] / (float) atlas->height;
-    Array_append(coord_array, coords, 4);
-    Array_append(color_array, colors, 4);
-    Array_append(tex_coord_array, tex_coords, 4);
-    GLuint indices[6] = {i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 1, i * 4 + 2, i * 4 + 3};
-    Array_append(index_array, indices, 6);
+    GLuint indices[6] = {i * 4 + RC_LT, i * 4 + RC_RT, i * 4 + RC_LB, i * 4 + RC_RT, i * 4 + RC_LB, i * 4 + RC_RB};
+    Array_append(coord_array, coords, lenof(coords));
+    Array_append(color_array, colors, lenof(colors));
+    Array_append(tex_coord_array, tex_coords, lenof(tex_coords));
+    Array_append(index_array, indices, lenof(indices));
   }
-  DrawTask * const task = xglCreateTexturedDrawTask(coord_array, color_array, tex_coord_array,
-                                                    index_array, ide->allocator);
+
+  DrawTask * const task =
+    xglCreateTexturedDrawTask(coord_array, color_array, tex_coord_array, index_array, ide->allocator);
   task->task_type = TT_TEXT;
   task->texture = atlas->texture;
   task->texture_unit = atlas->unit;
@@ -207,4 +204,3 @@ inline DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array,
 
   return task;
 }
-

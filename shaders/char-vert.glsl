@@ -4,7 +4,7 @@ layout (location = 1) in vec4 aCol;
 layout (location = 2) in vec2 aTex;
 layout (location = 3) uniform vec4 viewport;
 out vec4 vsColor;
-out vec2 TexCoords;
+out vec2 texCoord;
 
 void main()
 {
@@ -12,5 +12,5 @@ void main()
     ndcPosition.y = -ndcPosition.y;
     gl_Position = vec4(ndcPosition, aPos.z, 1.0f);
     vsColor = aCol;
-    TexCoords = aTex;
+    texCoord = aTex;
 }

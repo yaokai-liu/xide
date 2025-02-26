@@ -39,10 +39,9 @@
   #define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
-#define square(x)         ((x) * (x))
-#define square_diff(x, y) (square(x) - square(y))
-#define vert_distance(x, y) \
-  sqrtf(square((x)[AXIS_X] - (y)[AXIS_X]) + square((x)[AXIS_Y] - (y)[AXIS_Y]))
+#define square(x)           ((x) * (x))
+#define square_diff(x, y)   (square(x) - square(y))
+#define vert_distance(x, y) sqrtf(square((x)[AXIS_X] - (y)[AXIS_X]) + square((x)[AXIS_Y] - (y)[AXIS_Y]))
 
 typedef int CG2DEdge[2];
 struct Triangle {
@@ -96,8 +95,7 @@ bool edgeInTriangle(const CG2DEdge * const edge, const struct Triangle * const t
     {triangle->indices[1], triangle->indices[2]},
     {triangle->indices[2], triangle->indices[0]},
   };
-  return isSameEdge(edge, &(edges[0])) || isSameEdge(edge, &(edges[1]))
-         || isSameEdge(edge, &(edges[2]));
+  return isSameEdge(edge, &(edges[0])) || isSameEdge(edge, &(edges[1])) || isSameEdge(edge, &(edges[2]));
 }
 
 #define vec_cross(o, p1, p2)                                   \
@@ -184,11 +182,9 @@ struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
   return nullptr;
 }
 
-#define angle_cross(angle_verts)                             \
-  (((angle_verts)[1][AXIS_X] - (angle_verts)[0][AXIS_X])     \
-     * ((angle_verts)[2][AXIS_Y] - (angle_verts)[1][AXIS_Y]) \
-   - ((angle_verts)[1][AXIS_Y] - (angle_verts)[0][AXIS_Y])   \
-       * ((angle_verts)[2][AXIS_X] - (angle_verts)[1][AXIS_X]))
+#define angle_cross(angle_verts)                                                                                 \
+  (((angle_verts)[1][AXIS_X] - (angle_verts)[0][AXIS_X]) * ((angle_verts)[2][AXIS_Y] - (angle_verts)[1][AXIS_Y]) \
+   - ((angle_verts)[1][AXIS_Y] - (angle_verts)[0][AXIS_Y]) * ((angle_verts)[2][AXIS_X] - (angle_verts)[1][AXIS_X]))
 bool isPositiveAngle(const XGLCoord * const vertices, const VNI *vni) {
   const XGLCoord angle_verts[3] = {
     {vertices[vni->left][AXIS_X],  vertices[vni->left][AXIS_Y] },
@@ -259,8 +255,7 @@ Array *buildVniAndIncArray(const Array * const vert_array, Array * const inc_arr
   return pVNI_array;
 }
 
-void legalizeTriangulation(struct Triangle * const triangles, struct SharedEdge * const edges,
-                           const int n_edges) {
+void legalizeTriangulation(struct Triangle * const triangles, struct SharedEdge * const edges, const int n_edges) {
   bool flipped = false;
   do {
     flipped = false;

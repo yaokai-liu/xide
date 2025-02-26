@@ -57,9 +57,9 @@ enum XGL_OBJECT : uint32_t {
 enum LOCATION_LAYER {
   LOC_VERTEX = 0,
   LOC_COLOR = 1,
-  LOC_TEXTURE = 2,
+  LOC_TEXTURE_COORD = 2,
   LOC_VIEWPORT = 3,
-  LOC_TEX_UNIT = 4,
+  LOC_TEXTURE_UNIT = 4,
 };
 
 typedef GLuint iXGLVao;

@@ -29,9 +29,7 @@
 #include <math.h>
 
 inline float SLine_length(const Line line) {
-  uint32_t len_sq = (line[1].coord[AXIS_X] - line[0].coord[AXIS_X])
-                      * (line[1].coord[AXIS_X] - line[0].coord[AXIS_X])
-                    + (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y])
-                        * (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y]);
+  uint32_t len_sq = (line[1].coord[AXIS_X] - line[0].coord[AXIS_X]) * (line[1].coord[AXIS_X] - line[0].coord[AXIS_X])
+                    + (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y]) * (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y]);
   return sqrtf((float) len_sq);
 }

@@ -108,7 +108,6 @@ void ideWindowAddTasks(IdeWindow *window, DrawTask *task, GLuint *shaderProgram)
 
 void ideDrawUiOnce(IdeWindow *window) {
   if (window->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   const uint32_t n_tasks = Array_length(window->drawTaskArray);
   const DrawTask *tasks = Array_real_addr(window->drawTaskArray, 0);
@@ -120,13 +119,12 @@ inline void ideSetWindowTitle(IdeWindow *handle, const char_t *title) {
   handle->info.title = title;
 }
 
-IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title,
-                           const Allocator *allocator) {
+IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title, const Allocator *allocator) {
   // TODO: loadPluginsFrom(directory) async;
   // TODO: loadProjectFrom(directory) async;
   // TODO: setupUiFrom(filepath) main thread;
 
-  GLFWwindow *handle = glfwCreateWindow(width, height, title, NULL, NULL);
+  GLFWwindow *handle = glfwCreateWindow(width, height, title, nullptr, nullptr);
   // make context
   glfwMakeContextCurrent(handle);
   // set swap interval
