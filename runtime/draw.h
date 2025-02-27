@@ -54,9 +54,8 @@ typedef struct DrawTask {
 
 DrawTask *xglCreateNonTextureDrawTask(const Array * const vertex_array, const Array * const color_array,
                                       const Array * const index_array, const Allocator * const allocator);
-DrawTask *xglCreateTexturedDrawTask(const Array * const vertex_array, const Array * const color_array,
-                                    const Array * const tex_array, const Array *index_array,
-                                    const Allocator * const allocator);
+DrawTask *
+xglCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array, const Allocator *const allocator);
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
 DrawTask *xglCreatePolygon2D(const Array *vertex_array, float plane_index, bool solid, const Allocator *allocator);

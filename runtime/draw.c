@@ -33,7 +33,7 @@
 #include "widgets.h"
 #include "xgl-object.h"
 
-#define xglInitFloatDataVBO(loc, data_array, data_type, normed)                                        \
+#define xglInitSingleAttrVBO(loc, data_array, data_type, normed)                                       \
   do {                                                                                                 \
     const GLsizeiptr total_size = Array_length((data_array)) * (GLsizeiptr) sizeof(data_type);         \
     const GLvoid *address = Array_real_addr((data_array), 0);                                          \
@@ -47,14 +47,14 @@ inline DrawTask *xglCreateNonTextureDrawTask(const Array * const vertex_array, c
                                              const Array * const index_array, const Allocator * const allocator) {
   iXGLVao VAO = {};
   glCreateVertexArrays(1, &VAO);
-  glEnableVertexArrayAttrib(VAO, LOC_VERTEX);
+  glEnableVertexArrayAttrib(VAO, LOC_COORD);
   glEnableVertexArrayAttrib(VAO, LOC_COLOR);
   glEnableVertexArrayAttrib(VAO, LOC_VIEWPORT);
 
   iXGLVbo VBOs[2] = {};
   glCreateBuffers(2, VBOs);
-  xglInitFloatDataVBO(LOC_VERTEX, vertex_array, XGLCoord, GL_FALSE);
-  xglInitFloatDataVBO(LOC_COLOR, color_array, XGLColor, GL_FALSE);
+  xglInitSingleAttrVBO(LOC_COORD, vertex_array, XGLCoord, GL_FALSE);
+  xglInitSingleAttrVBO(LOC_COLOR, color_array, XGLColor, GL_FALSE);
 
   iXGLVbo IBO = 0;
   glCreateBuffers(1, &IBO);
@@ -77,26 +77,36 @@ inline DrawTask *xglCreateNonTextureDrawTask(const Array * const vertex_array, c
   return task;
 }
 
-inline DrawTask *xglCreateTexturedDrawTask(const Array * const vertex_array, const Array * const color_array,
-                                           const Array * const tex_array, const Array *index_array,
-                                           const Allocator * const allocator) {
+inline DrawTask *
+xglCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array, const Allocator *const allocator) {
   iXGLVao VAO = {};
   glCreateVertexArrays(1, &VAO);
-  glEnableVertexArrayAttrib(VAO, LOC_VERTEX);
+  glEnableVertexArrayAttrib(VAO, LOC_COORD);
   glEnableVertexArrayAttrib(VAO, LOC_COLOR);
   glEnableVertexArrayAttrib(VAO, LOC_TEXTURE_COORD);
   glEnableVertexArrayAttrib(VAO, LOC_VIEWPORT);
 
-  iXGLVbo VBOs[3] = {};
-  glCreateBuffers(3, VBOs);
-  xglInitFloatDataVBO(LOC_VERTEX, vertex_array, XGLCoord, GL_FALSE);
-  xglInitFloatDataVBO(LOC_COLOR, color_array, XGLColor, GL_FALSE);
-  xglInitFloatDataVBO(LOC_TEXTURE_COORD, tex_array, XGLTexCoord, GL_TRUE);
+  iXGLVbo VBO = 0;
+  glCreateBuffers(1, &VBO);
+  glVertexArrayVertexBuffer(VAO, 0, VBO, 0, sizeof(XGLVertex));
+
+  GLsizeiptr total_size = Array_length((vertex_array)) * (GLsizeiptr) sizeof(XGLVertex);
+  const GLvoid *address = Array_real_addr((vertex_array), 0);
+  glNamedBufferStorage(VBO, total_size, address, 0);
+  glVertexArrayAttribBinding(VAO, LOC_COORD, 0);
+  glVertexArrayAttribFormat(VAO, LOC_COORD, sizeof(XGLCoord) / sizeof(GLfloat),
+                            GL_FLOAT, GL_FALSE, offsetof(XGLVertex, coord));
+  glVertexArrayAttribBinding(VAO, LOC_COLOR, 0);
+  glVertexArrayAttribFormat(VAO, LOC_COLOR, sizeof(XGLColor) / sizeof(GLfloat),
+                            GL_FLOAT, GL_FALSE, offsetof(XGLVertex, color));
+  glVertexArrayAttribBinding(VAO, LOC_TEXTURE_COORD, 0);
+  glVertexArrayAttribFormat(VAO, LOC_TEXTURE_COORD, sizeof(XGLTexCoord) / sizeof(GLfloat),
+                            GL_FLOAT, GL_TRUE, offsetof(XGLVertex, tex_coord));
 
   iXGLVbo IBO = 0;
   glCreateBuffers(1, &IBO);
-  const GLsizeiptr total_size = Array_length(index_array) * (GLsizeiptr) sizeof(GLint);
-  const GLvoid *address = Array_real_addr(index_array, 0);
+  total_size = Array_length(index_array) * (GLsizeiptr) sizeof(GLint);
+  address = Array_real_addr(index_array, 0);
   glNamedBufferStorage(IBO, total_size, address, 0);
   glVertexArrayElementBuffer(VAO, IBO);
 
@@ -107,7 +117,7 @@ inline DrawTask *xglCreateTexturedDrawTask(const Array * const vertex_array, con
   task->n_index = (GLsizei) Array_length(index_array);
   task->uniforms = Array_new(sizeof(iXGLVUniform), enum_XGL_UNIFORM, allocator);
 
-  Array_append(task->VBOs, VBOs, 3);
+  Array_append(task->VBOs, &VBO, 1);
   iXGLVUniform uniforms[] = {
     {uniform_type(US_4SCA, UD_INT), LOC_VIEWPORT    },
     {uniform_type(US_1SCA, UD_INT), LOC_TEXTURE_UNIT}
@@ -134,7 +144,7 @@ DrawTask *xglCreatePixelLines(const Array * const line_array, const int plane_in
                               const Allocator * const allocator) {
   const int count = (int) Array_length(line_array);
   const Line * const lines = Array_real_addr(line_array, 0);
-  Array *vertex_array = Array_new(sizeof(XGLCoord), enum_XGL_VERTEX, allocator);
+  Array *vertex_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   Array *index_array = Array_new(sizeof(GLint), enum_XGL_INDEX, allocator);
   for (int i = 0; i < count; i++) {
@@ -170,7 +180,7 @@ DrawTask *xglCreatePolygon2D(const Array * const vertex_array, const float plane
                              const Allocator * const allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
-  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_VERTEX, allocator);
+  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   for (int i = 0; i < count; i++) {
     XGLCoord vertex = {};
@@ -199,7 +209,7 @@ DrawTask *xglCreateCurveArea2D(const Array * const vertex_array, const float pla
                                const bool solid, const Allocator * const allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
-  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_VERTEX, allocator);
+  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   for (int i = 0; i < count; i++) {
     XGLCoord vertex = {};
@@ -228,7 +238,7 @@ DrawTask *xglCreatePixelPolygon2D(const Array * const vertex_array, int plane_in
                                   const Allocator *allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
-  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_VERTEX, allocator);
+  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   for (int i = 0; i < count; i++) {
     XGLCoord vertex = {};
@@ -257,7 +267,7 @@ DrawTask *xglCreatePolyline2D(const Array * const vertex_array, const float plan
                               const Allocator * const allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
-  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_VERTEX, allocator);
+  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   Array *index_array = Array_new(sizeof(GLint), enum_XGL_INDEX, allocator);
   for (int i = 0; i < count; i++) {
@@ -294,7 +304,7 @@ DrawTask *xglCreatePixelPolyline2D(const Array * const vertex_array, int plane_i
                                    const Allocator *allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
-  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_VERTEX, allocator);
+  Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   Array *index_array = Array_new(sizeof(GLint), enum_XGL_INDEX, allocator);
   for (int i = 0; i < count; i++) {

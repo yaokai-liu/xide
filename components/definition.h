@@ -54,6 +54,8 @@ enum CAX {
   CAX_A = 3
 };
 
+enum RECT_CORNER { RC_LT, RC_LB, RC_RT, RC_RB };
+
 enum CONFIG {
   CONFIG_X = 0,
   CONFIG_Y = 1,

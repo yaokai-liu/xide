@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
     {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
     {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
   };
-  Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_VERTEX, allocator);
+  Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 10);
   task = xglCreatePolygon2D(vertex_array, 0, false, allocator);
   ideWindowAddTasks(mainWindow, task, shader);
@@ -131,7 +131,8 @@ int main(int argc, char *argv[]) {
   //  releasePrimeArray(line_array);
 
   IDE *ide = IDE_new(allocator);
-  Font font = {.path = "C:\\Users\\16975\\Downloads\\SourceHanSerifSC-Regular.otf", .index = 0, .size = 32};
+//  Font font = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 64};
+  Font font = {.path = "JetBrainsMono-Regular.ttf", .index = 0, .size = 16};
   ShaderInfo shaderInfos2[] = {
     {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
     {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
@@ -139,8 +140,11 @@ int main(int argc, char *argv[]) {
   shader = ideCompileShaders(mainWindow, shaderInfos2, 2);
 
   Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
-  Array_append(char_array, "OpenGLForFun", 12);
-  task = ideCreatePrint2D(ide, char_array, vertex_array, 0, &font);
+  #define text "Hello OpenGL and FreeType"
+  Array_append(char_array, text, sizeof(text) - 1);
+//  task = ideCreatePrint2D(ide, char_array, vertex_array, 0, &font);
+  task = ideCreateText2D(ide, char_array, &vertices[3], -2,
+                         TS_RIGHT | TS_HORIZONTAL, 0, &font);
   ideWindowAddTasks(mainWindow, task, shader);
 
   glLineWidth(1);

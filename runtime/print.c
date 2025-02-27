@@ -25,10 +25,13 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
+#include <minmax.h>
 #include "print.h"
 #include "draw.h"
 #include "ide.h"
 #include "runtime.h"
+#include "utils.h"
+#include "font-manage.h"
 
 void xglPrintText(const DrawTask *task, const GLfloat viewport[4]) {
   glUseProgram(task->program);
@@ -41,4 +44,78 @@ void xglPrintText(const DrawTask *task, const GLfloat viewport[4]) {
   glProgramUniform1i(task->program, loc_tex, (GLint) task->texture_unit);
   glDrawElements(GL_TRIANGLES, task->n_index, GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
+}
+
+inline void
+xglGenCharCoord2D(const CharModel *model, const Vertex2D *center, const TextureAtlas *atlas, XGLVertex dest[4]) {
+  constexpr float scale = 0.5f;
+  dest[RC_LT].coord[AXIS_X] = ((float) center->coord[AXIS_X]) - ((float) model->size[AXIS_X]) * scale;
+  dest[RC_LT].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) - ((float) model->size[AXIS_Y]) * scale;
+  dest[RC_RT].coord[AXIS_X] = ((float) center->coord[AXIS_X]) + ((float) model->size[AXIS_X]) * scale;
+  dest[RC_RT].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) - ((float) model->size[AXIS_Y]) * scale;
+  dest[RC_LB].coord[AXIS_X] = ((float) center->coord[AXIS_X]) - ((float) model->size[AXIS_X]) * scale;
+  dest[RC_LB].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) + ((float) model->size[AXIS_Y]) * scale;
+  dest[RC_RB].coord[AXIS_X] = ((float) center->coord[AXIS_X]) + ((float) model->size[AXIS_X]) * scale;
+  dest[RC_RB].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) + ((float) model->size[AXIS_Y]) * scale;
+  rgba2XGLColor(center->color, &dest[RC_LT].color);
+  rgba2XGLColor(center->color, &dest[RC_RT].color);
+  rgba2XGLColor(center->color, &dest[RC_LB].color);
+  rgba2XGLColor(center->color, &dest[RC_RB].color);
+  dest[RC_LT].tex_coord[AXIS_X] = ( (float) model->offset - 1) / (float) atlas->width;
+  dest[RC_LT].tex_coord[AXIS_Y] = 0.0f;
+  dest[RC_RT].tex_coord[AXIS_X] = (float) (model->offset + model->size[AXIS_X]) / (float) atlas->width;
+  dest[RC_RT].tex_coord[AXIS_Y] = 0.0f;
+  dest[RC_LB].tex_coord[AXIS_X] = (float) (model->offset - 1) / (float) atlas->width;
+  dest[RC_LB].tex_coord[AXIS_Y] = (float) model->size[AXIS_Y] / (float) atlas->height;
+  dest[RC_RB].tex_coord[AXIS_X] = (float) (model->offset + model->size[AXIS_X]) / (float) atlas->width;
+  dest[RC_RB].tex_coord[AXIS_Y] = (float) model->size[AXIS_Y] / (float) atlas->height;
+}
+Array/*<Vertex2D>*/ *ideGenCharCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
+                                          const Vertex2D * anchor, const int32_t c_space, const uint32_t mode,
+                                          const Allocator *allocator) {
+  Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
+  const uint32_t count = Array_length(char_array);
+  const char_t * const string = Array_real_addr(char_array, 0);
+  float offset_x = 0, offset_y = 0;
+  uint32_t origin = 0, height = 0, width = 0;
+  for (uint32_t i = 0; i < count; i++) {
+    const CharModel *model = AVLTree_get(set->charTree, string[i]);
+    model = Array_vert2real(set->modelArray, model);
+    offset_x  = ((float) model->size[AXIS_X]) / 2 + ((float) model->bearing[AXIS_X]);
+    offset_y  = ((float) model->bearing[AXIS_Y]) - ((float) model->size[AXIS_Y]) / 2;
+    Vertex2D vertex = {.coord = { [AXIS_X] = offset_x +(float)  origin, [AXIS_Y] = offset_y },
+                       .color = anchor->color };
+    Array_append(vertex_array, &vertex, 1);
+    height = max(height, model->size[AXIS_Y]);
+    origin += (model->advance[AXIS_X] >> 6) + c_space;
+  }
+  width = origin;
+
+  Vertex2D *vertices = Array_real_addr(vertex_array, 0);
+  for (uint32_t i = 0; i < count; i++) {
+    vertices[i].coord[AXIS_Y] = ((float) height) - vertices[i].coord[AXIS_Y];
+    vertices[i].coord[AXIS_X] += anchor->coord[AXIS_X];
+    vertices[i].coord[AXIS_Y] += anchor->coord[AXIS_Y];
+  }
+  switch (mode & TS_H_MASK) {
+    case TS_H_CENTER: {
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_X] -= (float) width / 2; }
+      break;
+    }
+    case TS_LEFT: {
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_X] -= (float) width; }
+      break;
+    }
+  }
+  switch (mode & TS_V_MASK) {
+    case TS_V_CENTER: {
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_Y] -= (float) height / 2; }
+      break;
+    }
+    case TS_ABOVE: {
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_Y] -= (float) height; }
+      break;
+    }
+  }
+  return vertex_array;
 }

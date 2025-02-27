@@ -37,9 +37,11 @@ enum XGL_OBJECT : uint32_t {
   enum_XGL_EBO = 0x0003,
 
   enum_XGL_VERTEX = 0x0010,
-  enum_XGL_COLOR = 0x0020,
-  enum_XGL_TEXTURE = 0x0030,
-  enum_XGL_INDEX = 0x0040,
+  enum_XGL_COORD = 0x0020,
+  enum_XGL_COLOR = 0x0030,
+  enum_XGL_TEXTURE_COORD = 0x0040,
+  enum_XGL_INDEX = 0x0050,
+  enum_XGL_TEXTURE_UNIT = 0x0060,
 
   enum_XGL_UNIFORM = 0x0100,
 
@@ -55,7 +57,7 @@ enum XGL_OBJECT : uint32_t {
 };
 
 enum LOCATION_LAYER {
-  LOC_VERTEX = 0,
+  LOC_COORD = 0,
   LOC_COLOR = 1,
   LOC_TEXTURE_COORD = 2,
   LOC_VIEWPORT = 3,
@@ -72,6 +74,13 @@ typedef GLfloat XGLColor[4];
 typedef GLfloat XGLTexCoord[2];
 typedef uint32_t XGLRgba;
 typedef GLfloat Matrix[4][4];
+
+typedef struct XGLVertex {
+  XGLCoord coord;
+  XGLColor color;
+  XGLTexCoord tex_coord;
+} XGLVertex;
+
 
 enum UNIFORM_DATA_TYPE {
   UD_INT,
