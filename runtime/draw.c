@@ -35,15 +35,16 @@
 
 #define xglInitFloatDataVBO(loc, data_array, data_type, normed)                                        \
   do {                                                                                                 \
-    glNamedBufferStorage(VBOs[(loc)], Array_length((data_array)) * (GLsizeiptr) sizeof(data_type),     \
-                         Array_real_addr((data_array), 0), 0);                                         \
+    const GLsizeiptr total_size = Array_length((data_array)) * (GLsizeiptr) sizeof(data_type);         \
+    const GLvoid *address = Array_real_addr((data_array), 0);                                          \
+    glNamedBufferStorage(VBOs[(loc)], total_size, address, 0);                                         \
     glVertexArrayAttribBinding(VAO, (loc), (loc));                                                     \
     glVertexArrayAttribFormat(VAO, (loc), sizeof(data_type) / sizeof(GLfloat), GL_FLOAT, (normed), 0); \
     glVertexArrayVertexBuffer(VAO, (loc), VBOs[(loc)], 0, sizeof(data_type));                          \
   } while (false)
 
-inline DrawTask *xglCreateIndexedDrawTask(const Array * const vertex_array, const Array * const color_array,
-                                          const Array * const index_array, const Allocator * const allocator) {
+inline DrawTask *xglCreateNonTextureDrawTask(const Array * const vertex_array, const Array * const color_array,
+                                             const Array * const index_array, const Allocator * const allocator) {
   iXGLVao VAO = {};
   glCreateVertexArrays(1, &VAO);
   glEnableVertexArrayAttrib(VAO, LOC_VERTEX);
@@ -57,7 +58,9 @@ inline DrawTask *xglCreateIndexedDrawTask(const Array * const vertex_array, cons
 
   iXGLVbo IBO = 0;
   glCreateBuffers(1, &IBO);
-  glNamedBufferStorage(IBO, Array_length(index_array) * (GLsizeiptr) sizeof(GLint), Array_real_addr(index_array, 0), 0);
+  const GLsizeiptr total_size = Array_length(index_array) * (GLsizeiptr) sizeof(GLint);
+  const GLvoid *address = Array_real_addr(index_array, 0);
+  glNamedBufferStorage(IBO, total_size, address, 0);
   glVertexArrayElementBuffer(VAO, IBO);
 
   DrawTask *task = allocator->calloc(1, sizeof(DrawTask));
@@ -92,7 +95,9 @@ inline DrawTask *xglCreateTexturedDrawTask(const Array * const vertex_array, con
 
   iXGLVbo IBO = 0;
   glCreateBuffers(1, &IBO);
-  glNamedBufferStorage(IBO, Array_length(index_array) * (GLsizeiptr) sizeof(GLint), Array_real_addr(index_array, 0), 0);
+  const GLsizeiptr total_size = Array_length(index_array) * (GLsizeiptr) sizeof(GLint);
+  const GLvoid *address = Array_real_addr(index_array, 0);
+  glNamedBufferStorage(IBO, total_size, address, 0);
   glVertexArrayElementBuffer(VAO, IBO);
 
   DrawTask *task = allocator->calloc(1, sizeof(DrawTask));
@@ -151,7 +156,7 @@ DrawTask *xglCreatePixelLines(const Array * const line_array, const int plane_in
     Array_append(index_array, indices, 2);
   }
 
-  DrawTask * const task = xglCreateIndexedDrawTask(vertex_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateNonTextureDrawTask(vertex_array, color_array, index_array, allocator);
   task->task_type = TT_LINES;
 
   releasePrimeArray(vertex_array);
@@ -180,7 +185,7 @@ DrawTask *xglCreatePolygon2D(const Array * const vertex_array, const float plane
   }
   Array *index_array = xglEarClippingTriangulate2D(coord_array, allocator);
 
-  DrawTask * const task = xglCreateIndexedDrawTask(coord_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
 
   releasePrimeArray(coord_array);
@@ -209,7 +214,7 @@ DrawTask *xglCreateCurveArea2D(const Array * const vertex_array, const float pla
   }
   Array *index_array = xglRadialTriangulation2D(coord_array, cycle, allocator);
 
-  DrawTask * const task = xglCreateIndexedDrawTask(coord_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
 
   releasePrimeArray(coord_array);
@@ -238,7 +243,7 @@ DrawTask *xglCreatePixelPolygon2D(const Array * const vertex_array, int plane_in
   }
   Array *index_array = xglEarClippingTriangulate2D(coord_array, allocator);
 
-  DrawTask * const task = xglCreateIndexedDrawTask(coord_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
 
   releasePrimeArray(coord_array);
@@ -275,7 +280,7 @@ DrawTask *xglCreatePolyline2D(const Array * const vertex_array, const float plan
     Array_append(index_array, indices, 2);
   }
 
-  DrawTask * const task = xglCreateIndexedDrawTask(coord_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = TT_POLYLINE;
 
   releasePrimeArray(coord_array);
@@ -312,7 +317,7 @@ DrawTask *xglCreatePixelPolyline2D(const Array * const vertex_array, int plane_i
     Array_append(index_array, indices, 2);
   }
 
-  DrawTask * const task = xglCreateIndexedDrawTask(coord_array, color_array, index_array, allocator);
+  DrawTask * const task = xglCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = TT_POLYLINE;
 
   releasePrimeArray(coord_array);

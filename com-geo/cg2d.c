@@ -41,7 +41,8 @@
 
 #define square(x)           ((x) * (x))
 #define square_diff(x, y)   (square(x) - square(y))
-#define vert_distance(x, y) sqrtf(square((x)[AXIS_X] - (y)[AXIS_X]) + square((x)[AXIS_Y] - (y)[AXIS_Y]))
+#define vert_distance(x, y) \
+  sqrtf(square((x)[AXIS_X] - (y)[AXIS_X]) + square((x)[AXIS_Y] - (y)[AXIS_Y]))
 
 typedef int CG2DEdge[2];
 struct Triangle {
@@ -85,22 +86,24 @@ bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DE
 
 inline bool isSameEdge(const CG2DEdge * const edge1, const CG2DEdge * const edge2) {
   bool b = ((*edge1)[0] == (*edge2)[0] && (*edge1)[1] == (*edge2)[1])
-           || ((*edge1)[0] == (*edge2)[1] && (*edge1)[1] == (*edge2)[0]);
+        || ((*edge1)[0] == (*edge2)[1] && (*edge1)[1] == (*edge2)[0]);
   return b;
 }
 
 bool edgeInTriangle(const CG2DEdge * const edge, const struct Triangle * const triangle) {
   const CG2DEdge edges[3] = {
-    {triangle->indices[0], triangle->indices[1]},
-    {triangle->indices[1], triangle->indices[2]},
-    {triangle->indices[2], triangle->indices[0]},
+      {triangle->indices[0], triangle->indices[1]},
+      {triangle->indices[1], triangle->indices[2]},
+      {triangle->indices[2], triangle->indices[0]},
   };
-  return isSameEdge(edge, &(edges[0])) || isSameEdge(edge, &(edges[1])) || isSameEdge(edge, &(edges[2]));
+  return isSameEdge(edge, &(edges[0]))
+      || isSameEdge(edge, &(edges[1]))
+      || isSameEdge(edge, &(edges[2]));
 }
 
 #define vec_cross(o, p1, p2)                                   \
   (((p1)[AXIS_X] - (o)[AXIS_X]) * ((p2)[AXIS_Y] - (o)[AXIS_Y]) \
-   - ((p1)[AXIS_Y] - (o)[AXIS_Y]) * ((p2)[AXIS_X] - (o)[AXIS_X]))
+ - ((p1)[AXIS_Y] - (o)[AXIS_Y]) * ((p2)[AXIS_X] - (o)[AXIS_X]))
 inline bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DEdge l2) {
   float AC_AD = vec_cross(vertices[l1[0]], vertices[l2[0]], vertices[l2[1]]);
   float BC_BD = vec_cross(vertices[l1[1]], vertices[l2[0]], vertices[l2[1]]);
@@ -182,9 +185,11 @@ struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
   return nullptr;
 }
 
-#define angle_cross(angle_verts)                                                                                 \
-  (((angle_verts)[1][AXIS_X] - (angle_verts)[0][AXIS_X]) * ((angle_verts)[2][AXIS_Y] - (angle_verts)[1][AXIS_Y]) \
-   - ((angle_verts)[1][AXIS_Y] - (angle_verts)[0][AXIS_Y]) * ((angle_verts)[2][AXIS_X] - (angle_verts)[1][AXIS_X]))
+#define angle_cross(angle_verts)                          \
+  (((angle_verts)[1][AXIS_X] - (angle_verts)[0][AXIS_X])  \
+ * ((angle_verts)[2][AXIS_Y] - (angle_verts)[1][AXIS_Y])  \
+ - ((angle_verts)[1][AXIS_Y] - (angle_verts)[0][AXIS_Y])  \
+ * ((angle_verts)[2][AXIS_X] - (angle_verts)[1][AXIS_X]))
 bool isPositiveAngle(const XGLCoord * const vertices, const VNI *vni) {
   const XGLCoord angle_verts[3] = {
     {vertices[vni->left][AXIS_X],  vertices[vni->left][AXIS_Y] },

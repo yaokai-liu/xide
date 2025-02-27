@@ -52,8 +52,8 @@ typedef struct DrawTask {
   uint32_t texture_unit;
 } DrawTask;
 
-DrawTask *xglCreateIndexedDrawTask(const Array *vertex_array, const Array *color_array, const Array *index_array,
-                                   const Allocator *allocator);
+DrawTask *xglCreateNonTextureDrawTask(const Array * const vertex_array, const Array * const color_array,
+                                      const Array * const index_array, const Allocator * const allocator);
 DrawTask *xglCreateTexturedDrawTask(const Array * const vertex_array, const Array * const color_array,
                                     const Array * const tex_array, const Array *index_array,
                                     const Allocator * const allocator);
