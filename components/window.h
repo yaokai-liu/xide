@@ -48,10 +48,6 @@ typedef struct Dialog {
 typedef struct MainWindow {
   struct WinMetaInfo info;
   const Allocator *allocator;
-  const char_t *workdir;
-  Array *drawTaskArray;  // Array<DrawTask>
-  Array *shaderArray;  // Array<GLuint>
-  Array *shaderProgramArray;  // Array<GLuint>
   Widget *topBar;
   Widget *rightBar;
   Widget *bottomBar;

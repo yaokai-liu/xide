@@ -41,4 +41,6 @@ typedef struct TextureAtlas {
 
 typedef Array /*<TextureAtlas>*/ TextureAtlasManager;
 
+void releaseTextureAtlas(TextureAtlas *atlas, const Allocator *allocator);
+
 #endif  // XIDE_TEXTURE_MANAGE_H

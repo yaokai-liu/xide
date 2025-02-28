@@ -55,17 +55,16 @@ int main(int argc, char *argv[]) {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
   glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
 
-  IdeWindow *mainWindow = ideCreateWindow(1000, 800, "xIDE - {.projectName}", allocator);
-  if (!mainWindow) {
+  IDE *ide = IDE_new(workdir, allocator);
+  if (!ide) {
     glfwTerminate();
     return -1;
   }
-  mainWindow->workdir = workdir;
   ShaderInfo shaderInfos[] = {
     {"shaders/vert-default.glsl", GL_VERTEX_SHADER  },
     {"shaders/frag-default.glsl", GL_FRAGMENT_SHADER}
   };
-  GLuint *shader = ideCompileShaders(mainWindow, shaderInfos, 2);
+  GLuint *shader = ideCompileShaders(ide, shaderInfos, 2);
 
   DrawTask *task;
 
@@ -83,8 +82,8 @@ int main(int argc, char *argv[]) {
   };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 10);
-  task = xglCreatePolygon2D(vertex_array, 0, false, allocator);
-  ideWindowAddTasks(mainWindow, task, shader);
+  task = ideCreatePolygon2D(vertex_array, 0, false, allocator);
+  ideAddTasks(ide, task, shader);
   //  allocator->free(task);
   //  Array_reset(vertex_array, nullptr);
 
@@ -100,8 +99,8 @@ int main(int argc, char *argv[]) {
   //  }
   //  Vertex2D center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
   //  Array_append(vertex_array, &center, 1);
-  //  task = xglCreateCurveArea2D(vertex_array, 0, true, true, allocator);
-  //  ideWindowAddTasks(mainWindow, task, 0);
+  //  task = ideCreateCurveArea2D(vertex_array, 0, true, true, allocator);
+  //  ideAddTasks(ide, task, 0);
   //  allocator->free(task);
   //  releasePrimeArray(vertex_array);
 
@@ -125,35 +124,43 @@ int main(int argc, char *argv[]) {
   };
   //  Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
   //  Array_append(line_array, lines, 4);
-  //  task = xglCreatePixelLines(line_array, 0, allocator);
-  //  ideWindowAddTasks(mainWindow, task, 0);
+  //  task = ideCreatePixelLines(line_array, 0, allocator);
+  //  ideAddTasks(mainWindow, task, 0);
   //  allocator->free(task);
   //  releasePrimeArray(line_array);
 
-  IDE *ide = IDE_new(allocator);
-//  Font font = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 64};
+//  Font font = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 16};
   Font font = {.path = "JetBrainsMono-Regular.ttf", .index = 0, .size = 16};
   ShaderInfo shaderInfos2[] = {
     {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
     {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
   };
-  shader = ideCompileShaders(mainWindow, shaderInfos2, 2);
-
-  Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
-  #define text "Hello OpenGL and FreeType"
-  Array_append(char_array, text, sizeof(text) - 1);
+  #define TEXT "Hello OpenGL and FreeType"
+  shader = ideCompileShaders(ide, shaderInfos2, 2);
+//  Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
+//  Array_append(char_array, TEXT, sizeof(TEXT) - 1);
+//  ideUpdateCharModelSet(ide, &font, char_array);
 //  task = ideCreatePrint2D(ide, char_array, vertex_array, 0, &font);
-  task = ideCreateText2D(ide, char_array, &vertices[3], -2,
-                         TS_RIGHT | TS_HORIZONTAL, 0, &font);
-  ideWindowAddTasks(mainWindow, task, shader);
+  XGLVector2D size = {};
+
+  Vertex2D anchor = {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF};
+  DrawTask *task1 = ideCreateStringText2D(ide, TEXT" 1", &anchor, -1,
+                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font, size);
+  ideAddTasks(ide, task1, shader);
+  anchor.coord[AXIS_Y] -= size[AXIS_Y] + 5;
+  DrawTask *task2 = ideCreateStringText2D(ide, TEXT " 2", &anchor, -1,
+                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font, size);
+  ideAddTasks(ide, task2, shader);
+
+  rt_message("XGLVector2D (%g, %g)", size[AXIS_X], size[AXIS_Y]);
 
   glLineWidth(1);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  ideShow(mainWindow);
+  ideWindowShow(ide);
 
-  ideDestroyWindow(mainWindow);
+  IDE_destroy(ide);
   glfwTerminate();
   return 0;
 }

@@ -31,7 +31,8 @@
 
 void ideSetWindowSize(GLFWwindow *handle, int width, int height) {
   glViewport(0, 0, width, height);
-  IdeWindow *window = glfwGetWindowUserPointer(handle);
+  IDE *ide = glfwGetWindowUserPointer(handle);
+  IdeWindow *window = ide->window;
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
   window->info.viewport[0] = (float) viewport[0];
@@ -41,8 +42,8 @@ void ideSetWindowSize(GLFWwindow *handle, int width, int height) {
 }
 
 void ideWindowRefreshCallback(GLFWwindow *handle) {
-  IdeWindow *window = glfwGetWindowUserPointer(handle);
-  ideDrawUiOnce(window);
+  IDE *ide = glfwGetWindowUserPointer(handle);
+  ideDrawUiOnce(ide);
   glFinish();
 }
 

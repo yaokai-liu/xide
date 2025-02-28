@@ -30,8 +30,9 @@
 
 #include "char_t.h"
 #include "definition.h"
-#include "draw.h"
+#include "texture-manage.h"
 #include "xgl-object.h"
+#include "shape2D.h"
 
 enum TEXT_STYLE {
   TS_RIGHT = 0b00,
@@ -59,24 +60,13 @@ typedef struct CharModel {
   uint32_t code;
   uint32_t offset;
   uint32_t size[2];
-  uint32_t bearing[2];
-  uint32_t advance[2];
+  int64_t  advance[2];
+  int32_t  bearing[2];
 } CharModel;
 
 typedef XGLRgba fn_pcolor_t(uint32_t pos[2]);
 typedef XGLRgba fn_color_t(float pos[2]);
 
-typedef struct Character2D {
-  char_t code;
-  XGLRgba color;
-  uint32_t pos[2];
-} Character;
+void xglGenCharCoord2D(const CharModel *model, const Vertex2D *center, const TextureAtlas *atlas, XGLVertex dest[4]);
 
-void xglPrintText(const DrawTask *task, const GLfloat viewport[4]);
-void
-xglGenCharCoord2D(const CharModel *model, const Vertex2D *center, const TextureAtlas *atlas, XGLVertex dest[4]);
-typedef struct CharModelSet CharModelSet;
-Array/*<Vertex2D>*/ *ideGenCharCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                                          const Vertex2D * anchor, const int32_t c_space, const uint32_t mode,
-                                          const Allocator *allocator);
 #endif  // XIDE_PRINT_H

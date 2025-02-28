@@ -1,5 +1,5 @@
 #version 460 core
-layout (location = 4) uniform sampler2D tex;
+layout (location = 5) uniform sampler2D tex;
 in  vec4 vsColor;
 in  vec2 texCoord;
 out vec4 color;

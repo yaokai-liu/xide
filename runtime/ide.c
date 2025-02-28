@@ -27,28 +27,41 @@
 
 #include "ide.h"
 #include "enum.h"
-#include "font-manage.h"
 #include "print.h"
 #include "runtime.h"
 #include "texture-manage.h"
 #include "utils.h"
 #include <minmax.h>
 
-typedef struct IDE {
-  const Allocator *allocator;
-  FontManager *fontManager;
-  TextureAtlasManager *atlasManager;
-} IDE;
 
-IDE *IDE_new(const Allocator *allocator) {
+IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
+  IdeWindow *window = ideCreateWindow(1000, 800, "xIDE - {.projectName}", allocator);
+  if (!window) { return nullptr; }
   IDE *ide = allocator->calloc(1, sizeof(IDE));
   ide->allocator = allocator;
+  ide->workdir = workdir;
+  ide->window = window;
   ide->atlasManager = Array_new(sizeof(TextureAtlas), enum_IDE_TEXTURE_ATLAS, allocator);
   ide->fontManager = FontManager_new(allocator);
+  ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
+  ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
+  ide->shaderArray = Array_new(sizeof(GLuint), enum_XGL_SHADER, allocator);
+  glfwSetWindowUserPointer(window->info.handle, ide);
+
   return ide;
 }
+void IDE_destroy(IDE *ide) {
+  ideDestroyWindow(ide->window);
+  Array_reset(ide->drawTaskArray, (destruct_t *) xglDestroyDrawTask);
+  Array_destroy(ide->drawTaskArray);
+  releasePrimeArray(ide->shaderProgramArray);
+  Array_reset(ide->atlasManager, (destruct_t *) releaseTextureAtlas);
+  Array_destroy(ide->atlasManager);
+  FontManager_destroy(ide->fontManager);
+  ide->allocator->free(ide);
+}
 
-CharModelSet *ideGenCharModelSet(IDE *ide, Font *font) {
+CharModelSet *ideGenCharModelSet(IDE *ide, const Font *font) {
   CharModelSet *set = FontManager_loadFont(ide->fontManager, font);
   if (!set) { return nullptr; }
   if (set->atlas) { return set; }
@@ -58,7 +71,7 @@ CharModelSet *ideGenCharModelSet(IDE *ide, Font *font) {
   return set;
 }
 
-uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharModelSet *set) {
+uint32_t ideUpdateTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, CharModelSet *set) {
   const Allocator *allocator = ide->allocator;
   TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
   const uint32_t old_width = atlas->width, old_height = atlas->height;
@@ -73,12 +86,12 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
       rt_error("Loading font %s of '%c' failed", set->font.path, *character);
       continue;
     }
-    const uint32_t sub_width = set->face->glyph->bitmap.width;
+    const uint32_t sub_width = set->face->glyph->bitmap.width + 1;
     const uint32_t sub_height = set->face->glyph->bitmap.rows;
-    const uint32_t bearing_x  = set->face->glyph->bitmap_left;
-    const uint32_t bearing_y  = set->face->glyph->bitmap_top;
-    const uint32_t advance_x  = set->face->glyph->advance.x;
-    const uint32_t advance_y  = set->face->glyph->advance.y;
+    const int32_t bearing_x  = set->face->glyph->bitmap_left;
+    const int32_t bearing_y  = set->face->glyph->bitmap_top;
+    const int64_t advance_x  = set->face->glyph->advance.x;
+    const int64_t advance_y  = set->face->glyph->advance.y;
     const CharModel model = {
         .code=*character, .offset=current_width,
         .size={ [AXIS_X]=sub_width, [AXIS_Y]=sub_height },
@@ -107,7 +120,7 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
                        0, 0, 0, 0,
                        atlas->texture, GL_TEXTURE_2D,
                        0, 0, 0, 0,
-                       (GLsizei) old_width, (GLsizei) old_height, 0);
+                       (GLsizei) old_width - 1, (GLsizei) old_height, 0);
     glDeleteTextures(1, &old_texture);
   }
 
@@ -121,7 +134,7 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
     const uint32_t offset = model->offset;
     const uint8_t *data = set->face->glyph->bitmap.buffer;
     glTextureSubImage2D(atlas->texture, 0, (GLint) offset, 0,
-                        (GLsizei) model->size[AXIS_X], (GLsizei) model->size[AXIS_Y],
+                        (GLsizei) model->size[AXIS_X] - 1, (GLsizei) model->size[AXIS_Y],
                         GL_RED, GL_UNSIGNED_BYTE, data);
   }
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -138,52 +151,10 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, Array /*<char_t>*/ *char_array, CharMod
   return count;
 }
 
-#define lenof(array) (sizeof(array) / sizeof(typeof((array)[0])))
-inline DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array, Array /*<Vertex2D>*/ *vert_array,
-                                  uint32_t plane_index, Font *font) {
-  if (!ide || !char_array || !vert_array || !font) { return nullptr; }
-  const Allocator *allocator = ide->allocator;
+
+const CharModelSet * ideUpdateCharModelSet(IDE *ide, const Font *font, const Array/*<char_t>*/ *char_array) {
   CharModelSet *set = ideGenCharModelSet(ide, font);
+  if (!set) { return nullptr; }
   ideUpdateTextureAtlas(ide, char_array, set);
-  TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
-  Array *vertex_array = Array_new(sizeof(XGLVertex), enum_XGL_VERTEX, allocator);
-  Array *index_array = Array_new(sizeof(GLuint), enum_XGL_INDEX, allocator);
-  const uint32_t count = min(Array_length(vert_array), Array_length(char_array));
-  const Vertex2D * const pixel_vertices = Array_real_addr(vert_array, 0);
-  const char_t * const string = Array_real_addr(char_array, 0);
-  for (uint32_t i = 0; i < count; i++) {
-    const CharModel *model = AVLTree_get(set->charTree, string[i]);
-    model = Array_vert2real(set->modelArray, model);
-    XGLVertex vertices[4] = {};
-    xglGenCharCoord2D(model, &pixel_vertices[i], atlas, vertices);
-    GLuint indices[6] = {
-        i * 4 + RC_LT, i * 4 + RC_RT, i * 4 + RC_LB,
-        i * 4 + RC_RT, i * 4 + RC_LB, i * 4 + RC_RB
-    };
-    Array_append(vertex_array, vertices, lenof(vertices));
-    Array_append(index_array, indices, lenof(indices));
-  }
-
-  DrawTask * const task = xglCreateTexturedDrawTask(vertex_array, index_array, allocator);
-  task->task_type = TT_TEXT;
-  task->texture = atlas->texture;
-  task->texture_unit = atlas->unit;
-
-  releasePrimeArray(vertex_array);
-  releasePrimeArray(index_array);
-
-  return task;
-}
-
-inline DrawTask *
-ideCreateText2D(IDE *ide, Array *char_array, Vertex2D *anchor, const int32_t c_space, const uint32_t mode,
-                uint32_t plane_index, Font *font) {
-  if (!ide || !char_array || !anchor || !font) { return nullptr; }
-  const Allocator *allocator = ide->allocator;
-  CharModelSet *set = ideGenCharModelSet(ide, font);
-  ideUpdateTextureAtlas(ide, char_array, set);
-  Array *vertex_array = ideGenCharCoordArray(set, char_array, anchor, c_space, mode, allocator);
-  DrawTask * const task = ideCreatePrint2D(ide, char_array, vertex_array, plane_index, font);
-  releasePrimeArray(vertex_array);
-  return task;
+  return set;
 }

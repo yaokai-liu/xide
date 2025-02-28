@@ -31,7 +31,7 @@
 #include <pthread.h>
 #include <stdio.h>
 
-GLuint *ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t count) {
+GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count) {
   int status;
   // shader program
   GLuint shaderProgram = glCreateProgram();
@@ -39,7 +39,7 @@ GLuint *ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t c
     const char_t *path = shaderInfo[i].path;
     const GLenum type = shaderInfo[i].type;
     if (path && type) {
-      GLuint shader = compileShader(path, type, window->allocator);
+      GLuint shader = compileShader(path, type, ide->allocator);
       glAttachShader(shaderProgram, shader);
       glDeleteShader(shader);
     } else if (!path) {
@@ -57,8 +57,8 @@ GLuint *ideCompileShaders(IdeWindow *window, ShaderInfo shaderInfo[], uint32_t c
     glfwTerminate();
     return nullptr;
   }
-  Array_append(window->shaderProgramArray, &shaderProgram, 1);
-  return Array_last_virt(window->shaderProgramArray);
+  Array_append(ide->shaderProgramArray, &shaderProgram, 1);
+  return Array_last_virt(ide->shaderProgramArray);
 }
 
 int initializeGlad() {
@@ -100,19 +100,20 @@ GLFWmonitor *switchMonitor(int index) {
   return monitor;
 }
 
-void ideWindowAddTasks(IdeWindow *window, DrawTask *task, GLuint *shaderProgram) {
-  shaderProgram = Array_vert2real(window->shaderProgramArray, shaderProgram);
+void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
+  if (!task) { return; }
+  shaderProgram = Array_vert2real(ide->shaderProgramArray, shaderProgram);
   xglBindShaderProgram(task, *shaderProgram);
-  Array_append(window->drawTaskArray, task, 1);
+  Array_append(ide->drawTaskArray, task, 1);
 }
 
-void ideDrawUiOnce(IdeWindow *window) {
-  if (window->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
+void ideDrawUiOnce(IDE *ide) {
+  if (ide->window->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
   glClear(GL_COLOR_BUFFER_BIT);
-  const uint32_t n_tasks = Array_length(window->drawTaskArray);
-  const DrawTask *tasks = Array_real_addr(window->drawTaskArray, 0);
-  for (uint32_t i = 0; i < n_tasks; i++) { xglDraw(&tasks[i], window); }
-  glfwSwapBuffers(window->info.handle);
+  const uint32_t n_tasks = Array_length(ide->drawTaskArray);
+  const DrawTask *tasks = Array_real_addr(ide->drawTaskArray, 0);
+  for (uint32_t i = 0; i < n_tasks; i++) { ideDraw(&tasks[i], ide); }
+  glfwSwapBuffers(ide->window->info.handle);
 }
 
 inline void ideSetWindowTitle(IdeWindow *handle, const char_t *title) {
@@ -139,7 +140,6 @@ IdeWindow *ideCreateWindow(const int width, const int height, const char_t *titl
 
   IdeWindow * const window = allocator->calloc(1, sizeof(IdeWindow));
   window->allocator = allocator;
-  glfwSetWindowUserPointer(handle, window);
 
   window->info.handle = handle;
 
@@ -158,25 +158,18 @@ IdeWindow *ideCreateWindow(const int width, const int height, const char_t *titl
   window->info.viewport[2] = (float) viewport[2];
   window->info.viewport[3] = (float) viewport[3];
 
-  window->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
-  window->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-  window->shaderArray = Array_new(sizeof(GLuint), enum_XGL_SHADER, allocator);
-
   return window;
 }
 
 void ideDestroyWindow(IdeWindow *window) {
-  Array_reset(window->drawTaskArray, (destruct_t *) xglDestroyDrawTask);
-  Array_destroy(window->drawTaskArray);
-  releasePrimeArray(window->shaderProgramArray);
   glfwDestroyWindow(window->info.handle);
   window->allocator->free(window);
 }
 
-void *ideRepeatDrawUi(IdeWindow *window) {
-  while (!ideShouldStopRender(window)) {
-    ideProcessInput(window);
-    ideDrawUiOnce(window);
+void *ideRepeatDrawUi(IDE *ide) {
+  while (!ideShouldStopRender(ide->window)) {
+    ideProcessInput(ide->window);
+    ideDrawUiOnce(ide);
     glfwPollEvents();
   }
   return nullptr;
@@ -186,12 +179,12 @@ bool ideShouldStopRender(IdeWindow *window) {
   return glfwWindowShouldClose(window->info.handle);
 }
 
-void ideShow(IdeWindow *window) {
-  ideDrawUiOnce(window);
-  pthread_t uiThread;
-  pthread_create(&uiThread, nullptr, (void *(*) (void *) ) ideRepeatDrawUi, window);
-  pthread_detach(uiThread);
-  while (!ideShouldStopRender(window)) { glfwPollEvents(); }
-  void *res;
-  pthread_join(uiThread, &res);
+void ideWindowShow(IDE *ide) {
+  ideRepeatDrawUi(ide);
+//  pthread_t uiThread;
+//  pthread_create(&uiThread, nullptr, (void *(*) (void *) ) ideRepeatDrawUi, ide);
+//  pthread_detach(uiThread);
+//  while (!ideShouldStopRender(ide->window)) { glfwPollEvents(); }
+//  void *res;
+//  pthread_join(uiThread, &res);
 }

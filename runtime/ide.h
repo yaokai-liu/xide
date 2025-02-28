@@ -29,15 +29,22 @@
 #define XIDE_IDE_H
 
 #include "array.h"
-#include "draw.h"
-#include "print.h"
+#include "font-manage.h"
+#include "window.h"
 
-typedef struct IDE IDE;
+typedef struct IDE {
+  const Allocator *allocator;
+  const char_t *workdir;
+  IdeWindow *window;
+  Array *shaderArray;  // Array<GLuint>
+  Array *drawTaskArray;  // Array<DrawTask>
+  Array *shaderProgramArray;  // Array<GLuint>
+  FontManager *fontManager;
+  TextureAtlasManager *atlasManager;
+} IDE;
 
-IDE *IDE_new(const Allocator *allocator);
+IDE *IDE_new(const char_t *workdir, const Allocator *allocator);
+void IDE_destroy(IDE *ide);
+const CharModelSet * ideUpdateCharModelSet(IDE *ide, const Font *font, const Array/*<char_t>*/ *char_array);
 
-DrawTask *ideCreatePrint2D(IDE *ide, Array /*<char_t>*/ *char_array, Array /*<PixelVertex2D>*/ *vert_array,
-                           uint32_t plane_index, Font *font);
-DrawTask *ideCreateText2D(IDE *ide, Array *char_array, Vertex2D *anchor, const int32_t c_space, const uint32_t mode,
-                          uint32_t plane_index, Font *font);
 #endif  // XIDE_IDE_H

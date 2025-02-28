@@ -61,7 +61,8 @@ enum LOCATION_LAYER {
   LOC_COLOR = 1,
   LOC_TEXTURE_COORD = 2,
   LOC_VIEWPORT = 3,
-  LOC_TEXTURE_UNIT = 4,
+  LOC_TEXTURE_ATLAS_SIZE = 4,
+  LOC_TEXTURE_UNIT = 5,
 };
 
 typedef GLuint iXGLVao;
@@ -69,6 +70,9 @@ typedef GLuint iXGLVbo;
 typedef GLuint iXGLIbo;
 typedef GLuint iXGLshProg;
 
+typedef GLfloat XGLVector2D[2];
+typedef GLfloat XGLVector3D[3];
+typedef GLfloat XGLVector4D[4];
 typedef GLfloat XGLCoord[4];
 typedef GLfloat XGLColor[4];
 typedef GLfloat XGLTexCoord[2];

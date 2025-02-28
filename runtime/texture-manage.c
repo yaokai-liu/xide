@@ -27,4 +27,8 @@
 
 #include "texture-manage.h"
 #include "array.h"
-#include "enum.h"
+#include "glad/glad.h"
+
+void releaseTextureAtlas(TextureAtlas *atlas, const Allocator *) {
+  glDeleteTextures(1, &atlas->texture);
+}
