@@ -25,7 +25,7 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include <minmax.h>
+#include "minmax.h"
 #include "print.h"
 #include "draw.h"
 #include "ide.h"

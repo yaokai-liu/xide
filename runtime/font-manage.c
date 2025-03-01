@@ -25,7 +25,7 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include <minmax.h>
+#include "minmax.h"
 #include "font-manage.h"
 #include "enum.h"
 #include "ft2build.h"
@@ -104,53 +104,53 @@ CharModelSet *FontManager_findFont(FontManager *manager, const Font *font) {
 
 Array/*<Vertex2D>*/ *
 charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                           const Vertex2D * anchor, int32_t c_space, uint32_t mode,
+                           const Vertex2D * anchor, float c_space, uint32_t mode,
                            XGLVector2D feedback_vec, const Allocator *allocator) {
   const uint32_t count = Array_length(char_array);
   if (!count) { return nullptr; }
   const char_t * const string = Array_real_addr(char_array, 0);
   Vertex2D *vertices = allocator->malloc(sizeof(Vertex2D) * count);
   float offset_x = 0, offset_y = 0;
-  uint32_t origin = 0, height = 0, width = 0;
+  float origin = 0, height = 0, width = 0;
   for (uint32_t i = 0; i < count; i++) {
     const CharModel *model = AVLTree_get(set->charTree, string[i]);
     model = Array_vert2real(set->modelArray, model);
     offset_x  = ((float) model->size[AXIS_X]) / 2 + ((float) model->bearing[AXIS_X]);
     offset_y  = ((float) model->bearing[AXIS_Y]) - ((float) model->size[AXIS_Y]) / 2;
-    vertices[i].coord[AXIS_X] = offset_x + (float) origin;
+    vertices[i].coord[AXIS_X] = offset_x + origin;
     vertices[i].coord[AXIS_Y] = offset_y;
     vertices[i].color = anchor->color;
-    height = max(height, model->size[AXIS_Y]);
-    origin += (model->advance[AXIS_X] >> 6) + c_space;
+    height = max(height, (float) model->size[AXIS_Y]);
+    origin +=  1.0f / 64 * (float) (model->advance[AXIS_X]) + c_space;
   }
   width = origin;
   if (feedback_vec) {
-    feedback_vec[AXIS_X] = (float) width;
-    feedback_vec[AXIS_Y] = (float) height;
+    feedback_vec[AXIS_X] = width;
+    feedback_vec[AXIS_Y] = height;
   }
 
   for (uint32_t i = 0; i < count; i++) {
-    vertices[i].coord[AXIS_Y] = ((float) height) - vertices[i].coord[AXIS_Y];
+    vertices[i].coord[AXIS_Y] = height - vertices[i].coord[AXIS_Y];
     vertices[i].coord[AXIS_X] += anchor->coord[AXIS_X];
     vertices[i].coord[AXIS_Y] += anchor->coord[AXIS_Y];
   }
   switch (mode & TS_H_MASK) {
     case TS_H_CENTER: {
-      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_X] -= (float) width / 2; }
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_X] -= width / 2; }
       break;
     }
     case TS_LEFT: {
-      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_X] -= (float) width; }
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_X] -= width; }
       break;
     }
   }
   switch (mode & TS_V_MASK) {
     case TS_V_CENTER: {
-      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_Y] -= (float) height / 2; }
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_Y] -= height / 2; }
       break;
     }
     case TS_ABOVE: {
-      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_Y] -= (float) height; }
+      for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_Y] -= height; }
       break;
     }
   }
@@ -162,7 +162,7 @@ charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *ch
 
 Array/*<Vertex2D>*/ *
 charModelSetGenVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                           const Vertex2D * anchor, int32_t c_space, uint32_t mode,
+                           const Vertex2D * anchor, float c_space, uint32_t mode,
                            XGLVector2D feedback_vec, const Allocator *allocator) {
   return nullptr;
 }

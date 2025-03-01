@@ -24,7 +24,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include <minmax.h>
+#include "minmax.h"
 #include "draw.h"
 #include "GLFW/glfw3.h"
 #include "cg2d.h"
@@ -381,7 +381,7 @@ inline DrawTask *ideCreatePrint2D(IDE *ide, const Array /*<char_t>*/ *char_array
 
 inline DrawTask *
 ideCreateText2D(IDE *ide, const Array *char_array, const Vertex2D *anchor,
-                const int32_t c_space, const uint32_t mode,
+                const float c_space, const uint32_t mode,
                 uint32_t plane_index, const Font *font, XGLVector2D feedback_vec) {
   if (!ide || !char_array || !anchor || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
@@ -399,7 +399,7 @@ ideCreateText2D(IDE *ide, const Array *char_array, const Vertex2D *anchor,
 
 inline DrawTask *
 ideCreateStringText2D(IDE *ide, const char_t *string, const Vertex2D *anchor,
-                      int32_t c_space, uint32_t mode,
+                      float c_space, uint32_t mode,
                       uint32_t plane_index, const Font *font, XGLVector2D feedback_vec) {
   if (!ide || !string || !anchor || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;

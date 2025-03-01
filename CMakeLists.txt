@@ -6,12 +6,12 @@ add_compile_options("-O3")
 add_compile_options("-ftree-vectorize" "-msse3")
 add_compile_definitions("nullptr=NULL")
 
-#if(CMAKE_)
-#add_compile_options("/Wall" "/WX")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
+
+find_package(OpenGL REQUIRED)
 
 aux_source_directory(meman MEMAN_SRC)
 add_library(meman SHARED ${MEMAN_SRC})
@@ -47,4 +47,4 @@ add_library(com-geo STATIC ${COM_GEO_SRC})
 
 add_executable(xide main.c)
 target_link_libraries(xide PRIVATE
-        opengl32 glad glfw com-geo components runtime)
+        ${OPENGL_LIBRARIES} glad glfw com-geo components runtime)

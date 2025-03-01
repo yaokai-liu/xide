@@ -27,7 +27,7 @@
 #include "runtime.h"
 #include "char_t.h"
 #include "shader.h"
-#include <minmax.h>
+#include "minmax.h"
 #include <pthread.h>
 #include <stdio.h>
 
@@ -121,6 +121,17 @@ inline void ideSetWindowTitle(IdeWindow *handle, const char_t *title) {
 }
 
 IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title, const Allocator *allocator) {
+
+  rt_message("Using GLFW Version: %d.%d", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
+  // Required OpenGL version: 4.6.0
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+
   // TODO: loadPluginsFrom(directory) async;
   // TODO: loadProjectFrom(directory) async;
   // TODO: setupUiFrom(filepath) main thread;

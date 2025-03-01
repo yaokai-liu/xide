@@ -24,7 +24,6 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "enum.h"
 #include "ide.h"
 #include "print.h"
 #include "runtime.h"
@@ -45,21 +44,9 @@ int main(int argc, char *argv[]) {
   }
 
   if (!glfwInit()) { return -1; }
-  rt_message("Using GLFW Version: %d.%d", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
-  // Required OpenGL version: 4.6.0
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-
   IDE *ide = IDE_new(workdir, allocator);
-  if (!ide) {
-    glfwTerminate();
-    return -1;
-  }
+  if (!ide) { glfwTerminate(); return -1; }
+
   ShaderInfo shaderInfos[] = {
     {"shaders/vert-default.glsl", GL_VERTEX_SHADER  },
     {"shaders/frag-default.glsl", GL_FRAGMENT_SHADER}
@@ -129,8 +116,8 @@ int main(int argc, char *argv[]) {
   //  allocator->free(task);
   //  releasePrimeArray(line_array);
 
-//  Font font = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 16};
-  Font font = {.path = "JetBrainsMono-Regular.ttf", .index = 0, .size = 16};
+  Font font1 = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 18};
+  Font font2 = {.path = "JetBrainsMono-Regular.ttf", .index = 0, .size = 16};
   ShaderInfo shaderInfos2[] = {
     {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
     {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
@@ -144,12 +131,12 @@ int main(int argc, char *argv[]) {
   XGLVector2D size = {};
 
   Vertex2D anchor = {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF};
-  DrawTask *task1 = ideCreateStringText2D(ide, TEXT" 1", &anchor, -1,
-                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font, size);
+  DrawTask *task1 = ideCreateStringText2D(ide, TEXT" 1", &anchor, -0.25f,
+                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font1, size);
   ideAddTasks(ide, task1, shader);
   anchor.coord[AXIS_Y] -= size[AXIS_Y] + 5;
-  DrawTask *task2 = ideCreateStringText2D(ide, TEXT " 2", &anchor, -1,
-                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font, size);
+  DrawTask *task2 = ideCreateStringText2D(ide, TEXT " 2", &anchor, -1.5f,
+                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font2, size);
   ideAddTasks(ide, task2, shader);
 
   rt_message("XGLVector2D (%g, %g)", size[AXIS_X], size[AXIS_Y]);

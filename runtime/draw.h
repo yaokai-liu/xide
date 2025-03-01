@@ -71,9 +71,9 @@ DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, int plane_index, b
 
 DrawTask *ideCreatePrint2D(IDE *ide, const Array /*<char_t>*/ *char_array, const Array /*<PixelVertex2D>*/ *vert_array,
                            uint32_t plane_index, const Font *font);
-DrawTask *ideCreateText2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, int32_t c_space, uint32_t mode,
+DrawTask *ideCreateText2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, float c_space, uint32_t mode,
                           uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
-DrawTask *ideCreateStringText2D(IDE *ide, const char_t *string, const Vertex2D *anchor, int32_t c_space, uint32_t mode,
+DrawTask *ideCreateStringText2D(IDE *ide, const char_t *string, const Vertex2D *anchor, float c_space, uint32_t mode,
                                 uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);

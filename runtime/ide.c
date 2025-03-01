@@ -31,7 +31,7 @@
 #include "runtime.h"
 #include "texture-manage.h"
 #include "utils.h"
-#include <minmax.h>
+#include "minmax.h"
 
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
