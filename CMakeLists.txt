@@ -10,11 +10,13 @@ add_compile_definitions("nullptr=NULL")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+set(CMAKE_VERBOSE_MAKEFILE ON CACHE INTERNAL "")
 
 find_package(OpenGL REQUIRED)
 
 aux_source_directory(meman MEMAN_SRC)
-add_library(meman SHARED ${MEMAN_SRC})
+add_library(meman STATIC ${MEMAN_SRC})
 
 add_library(glad STATIC glad/src/glad.c)
 include_directories(glad/include)
@@ -37,7 +39,7 @@ link_libraries(meman)
 
 aux_source_directory(runtime RT_SRC)
 add_library(runtime STATIC ${RT_SRC})
-target_link_libraries(runtime PRIVATE com-geo components freetype)
+target_link_libraries(runtime PRIVATE glad com-geo components freetype)
 
 aux_source_directory(components UI_SRC)
 add_library(components STATIC ${UI_SRC})

@@ -83,7 +83,7 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, C
     if (AVLTree_get(set->charTree, *character)) { continue; }
     FT_Error err = FT_Load_Char(set->face, *character, FT_LOAD_RENDER);
     if (err) {
-      rt_error("Loading font %s of '%c' failed", set->font.path, *character);
+      rt_error("Loading glyph of '%c' in %s failed", *character, set->font.path);
       continue;
     }
     const uint32_t sub_width = set->face->glyph->bitmap.width + 1;

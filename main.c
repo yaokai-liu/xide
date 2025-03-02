@@ -28,6 +28,7 @@
 #include "print.h"
 #include "runtime.h"
 #include "shader.h"
+#include "enum.h"
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
@@ -125,17 +126,20 @@ int main(int argc, char *argv[]) {
   #define TEXT "Hello OpenGL and FreeType"
   shader = ideCompileShaders(ide, shaderInfos2, 2);
 //  Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
-//  Array_append(char_array, TEXT, sizeof(TEXT) - 1);
-//  ideUpdateCharModelSet(ide, &font, char_array);
-//  task = ideCreatePrint2D(ide, char_array, vertex_array, 0, &font);
+//  char_t char_set[0x80] = {};
+//  for (uint32_t i = 0; i < 0x7f; i ++) { char_set[i] = (char_t) i; }
+//  Array_append(char_array, char_set, 0x80);
+//  ideUpdateCharModelSet(ide, &font1, char_array);
+//  ideUpdateCharModelSet(ide, &font2, char_array);
+//  task = ideCreateDrawTextTask(ide, char_array, vertex_array, 0, &font);
   XGLVector2D size = {};
 
   Vertex2D anchor = {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF};
-  DrawTask *task1 = ideCreateStringText2D(ide, TEXT" 1", &anchor, -0.25f,
+  DrawTask *task1 = ideCreateTextStr2DByStr(ide, TEXT" 1", &anchor, -0.25f,
                                           TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font1, size);
   ideAddTasks(ide, task1, shader);
   anchor.coord[AXIS_Y] -= size[AXIS_Y] + 5;
-  DrawTask *task2 = ideCreateStringText2D(ide, TEXT " 2", &anchor, -1.5f,
+  DrawTask *task2 = ideCreateTextStr2DByStr(ide, TEXT " 2", &anchor, -1.5f,
                                           TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font2, size);
   ideAddTasks(ide, task2, shader);
 

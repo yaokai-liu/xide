@@ -71,15 +71,14 @@ CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font) {
     return pSet;
   }
   FT_Face face;
-  FT_Error error = FT_New_Face(manager->ftLibrary, font->path, font->index, &face);
+  FT_Error error = FT_New_Face(manager->ftLibrary, font->path, (FT_Long) font->index, &face);
   if (error != 0) {
     rt_error("Failed to load font");
     return nullptr;
   }
   FT_Set_Pixel_Sizes(face, 0, font->size);
   CharModelSet set = {
-    .face = face, .font = {.path = font->path, .index = font->index, .size = font->size},
-         .atlas = 0
+    .face = face, .font = {.path = font->path, .index = font->index, .size = font->size}, .atlas = 0
   };
   set.modelArray = Array_new(sizeof(CharModel), enum_IDE_CHAR_MODEL, manager->allocator);
   set.charTree = AVLTree_new(manager->allocator, nullptr);

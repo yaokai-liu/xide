@@ -6,7 +6,7 @@ out vec4 color;
 
 void main()
 {
-    vec4 sampled = vec4(1.0, 1.0, 1.0, texture(tex, texCoord.xy).r);
-    // vec4 sampled = vec4(1.0, 1.0, 1.0, 1.0);
-    color = vsColor * sampled;
+  float hint = texture(tex, texCoord.xy).r;
+  vec4 sampled = vec4(1.0, 1.0, 1.0, hint);
+  color = vsColor * sampled;
 }

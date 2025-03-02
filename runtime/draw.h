@@ -55,9 +55,8 @@ typedef struct DrawTask {
 
 DrawTask *ideCreateNonTextureDrawTask(const Array * vertex_array, const Array * color_array,
                                       const Array * index_array, const Allocator * allocator);
-DrawTask *
-ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array, const TextureAtlas *atlas,
-                          const Allocator *const allocator);
+DrawTask * ideCreateTexturedDrawTask(const Array *vertex_array, const Array *index_array, const TextureAtlas *atlas,
+                                     const Allocator *allocator);
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
 DrawTask *ideCreatePolygon2D(const Array *vertex_array, float plane_index, bool solid, const Allocator *allocator);
@@ -69,12 +68,12 @@ DrawTask *ideCreatePixelLines(const Array *line_array, int plane_index, const Al
 DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, int plane_index, bool solid, const Allocator *allocator);
 DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, int plane_index, bool cycle, const Allocator *allocator);
 
-DrawTask *ideCreatePrint2D(IDE *ide, const Array /*<char_t>*/ *char_array, const Array /*<PixelVertex2D>*/ *vert_array,
-                           uint32_t plane_index, const Font *font);
-DrawTask *ideCreateText2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, float c_space, uint32_t mode,
-                          uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
-DrawTask *ideCreateStringText2D(IDE *ide, const char_t *string, const Vertex2D *anchor, float c_space, uint32_t mode,
-                                uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
+DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array, const CharModelSet *set,
+                                uint32_t plane_index, const Font *font);
+DrawTask *ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, float c_space, uint32_t mode,
+                             uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
+DrawTask *ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D *anchor, float c_space, uint32_t mode,
+                                  uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);
 

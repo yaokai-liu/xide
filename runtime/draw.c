@@ -343,11 +343,17 @@ DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, int plane_i
 }
 
 #define lenof(array) (sizeof(array) / sizeof(typeof((array)[0])))
-inline DrawTask *ideCreatePrint2D(IDE *ide, const Array /*<char_t>*/ *char_array, const Array /*<Vertex2D>*/ *vert_array,
-                                  uint32_t plane_index, const Font *font) {
+inline DrawTask *ideCreateText2DByArray(IDE *ide, const Array /*<char_t>*/ *char_array, const Array /*<Vertex2D>*/ *vert_array,
+                                       uint32_t plane_index, const Font *font) {
   if (!ide || !char_array || !vert_array || !font) { return nullptr; }
-  const Allocator *allocator = ide->allocator;
   const CharModelSet *set = ideUpdateCharModelSet(ide, font, char_array);
+  return ideCreateDrawTextTask(ide, char_array, vert_array, set, plane_index, font);
+}
+inline DrawTask *
+ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array, const CharModelSet *set,
+                      uint32_t plane_index, const Font *font) {
+  if (!ide || !char_array || !vert_array || !set || !font) { return nullptr; }
+  const Allocator *allocator = ide->allocator;
   TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
   Array *vertex_array = Array_new(sizeof(XGLVertex), enum_XGL_VERTEX, allocator);
   Array *index_array = Array_new(sizeof(GLuint), enum_XGL_INDEX, allocator);
@@ -380,7 +386,7 @@ inline DrawTask *ideCreatePrint2D(IDE *ide, const Array /*<char_t>*/ *char_array
 }
 
 inline DrawTask *
-ideCreateText2D(IDE *ide, const Array *char_array, const Vertex2D *anchor,
+ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor,
                 const float c_space, const uint32_t mode,
                 uint32_t plane_index, const Font *font, XGLVector2D feedback_vec) {
   if (!ide || !char_array || !anchor || !font) { return nullptr; }
@@ -392,20 +398,20 @@ ideCreateText2D(IDE *ide, const Array *char_array, const Vertex2D *anchor,
   } else {
     vertex_array = charModelSetGenHCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
   }
-  DrawTask * const task = ideCreatePrint2D(ide, char_array, vertex_array, plane_index, font);
+  DrawTask * const task = ideCreateDrawTextTask(ide, char_array, vertex_array, set, plane_index, font);
   if (vertex_array) { releasePrimeArray(vertex_array); }
   return task;
 }
 
 inline DrawTask *
-ideCreateStringText2D(IDE *ide, const char_t *string, const Vertex2D *anchor,
+ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D *anchor,
                       float c_space, uint32_t mode,
                       uint32_t plane_index, const Font *font, XGLVector2D feedback_vec) {
   if (!ide || !string || !anchor || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
   Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
   Array_append(char_array, string, strlen(string));
-  DrawTask * const task = ideCreateText2D(ide, char_array, anchor, c_space, mode, plane_index, font, feedback_vec);
+  DrawTask * const task = ideCreateTextStr2D(ide, char_array, anchor, c_space, mode, plane_index, font, feedback_vec);
   releasePrimeArray(char_array);
   return task;
 }
