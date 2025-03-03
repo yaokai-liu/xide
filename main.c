@@ -27,22 +27,20 @@
 #include "ide.h"
 #include "print.h"
 #include "runtime.h"
-#include "shader.h"
 #include "enum.h"
 #include <stdio.h>
+#if defined(_WIN32) || defined(_WIN64)
+  #include <direct.h>
+#else
+#include <unistd.h>
+#endif
+#include <math.h>
 
 int main(int argc, char *argv[]) {
   const Allocator * const allocator = &STDAllocator;
 
-  char_t workdir[512] = {};
-  {
-    int length = 0;
-    for (int i = 0; argv[0][i]; i++) {
-      if (argv[0][i] == '\\' || argv[0][i] == '/') { length = i; }
-    }
-    allocator->memcpy(workdir, argv[0], length);
-    workdir[length] = '\0';
-  }
+  char_t workdir[PATH_MAX] = {};
+  getcwd(workdir, PATH_MAX);
 
   if (!glfwInit()) { return -1; }
   IDE *ide = IDE_new(workdir, allocator);
@@ -70,27 +68,27 @@ int main(int argc, char *argv[]) {
   };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 10);
-  task = ideCreatePolygon2D(vertex_array, 0, false, allocator);
+  task = ideCreatePolygon2D(vertex_array, 50, false, allocator);
   ideAddTasks(ide, task, shader);
-  //  allocator->free(task);
-  //  Array_reset(vertex_array, nullptr);
+  allocator->free(task);
+  Array_reset(vertex_array, nullptr);
 
-  //  for (int i = 0; i < 100; i ++) {
-  //    Vertex2D vert = {
-  //        .coord = {
-  //          400 + 200 * cosf(2 * (float) M_PI / 100 * (float) i),
-  //          400 + 200 * sinf(2 * (float) M_PI / 100 * (float) i)
-  //        },
-  //        .color = 0xFFFF00FF
-  //    };
-  //    Array_append(vertex_array, &vert, 1);
-  //  }
-  //  Vertex2D center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
-  //  Array_append(vertex_array, &center, 1);
-  //  task = ideCreateCurveArea2D(vertex_array, 0, true, true, allocator);
-  //  ideAddTasks(ide, task, 0);
-  //  allocator->free(task);
-  //  releasePrimeArray(vertex_array);
+  for (int i = 0; i < 100; i ++) {
+    Vertex2D vert = {
+        .coord = {
+          400 + 200 * cosf(2 * (float) M_PI / 100 * (float) i),
+          400 + 200 * sinf(2 * (float) M_PI / 100 * (float) i)
+        },
+        .color = 0xFF0000FF
+    };
+    Array_append(vertex_array, &vert, 1);
+  }
+  Vertex2D center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
+  Array_append(vertex_array, &center, 1);
+  task = ideCreateCurveArea2D(vertex_array, 10, true, true, allocator);
+  ideAddTasks(ide, task, shader);
+  allocator->free(task);
+  releasePrimeArray(vertex_array);
 
   Line lines[] = {
     {
@@ -110,14 +108,14 @@ int main(int argc, char *argv[]) {
      {100, 100, 0x00FF00FF},
      },
   };
-  //  Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
-  //  Array_append(line_array, lines, 4);
-  //  task = ideCreatePixelLines(line_array, 0, allocator);
-  //  ideAddTasks(mainWindow, task, 0);
-  //  allocator->free(task);
-  //  releasePrimeArray(line_array);
+    Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
+    Array_append(line_array, lines, 4);
+    task = ideCreatePixelLines(line_array, 0, allocator);
+    ideAddTasks(ide, task, shader);
+    allocator->free(task);
+    releasePrimeArray(line_array);
 
-  Font font1 = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 18};
+  Font font1 = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 16};
   Font font2 = {.path = "JetBrainsMono-Regular.ttf", .index = 0, .size = 16};
   ShaderInfo shaderInfos2[] = {
     {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
@@ -125,12 +123,12 @@ int main(int argc, char *argv[]) {
   };
   #define TEXT "Hello OpenGL and FreeType"
   shader = ideCompileShaders(ide, shaderInfos2, 2);
-//  Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
-//  char_t char_set[0x80] = {};
-//  for (uint32_t i = 0; i < 0x7f; i ++) { char_set[i] = (char_t) i; }
-//  Array_append(char_array, char_set, 0x80);
-//  ideUpdateCharModelSet(ide, &font1, char_array);
-//  ideUpdateCharModelSet(ide, &font2, char_array);
+  Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
+  char_t char_set[0x80] = {};
+  for (uint32_t i = 0; i < 0x7f; i ++) { char_set[i] = (char_t) i; }
+  Array_append(char_array, char_set, 0x80);
+  ideUpdateCharModelSet(ide, &font1, char_array);
+  ideUpdateCharModelSet(ide, &font2, char_array);
 //  task = ideCreateDrawTextTask(ide, char_array, vertex_array, 0, &font);
   XGLVector2D size = {};
 
@@ -142,8 +140,6 @@ int main(int argc, char *argv[]) {
   DrawTask *task2 = ideCreateTextStr2DByStr(ide, TEXT " 2", &anchor, -1.5f,
                                           TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font2, size);
   ideAddTasks(ide, task2, shader);
-
-  rt_message("XGLVector2D (%g, %g)", size[AXIS_X], size[AXIS_Y]);
 
   glLineWidth(1);
   glEnable(GL_MULTISAMPLE);

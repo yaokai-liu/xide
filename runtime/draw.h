@@ -43,10 +43,11 @@ enum TASK_TYPE_ENUM {
 
 typedef struct DrawTask {
   uint32_t task_type;
-  iXGLVao VAO;
   iXGLshProg program;
-  iXGLIbo IBO;
   GLsizei n_index;
+  GLuint  depth;
+  iXGLVao VAO;
+  iXGLIbo IBO;
   Array *VBOs;  // Array<iXGLVbo>
   Array *uniforms;  // Array<iXGLVUniform>
   uint32_t atlas_index;
@@ -55,18 +56,18 @@ typedef struct DrawTask {
 
 DrawTask *ideCreateNonTextureDrawTask(const Array * vertex_array, const Array * color_array,
                                       const Array * index_array, const Allocator * allocator);
-DrawTask * ideCreateTexturedDrawTask(const Array *vertex_array, const Array *index_array, const TextureAtlas *atlas,
-                                     const Allocator *allocator);
+DrawTask *ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array, uint32_t atlas_index,
+                                    uint32_t texture_unit, const Allocator *const allocator);
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
-DrawTask *ideCreatePolygon2D(const Array *vertex_array, float plane_index, bool solid, const Allocator *allocator);
-DrawTask *ideCreateCurveArea2D(const Array *vertex_array, float plane_index, bool cycle, bool solid,
+DrawTask *ideCreatePolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);
+DrawTask *ideCreateCurveArea2D(const Array *vertex_array, uint32_t plane_index, bool cycle, bool solid,
                                const Allocator *allocator);
-DrawTask *ideCreatePolyline2D(const Array *vertex_array, float plane_index, bool cycle, const Allocator *allocator);
+DrawTask *ideCreatePolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
 
-DrawTask *ideCreatePixelLines(const Array *line_array, int plane_index, const Allocator *allocator);
-DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, int plane_index, bool solid, const Allocator *allocator);
-DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, int plane_index, bool cycle, const Allocator *allocator);
+DrawTask *ideCreatePixelLines(const Array *line_array, uint32_t plane_index, const Allocator *allocator);
+DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);
+DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
 
 DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array, const CharModelSet *set,
                                 uint32_t plane_index, const Font *font);

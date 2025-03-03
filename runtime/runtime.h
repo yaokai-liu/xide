@@ -47,6 +47,7 @@ typedef struct {
   char_t *path;
   GLenum type;
 } ShaderInfo;
+
 GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count);
 int initializeGlad();
 GLFWmonitor *switchMonitor(int index);

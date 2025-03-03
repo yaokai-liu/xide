@@ -45,7 +45,6 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   ide->fontManager = FontManager_new(allocator);
   ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-  ide->shaderArray = Array_new(sizeof(GLuint), enum_XGL_SHADER, allocator);
   glfwSetWindowUserPointer(window->info.handle, ide);
 
   return ide;

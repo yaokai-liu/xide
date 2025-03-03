@@ -80,8 +80,8 @@ inline DrawTask *ideCreateNonTextureDrawTask(const Array * const vertex_array, c
 }
 
 inline DrawTask *
-ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array, const TextureAtlas *atlas,
-                          const Allocator *const allocator) {
+ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array,
+                          uint32_t atlas_index, uint32_t texture_unit, const Allocator *const allocator) {
   iXGLVao VAO = {};
   glCreateVertexArrays(1, &VAO);
   glEnableVertexArrayAttrib(VAO, LOC_COORD);
@@ -120,6 +120,8 @@ ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_ar
   task->IBO = IBO;
   task->n_index = (GLsizei) Array_length(index_array);
   task->uniforms = Array_new(sizeof(iXGLVUniform), enum_XGL_UNIFORM, allocator);
+  task->atlas_index = atlas_index;
+  task->texture_unit = texture_unit;
 
   Array_append(task->VBOs, &VBO, 1);
   iXGLVUniform uniforms[] = {
@@ -145,7 +147,7 @@ inline void xglBindShaderProgram(DrawTask *task, GLuint program) {
   task->program = program;
 }
 
-DrawTask *ideCreatePixelLines(const Array * const line_array, const int plane_index,
+DrawTask *ideCreatePixelLines(const Array * const line_array, const uint32_t plane_index,
                               const Allocator * const allocator) {
   const int count = (int) Array_length(line_array);
   const Line * const lines = Array_real_addr(line_array, 0);
@@ -173,6 +175,7 @@ DrawTask *ideCreatePixelLines(const Array * const line_array, const int plane_in
 
   DrawTask * const task = ideCreateNonTextureDrawTask(vertex_array, color_array, index_array, allocator);
   task->task_type = TT_LINES;
+  task->depth = plane_index;
 
   releasePrimeArray(vertex_array);
   releasePrimeArray(color_array);
@@ -181,7 +184,7 @@ DrawTask *ideCreatePixelLines(const Array * const line_array, const int plane_in
   return task;
 }
 
-DrawTask *ideCreatePolygon2D(const Array * const vertex_array, const float plane_index, const bool solid,
+DrawTask *ideCreatePolygon2D(const Array * const vertex_array, const uint32_t plane_index, const bool solid,
                              const Allocator * const allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
@@ -202,6 +205,7 @@ DrawTask *ideCreatePolygon2D(const Array * const vertex_array, const float plane
 
   DrawTask * const task = ideCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
+  task->depth = plane_index;
 
   releasePrimeArray(coord_array);
   releasePrimeArray(color_array);
@@ -210,7 +214,7 @@ DrawTask *ideCreatePolygon2D(const Array * const vertex_array, const float plane
   return task;
 }
 
-DrawTask *ideCreateCurveArea2D(const Array * const vertex_array, const float plane_index, const bool cycle,
+DrawTask *ideCreateCurveArea2D(const Array * const vertex_array, const uint32_t plane_index, const bool cycle,
                                const bool solid, const Allocator * const allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
@@ -231,6 +235,7 @@ DrawTask *ideCreateCurveArea2D(const Array * const vertex_array, const float pla
 
   DrawTask * const task = ideCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
+  task->depth = plane_index;
 
   releasePrimeArray(coord_array);
   releasePrimeArray(color_array);
@@ -239,7 +244,7 @@ DrawTask *ideCreateCurveArea2D(const Array * const vertex_array, const float pla
   return task;
 }
 
-DrawTask *ideCreatePixelPolygon2D(const Array * const vertex_array, int plane_index, bool solid,
+DrawTask *ideCreatePixelPolygon2D(const Array * const vertex_array, const uint32_t plane_index, bool solid,
                                   const Allocator *allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
@@ -260,6 +265,7 @@ DrawTask *ideCreatePixelPolygon2D(const Array * const vertex_array, int plane_in
 
   DrawTask * const task = ideCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = solid ? TT_SOLID_AREA : TT_TRIANGULATED_AREA;
+  task->depth = plane_index;
 
   releasePrimeArray(coord_array);
   releasePrimeArray(color_array);
@@ -268,7 +274,7 @@ DrawTask *ideCreatePixelPolygon2D(const Array * const vertex_array, int plane_in
   return task;
 }
 
-DrawTask *ideCreatePolyline2D(const Array * const vertex_array, const float plane_index, const bool cycle,
+DrawTask *ideCreatePolyline2D(const Array * const vertex_array, const uint32_t plane_index, const bool cycle,
                               const Allocator * const allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
@@ -297,6 +303,7 @@ DrawTask *ideCreatePolyline2D(const Array * const vertex_array, const float plan
 
   DrawTask * const task = ideCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = TT_POLYLINE;
+  task->depth = plane_index;
 
   releasePrimeArray(coord_array);
   releasePrimeArray(color_array);
@@ -305,7 +312,7 @@ DrawTask *ideCreatePolyline2D(const Array * const vertex_array, const float plan
   return task;
 }
 
-DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, int plane_index, bool cycle,
+DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, const uint32_t plane_index, bool cycle,
                                    const Allocator *allocator) {
   const int count = (int) Array_length(vertex_array);
   const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
@@ -334,6 +341,7 @@ DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, int plane_i
 
   DrawTask * const task = ideCreateNonTextureDrawTask(coord_array, color_array, index_array, allocator);
   task->task_type = TT_POLYLINE;
+  task->depth = plane_index;
 
   releasePrimeArray(coord_array);
   releasePrimeArray(color_array);
@@ -374,10 +382,9 @@ ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array
     Array_append(index_array, indices, lenof(indices));
   }
 
-  DrawTask * const task = ideCreateTexturedDrawTask(vertex_array, index_array, atlas, allocator);
+  DrawTask * const task = ideCreateTexturedDrawTask(vertex_array, index_array, set->atlas - 1, atlas->unit, allocator);
   task->task_type = TT_TEXT;
-  task->atlas_index = set->atlas - 1;
-  task->texture_unit = atlas->unit;
+  task->depth = plane_index;
 
   releasePrimeArray(vertex_array);
   releasePrimeArray(index_array);

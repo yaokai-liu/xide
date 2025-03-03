@@ -26,17 +26,65 @@
 
 #include "runtime.h"
 #include "char_t.h"
-#include "shader.h"
 #include "minmax.h"
 #include <pthread.h>
 #include <stdio.h>
+#ifndef PATH_MAX
+  #define PATH_MAX 260
+#endif
+
+char_t *ideResolveToAbsolutePath(IDE *ide, char_t *path, char_t *dest) {
+  if (path[0] == '/') { return path; }
+  if ('A'<= path[0] && path[0] <= 'Z' && path[1] == ':' && path[2] == '\\') {
+    return path;
+  }
+  uint32_t dir_len = strlen(ide->workdir);
+  uint32_t path_len = dir_len + strlen(path);
+  if (path_len - 2 > PATH_MAX) {
+    rt_message("path is too long to resolve: %s/%s", ide->workdir, path);
+    return nullptr;
+  }
+  path_len = dir_len + strlen(path) + 1;
+//  strcpy(resolved_path, ide->workdir);
+//  resolved_path[dir_len] = '/';
+//  strcpy(resolved_path + dir_len + 1, path);
+//  resolved_path[dir_len + strlen(path) + 1] = '\0';
+  sprintf(dest, "%s/%s", ide->workdir, path);
+  return dest;
+}
+
+GLuint compileShader(const char_t *path, const GLenum type, const Allocator *allocator) {
+  FILE *file = fopen(path, "r");
+  if (!file) {
+    rt_error("Failed to open shader file: '%s'", path);
+    return 0;
+  }
+  fseek(file, 0, SEEK_END);
+  long length = ftell(file);
+  fseek(file, 0, SEEK_SET);
+  GLchar *source = allocator->malloc((sizeof(char) * length) + 1);
+  fread((void *) source, sizeof(char), length, file);
+  source[length] = 0;
+  GLuint shader = glCreateShader(type);
+  glShaderSource(shader, 1, (const GLchar **) &source, NULL);
+  glCompileShader(shader);
+  int success;
+  char infoLog[512];
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(shader, 512, NULL, infoLog);
+    rt_error("Failed to compile shader '%s': \n%s\n", path, infoLog);
+  }
+  return shader;
+}
 
 GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count) {
   int status;
   // shader program
+  char_t resolved_path[PATH_MAX] = {};
   GLuint shaderProgram = glCreateProgram();
   for (int i = 0; i < min(4, count); i++) {
-    const char_t *path = shaderInfo[i].path;
+    char_t *path = ideResolveToAbsolutePath(ide, shaderInfo[i].path, resolved_path);
     const GLenum type = shaderInfo[i].type;
     if (path && type) {
       GLuint shader = compileShader(path, type, ide->allocator);
@@ -101,10 +149,19 @@ GLFWmonitor *switchMonitor(int index) {
 }
 
 void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
-  if (!task) { return; }
+  if (!task || !shaderProgram) { return; }
   shaderProgram = Array_vert2real(ide->shaderProgramArray, shaderProgram);
   xglBindShaderProgram(task, *shaderProgram);
-  Array_append(ide->drawTaskArray, task, 1);
+  const DrawTask *tasks = Array_real_addr(ide->drawTaskArray, 0);
+  uint32_t n_tasks = Array_length(ide->drawTaskArray);
+  uint32_t ndx = n_tasks / 2;
+  while (n_tasks) {
+    const uint32_t depth = tasks[ndx].depth;
+    if (task->depth == depth) { break; }
+    n_tasks /= 2;
+    ndx += task->depth < depth ? - n_tasks : n_tasks;
+  }
+  Array_insert(ide->drawTaskArray, ndx, task, 1);
 }
 
 void ideDrawUiOnce(IDE *ide) {
