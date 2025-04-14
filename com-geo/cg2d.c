@@ -71,7 +71,7 @@ struct SharedEdge {
 
 float triangleArea(const struct Triangle *triangle);
 bool vertInPolygon(const Array *vert_array, const XGLCoord vert);
-bool vertInTriangle(const GLfloat verts[][4], uint32_t n_verts, uint32_t i_angle, const XGLCoord vert);
+bool vertInTriangle(const GLfloat vertices[][4], const VNI *vni, uint32_t index);
 bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert);
 void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circle);
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge);
@@ -172,19 +172,19 @@ inline bool vertInPolygon(const Array *vert_array, const XGLCoord vert) {
   return count & 1;
 }
 
-inline bool vertInTriangle(const XGLCoord vertices[], uint32_t n_verts, uint32_t i_angle, const XGLCoord vert) {
+inline bool vertInTriangle(const GLfloat vertices[][4], const VNI *vni, uint32_t index) {
   const float vectors[3][2] = {
     {
-     vert[AXIS_X] - vertices[(i_angle + 0) %n_verts][AXIS_X],
-     vert[AXIS_Y] - vertices[(i_angle + 0) %n_verts][AXIS_Y],
+     vertices[index][AXIS_X] - vertices[vni->left][AXIS_X],
+     vertices[index][AXIS_Y] - vertices[vni->left][AXIS_Y],
      },
     {
-     vert[AXIS_X] - vertices[(i_angle + 1) %n_verts][AXIS_X],
-     vert[AXIS_Y] - vertices[(i_angle + 1) %n_verts][AXIS_Y],
+     vertices[index][AXIS_X] - vertices[vni->index][AXIS_X],
+     vertices[index][AXIS_Y] - vertices[vni->index][AXIS_Y],
      },
     {
-     vert[AXIS_X] - vertices[(i_angle + 2) %n_verts][AXIS_X],
-     vert[AXIS_Y] - vertices[(i_angle + 2) %n_verts][AXIS_Y],
+     vertices[index][AXIS_X] - vertices[vni->right][AXIS_X],
+     vertices[index][AXIS_Y] - vertices[vni->right][AXIS_Y],
      }
   };
   const float crosses[3] = {
@@ -192,8 +192,8 @@ inline bool vertInTriangle(const XGLCoord vertices[], uint32_t n_verts, uint32_t
     _vec_cross(vectors[1], vectors[2]),
     _vec_cross(vectors[2], vectors[0])
   };
-  return (crosses[0] > 0 && crosses[1] > 0 && crosses[2] > 0)
-      || (crosses[0] < 0 && crosses[1] < 0 && crosses[2] < 0);
+  return (crosses[0] >= 0 && crosses[1] >= 0 && crosses[2] >= 0)
+      || (crosses[0] <= 0 && crosses[1] <= 0 && crosses[2] <= 0);
 }
 
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
@@ -281,7 +281,7 @@ Array *buildVniAndIncArray(const Array * const vert_array, Array * const inc_arr
     vni.nInnerVert = 0;
     for (int i = 0; i < n_verts; i++) {
       if (i == ndx || i == v1 || i == v2) { continue; }
-      if (vertInTriangle(vertices, n_verts, v1, vertices[i])) {
+      if (vertInTriangle(vertices, &vni, i)) {
         vni.nInnerVert++;
         Array *n_inc_array = arrays_get(inc_arrays, i);
         Array_append(n_inc_array, &ndx, 1);
@@ -372,20 +372,22 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
     }
     n_triangles++;
 
-    // connect left and right
     VNI *left = &vnies[ear_vni->left];
     VNI *right = &vnies[ear_vni->right];
-    left->right = ear_vni->right;
-    right->left = ear_vni->left;
     // update convexity of left and right
     left->outAngle = outAngleValue(vertices, left);
     right->outAngle = outAngleValue(vertices, right);
-
     // update number of inner vertices for angles those include current vertex
     const Array * const inc_array = arrays_get(inc_arrays, ear_vni->index);
     const int * const indices = Array_real_addr(inc_array, 0);
     const int n_indices = (int) Array_length(inc_array);
     for (int i = 0; i < n_indices; i++) { vnies[indices[i]].nInnerVert--; }
+    if (vertInTriangle(vertices, left, ear_vni->right)) { left->nInnerVert--; }
+    if (vertInTriangle(vertices, right, ear_vni->left)) { right->nInnerVert--; }
+    // connect left and right
+    left->right = ear_vni->right;
+    right->left = ear_vni->left;
+
 
     // find other ear vertex
     ear_vni = findEarVNI(vnies, count);

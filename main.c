@@ -70,6 +70,7 @@ int main(int argc, char *argv[]) {
     {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
     {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
     {.coord = {300.0f, 800.0f}, .color = 0xFFFF00FF},
+//    {.coord = {350.0f, 750.0f}, .color = 0xFFFF00FF},
   };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 11);
