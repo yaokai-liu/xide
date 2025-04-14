@@ -30,25 +30,31 @@
 #include <pthread.h>
 #include <stdio.h>
 #ifndef PATH_MAX
-  #define PATH_MAX 260
+  #define PATH_MAX 256
 #endif
 
-char_t *ideResolveToAbsolutePath(IDE *ide, char_t *path, char_t *dest) {
-  if (path[0] == '/') { return path; }
+enum PATH_TYPE {
+  PT_RELATED = 0,
+  PT_UNIX_ABS = 1,
+  PT_WIN_ABS = 2,
+};
+
+uint32_t isAbsolutePath(const char_t *path) {
+  if (path[0] == '/') { return PT_UNIX_ABS; }
   if ('A'<= path[0] && path[0] <= 'Z' && path[1] == ':' && path[2] == '\\') {
-    return path;
+    return PT_WIN_ABS;
   }
+  return PT_RELATED;
+}
+
+char_t *ideResolveToAbsolutePath(IDE *ide, char_t *path, char_t *dest) {
+  if (isAbsolutePath(path) != PT_RELATED) { return path; }
   uint32_t dir_len = strlen(ide->workdir);
   uint32_t path_len = dir_len + strlen(path);
   if (path_len - 2 > PATH_MAX) {
     rt_message("path is too long to resolve: %s/%s", ide->workdir, path);
     return nullptr;
   }
-  path_len = dir_len + strlen(path) + 1;
-//  strcpy(resolved_path, ide->workdir);
-//  resolved_path[dir_len] = '/';
-//  strcpy(resolved_path + dir_len + 1, path);
-//  resolved_path[dir_len + strlen(path) + 1] = '\0';
   sprintf(dest, "%s/%s", ide->workdir, path);
   return dest;
 }
@@ -92,8 +98,10 @@ GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count) {
       glDeleteShader(shader);
     } else if (!path) {
       rt_message("not given shaders file path for type %d, skip", type);
+      return nullptr;
     } else {
       rt_message("not given type %d of shaders, skip", type);
+      return nullptr;
     }
   }
   glLinkProgram(shaderProgram);
@@ -102,7 +110,6 @@ GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count) {
     GLchar infoLog[512];
     glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
     rt_error("Failed to link shaders program: \n%s", infoLog);
-    glfwTerminate();
     return nullptr;
   }
   Array_append(ide->shaderProgramArray, &shaderProgram, 1);
@@ -150,7 +157,7 @@ GLFWmonitor *switchMonitor(int index) {
 
 void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
   if (!task || !shaderProgram) { return; }
-  shaderProgram = Array_vert2real(ide->shaderProgramArray, shaderProgram);
+  shaderProgram = Array_virt2real(ide->shaderProgramArray, shaderProgram);
   xglBindShaderProgram(task, *shaderProgram);
   const DrawTask *tasks = Array_real_addr(ide->drawTaskArray, 0);
   uint32_t n_tasks = Array_length(ide->drawTaskArray);
@@ -165,6 +172,7 @@ void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
 }
 
 void ideDrawUiOnce(IDE *ide) {
+  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   if (ide->window->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
   glClear(GL_COLOR_BUFFER_BIT);
   const uint32_t n_tasks = Array_length(ide->drawTaskArray);
@@ -173,27 +181,33 @@ void ideDrawUiOnce(IDE *ide) {
   glfwSwapBuffers(ide->window->info.handle);
 }
 
-inline void ideSetWindowTitle(IdeWindow *handle, const char_t *title) {
-  handle->info.title = title;
+inline void ideSetWindowTitle(IdeWindow *window, const char_t *title) {
+  window->info.title = title;
 }
 
 IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title, const Allocator *allocator) {
-
   rt_message("Using GLFW Version: %d.%d", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
-  // Required OpenGL version: 4.6.0
+  // Required OpenGL version: 4.5.0
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
   glfwWindowHint(GLFW_SAMPLES, 4);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
   glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+  glfwWindowHint(GLFW_DECORATED, GLFW_WIN_DECO_NO_TITLE_BAR);
 
   // TODO: loadPluginsFrom(directory) async;
   // TODO: loadProjectFrom(directory) async;
   // TODO: setupUiFrom(filepath) main thread;
 
   GLFWwindow *handle = glfwCreateWindow(width, height, title, nullptr, nullptr);
+  if (!handle) {
+    const char_t *err_msg = nullptr;
+    glfwGetError(&err_msg);
+    rt_error("failed to create GLFW window: %s", err_msg);
+    return nullptr;
+  }
   // make context
   glfwMakeContextCurrent(handle);
   // set swap interval
@@ -225,6 +239,9 @@ IdeWindow *ideCreateWindow(const int width, const int height, const char_t *titl
   window->info.viewport[1] = (float) viewport[1];
   window->info.viewport[2] = (float) viewport[2];
   window->info.viewport[3] = (float) viewport[3];
+
+  // set window title
+  ideSetWindowTitle(window, title);
 
   return window;
 }

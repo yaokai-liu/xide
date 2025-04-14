@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 layout (location = 5) uniform sampler2D tex;
 in  vec4 vsColor;
 in  vec2 texCoord;

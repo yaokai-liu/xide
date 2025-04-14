@@ -113,7 +113,7 @@ charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *ch
   float origin = 0, height = 0, width = 0;
   for (uint32_t i = 0; i < count; i++) {
     const CharModel *model = AVLTree_get(set->charTree, string[i]);
-    model = Array_vert2real(set->modelArray, model);
+    model = Array_virt2real(set->modelArray, model);
     offset_x  = ((float) model->size[AXIS_X]) / 2 + ((float) model->bearing[AXIS_X]);
     offset_y  = ((float) model->bearing[AXIS_Y]) - ((float) model->size[AXIS_Y]) / 2;
     vertices[i].coord[AXIS_X] = offset_x + origin;

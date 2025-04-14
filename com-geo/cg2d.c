@@ -30,7 +30,8 @@
 #include <float.h>
 #include <math.h>
 
-#define epsilon 1e-4
+#define epsilon 1e-8f
+#define pi      3.14159265358979323846f
 
 #ifndef max
   #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -58,8 +59,8 @@ typedef struct vertNdxInfo {
   int left;
   int right;
   int index;
-  bool isConvex;
-  bool outOfCount;
+  float outAngle;
+  bool enabled;
   int nInnerVert;
 } VNI;
 
@@ -70,16 +71,16 @@ struct SharedEdge {
 
 float triangleArea(const struct Triangle *triangle);
 bool vertInPolygon(const Array *vert_array, const XGLCoord vert);
-bool vertInTriangle(const XGLCoord angle_verts[3], const XGLCoord vert);
+bool vertInTriangle(const GLfloat verts[][4], uint32_t n_verts, uint32_t i_angle, const XGLCoord vert);
 bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert);
 void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circle);
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge);
-bool isPositiveAngle(const XGLCoord *vertices, const VNI *vni);
+float outAngleValue(const XGLCoord *constvertices, const VNI *vni);
 Array *buildVniAndIncArray(const Array *vert_array, Array *inc_arrays, const Allocator *allocator);
 bool isEarVNI(const VNI *vni);
 VNI *findEarVNI(VNI *vnies, int count);
 int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge);
-bool vertInAngle(XGLCoord angle_verts[3], const XGLCoord vert);
+bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert);
 bool isSameEdge(const CG2DEdge *edge1, const CG2DEdge *edge2);
 bool edgeInTriangle(const CG2DEdge *edge, const struct Triangle *triangle);
 bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DEdge l2);
@@ -101,6 +102,8 @@ bool edgeInTriangle(const CG2DEdge * const edge, const struct Triangle * const t
       || isSameEdge(edge, &(edges[2]));
 }
 
+#define _vec_cross(v1, v2) \
+  ((v1)[AXIS_X] * (v2)[AXIS_Y] - (v1)[AXIS_Y] * (v2)[AXIS_X])
 #define vec_cross(o, p1, p2)                                   \
   (((p1)[AXIS_X] - (o)[AXIS_X]) * ((p2)[AXIS_Y] - (o)[AXIS_Y]) \
  - ((p1)[AXIS_Y] - (o)[AXIS_Y]) * ((p2)[AXIS_X] - (o)[AXIS_X]))
@@ -169,11 +172,28 @@ inline bool vertInPolygon(const Array *vert_array, const XGLCoord vert) {
   return count & 1;
 }
 
-inline bool vertInTriangle(const XGLCoord angle_verts[3], const XGLCoord vert) {
-  const float s0 = vec_cross(angle_verts[1], angle_verts[0], angle_verts[2]);
-  const float s1 = vec_cross(angle_verts[1], angle_verts[0], vert);
-  const float s2 = vec_cross(angle_verts[1], angle_verts[2], vert);
-  return 0 < s1 - s2 && s1 - s2 < s0 - epsilon;
+inline bool vertInTriangle(const XGLCoord vertices[], uint32_t n_verts, uint32_t i_angle, const XGLCoord vert) {
+  const float vectors[3][2] = {
+    {
+     vert[AXIS_X] - vertices[(i_angle + 0) %n_verts][AXIS_X],
+     vert[AXIS_Y] - vertices[(i_angle + 0) %n_verts][AXIS_Y],
+     },
+    {
+     vert[AXIS_X] - vertices[(i_angle + 1) %n_verts][AXIS_X],
+     vert[AXIS_Y] - vertices[(i_angle + 1) %n_verts][AXIS_Y],
+     },
+    {
+     vert[AXIS_X] - vertices[(i_angle + 2) %n_verts][AXIS_X],
+     vert[AXIS_Y] - vertices[(i_angle + 2) %n_verts][AXIS_Y],
+     }
+  };
+  const float crosses[3] = {
+    _vec_cross(vectors[0], vectors[1]),
+    _vec_cross(vectors[1], vectors[2]),
+    _vec_cross(vectors[2], vectors[0])
+  };
+  return (crosses[0] > 0 && crosses[1] > 0 && crosses[2] > 0)
+      || (crosses[0] < 0 && crosses[1] < 0 && crosses[2] < 0);
 }
 
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
@@ -185,31 +205,44 @@ struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
   return nullptr;
 }
 
-#define angle_cross(angle_verts)                          \
-  (((angle_verts)[1][AXIS_X] - (angle_verts)[0][AXIS_X])  \
- * ((angle_verts)[2][AXIS_Y] - (angle_verts)[1][AXIS_Y])  \
- - ((angle_verts)[1][AXIS_Y] - (angle_verts)[0][AXIS_Y])  \
- * ((angle_verts)[2][AXIS_X] - (angle_verts)[1][AXIS_X]))
-bool isPositiveAngle(const XGLCoord * const vertices, const VNI *vni) {
-  const XGLCoord angle_verts[3] = {
+#define angle_cross(angle_vertices)                             \
+  (((angle_vertices)[1][AXIS_X] - (angle_vertices)[0][AXIS_X])  \
+ * ((angle_vertices)[2][AXIS_Y] - (angle_vertices)[1][AXIS_Y])  \
+ - ((angle_vertices)[1][AXIS_Y] - (angle_vertices)[0][AXIS_Y])  \
+ * ((angle_vertices)[2][AXIS_X] - (angle_vertices)[1][AXIS_X]))
+#define angle_dot(angle_vertices)                               \
+  (((angle_vertices)[1][AXIS_X] - (angle_vertices)[0][AXIS_X])  \
+ * ((angle_vertices)[2][AXIS_X] - (angle_vertices)[1][AXIS_X])  \
+ + ((angle_vertices)[1][AXIS_Y] - (angle_vertices)[0][AXIS_Y])  \
+ * ((angle_vertices)[2][AXIS_Y] - (angle_vertices)[1][AXIS_Y]))
+float outAngleValue(const XGLCoord *const vertices, const VNI *vni) {
+  const XGLCoord angle_vertices[3] = {
     {vertices[vni->left][AXIS_X],  vertices[vni->left][AXIS_Y] },
     {vertices[vni->index][AXIS_X], vertices[vni->index][AXIS_Y]},
     {vertices[vni->right][AXIS_X], vertices[vni->right][AXIS_Y]},
   };
-  return angle_cross(angle_verts) > 0;
+  float norm_prod = vert_distance(angle_vertices[0], angle_vertices[1]) * vert_distance(angle_vertices[1], angle_vertices[2]);
+  float angle_cro = angle_cross(angle_vertices);
+  float angle_dot = angle_dot(angle_vertices);
+  float angle_cos = angle_dot / norm_prod;
+  float angle = angle_cro  > 0 ? acosf(angle_cos) : - acosf(angle_cos);
+  return angle;
 }
 
 inline bool isEarVNI(const VNI *vni) {
-  return vni->isConvex && vni->nInnerVert == 0;
+  return vni->enabled && vni->outAngle > epsilon && vni->nInnerVert == 0;
 }
 
 inline VNI *findEarVNI(VNI * const vnies, const int count) {
+  VNI *vni = &vnies[0];
   for (int i = 0; i < count; i++) {
-    VNI *vni = &vnies[i];
-    if (!vni->outOfCount && isEarVNI(vni)) {
-      vni->outOfCount = true;
-      return vni;
-    }
+    VNI *vni2 = &vnies[i];
+    bool a = isEarVNI(vni2);
+    if (a && vni2->outAngle >= vni->outAngle) { vni = vni2; }
+  }
+  if (vni->enabled && isEarVNI(vni)) {
+    vni->enabled = false;
+    return vni;
   }
   return nullptr;
 }
@@ -221,9 +254,9 @@ inline int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge) {
   return -1;
 }
 
-inline bool vertInAngle(XGLCoord angle_verts[3], const XGLCoord vert) {
-  const float a = vec_cross(angle_verts[1], angle_verts[0], vert);
-  const float b = vec_cross(angle_verts[1], angle_verts[2], vert);
+inline bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert) {
+  const float a = vec_cross(angle_vertices[1], angle_vertices[0], vert);
+  const float b = vec_cross(angle_vertices[1], angle_vertices[2], vert);
   return a * b <= 0;
 }
 
@@ -239,17 +272,16 @@ Array *buildVniAndIncArray(const Array * const vert_array, Array * const inc_arr
   for (int ndx = 0; ndx < n_verts; ndx++) {
     const int v1 = (ndx + n_verts - 1) % n_verts;
     const int v2 = (ndx + n_verts + 1) % n_verts;
-    const XGLCoord * const angle = &vertices[v1];
     VNI vni = {};
     vni.left = v1;
     vni.right = v2;
     vni.index = ndx;
-    vni.isConvex = isPositiveAngle(vertices, &vni);
-    vni.outOfCount = false;
+    vni.outAngle = outAngleValue(vertices, &vni);
+    vni.enabled = true;
     vni.nInnerVert = 0;
     for (int i = 0; i < n_verts; i++) {
-      if (v1 <= i && i <= v2) { continue; }
-      if (vertInTriangle(angle, vertices[i])) {
+      if (i == ndx || i == v1 || i == v2) { continue; }
+      if (vertInTriangle(vertices, n_verts, v1, vertices[i])) {
         vni.nInnerVert++;
         Array *n_inc_array = arrays_get(inc_arrays, i);
         Array_append(n_inc_array, &ndx, 1);
@@ -346,8 +378,8 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
     left->right = ear_vni->right;
     right->left = ear_vni->left;
     // update convexity of left and right
-    left->isConvex = isPositiveAngle(vertices, left);
-    right->isConvex = isPositiveAngle(vertices, right);
+    left->outAngle = outAngleValue(vertices, left);
+    right->outAngle = outAngleValue(vertices, right);
 
     // update number of inner vertices for angles those include current vertex
     const Array * const inc_array = arrays_get(inc_arrays, ear_vni->index);
@@ -400,14 +432,14 @@ Array *xglRadialTriangulation2D(const Array *vert_array, bool cycle, const Alloc
   }
 
   const int center = n_verts - 1;
-  XGLCoord angle_verts[3] = {};
-  angle_verts[0][AXIS_X] = vertices[0][AXIS_X];
-  angle_verts[0][AXIS_Y] = vertices[0][AXIS_Y];
-  angle_verts[1][AXIS_X] = vertices[center][AXIS_X];
-  angle_verts[1][AXIS_Y] = vertices[center][AXIS_Y];
-  angle_verts[2][AXIS_X] = vertices[center - 1][AXIS_X];
-  angle_verts[2][AXIS_Y] = vertices[center - 1][AXIS_Y];
-  cycle = cycle && !vertInAngle(angle_verts, vertices[1]);
+  XGLCoord angle_vertices[3] = {};
+  angle_vertices[0][AXIS_X] = vertices[0][AXIS_X];
+  angle_vertices[0][AXIS_Y] = vertices[0][AXIS_Y];
+  angle_vertices[1][AXIS_X] = vertices[center][AXIS_X];
+  angle_vertices[1][AXIS_Y] = vertices[center][AXIS_Y];
+  angle_vertices[2][AXIS_X] = vertices[center - 1][AXIS_X];
+  angle_vertices[2][AXIS_Y] = vertices[center - 1][AXIS_Y];
+  cycle = cycle && !vertInAngle(angle_vertices, vertices[1]);
 
   // allocate triangles
   int n_triangles = n_verts - (!cycle);

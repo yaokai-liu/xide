@@ -51,6 +51,10 @@ int main(int argc, char *argv[]) {
     {"shaders/frag-default.glsl", GL_FRAGMENT_SHADER}
   };
   GLuint *shader = ideCompileShaders(ide, shaderInfos, 2);
+  if (!shader) {
+    IDE_destroy(ide);
+    glfwTerminate();
+  }
 
   DrawTask *task;
 
@@ -65,9 +69,10 @@ int main(int argc, char *argv[]) {
     {.coord = {800.0f, 900.0f}, .color = 0xFFFF00FF},
     {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
     {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
+    {.coord = {300.0f, 800.0f}, .color = 0xFFFF00FF},
   };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
-  Array_append(vertex_array, vertices, 10);
+  Array_append(vertex_array, vertices, 11);
   task = ideCreatePolygon2D(vertex_array, 50, false, allocator);
   ideAddTasks(ide, task, shader);
   allocator->free(task);
@@ -79,11 +84,11 @@ int main(int argc, char *argv[]) {
           400 + 200 * cosf(2 * (float) M_PI / 100 * (float) i),
           400 + 200 * sinf(2 * (float) M_PI / 100 * (float) i)
         },
-        .color = 0xFF0000FF
+        .color = 0xFF2200FF
     };
     Array_append(vertex_array, &vert, 1);
   }
-  Vertex2D center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF00FF};
+  Vertex2D center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF77FF};
   Array_append(vertex_array, &center, 1);
   task = ideCreateCurveArea2D(vertex_array, 10, true, true, allocator);
   ideAddTasks(ide, task, shader);
@@ -108,30 +113,39 @@ int main(int argc, char *argv[]) {
      {100, 100, 0x00FF00FF},
      },
   };
-    Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
-    Array_append(line_array, lines, 4);
-    task = ideCreatePixelLines(line_array, 0, allocator);
-    ideAddTasks(ide, task, shader);
-    allocator->free(task);
-    releasePrimeArray(line_array);
+  Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
+  Array_append(line_array, lines, 4);
+  task = ideCreatePixelLines(line_array, 0, allocator);
+  ideAddTasks(ide, task, shader);
+  allocator->free(task);
+  releasePrimeArray(line_array);
 
-  Font font1 = {.path = "SourceHanSerifSC-Regular.otf", .index = 0, .size = 16};
-  Font font2 = {.path = "JetBrainsMono-Regular.ttf", .index = 0, .size = 16};
+  Font font = {.path = "fonts/SourceHanSerifSC-Regular.otf", .index = 0, .size = 32};
+  Font font1 = {.path = "fonts/SourceHanSerifSC-Regular.otf", .index = 0, .size = 16};
+  Font font2 = {.path = "fonts/JetBrainsMono-Regular.ttf", .index = 0, .size = 16};
   ShaderInfo shaderInfos2[] = {
     {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
     {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
   };
-  #define TEXT "Hello OpenGL and FreeType"
   shader = ideCompileShaders(ide, shaderInfos2, 2);
+  if (!shader) {
+    IDE_destroy(ide);
+    glfwTerminate();
+  }
+
   Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
   char_t char_set[0x80] = {};
-  for (uint32_t i = 0; i < 0x7f; i ++) { char_set[i] = (char_t) i; }
-  Array_append(char_array, char_set, 0x80);
-  ideUpdateCharModelSet(ide, &font1, char_array);
-  ideUpdateCharModelSet(ide, &font2, char_array);
-//  task = ideCreateDrawTextTask(ide, char_array, vertex_array, 0, &font);
-  XGLVector2D size = {};
+  for (uint32_t i = 'a'; i < 'z'; i ++) { char_set[i - 'a'] = (char_t) i; }
+  Array_append(char_array, char_set, 'z' - 'a');
+  vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
+  Array_append(vertex_array, vertices, 11);
+  task = ideCreateText2DByArray(ide, char_array, vertex_array, 50, &font);
+  ideAddTasks(ide, task, shader);
+  releasePrimeArray(vertex_array);
+  releasePrimeArray(char_array);
 
+  #define TEXT "Hello OpenGL and FreeType"
+  XGLVector2D size = {};
   Vertex2D anchor = {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF};
   DrawTask *task1 = ideCreateTextStr2DByStr(ide, TEXT" 1", &anchor, -0.25f,
                                           TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font1, size);

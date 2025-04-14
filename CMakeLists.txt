@@ -2,16 +2,17 @@ cmake_minimum_required(VERSION 3.28)
 project(xide C)
 
 set(CMAKE_C_STANDARD 23)
-add_compile_options("-O3")
+#add_compile_options("-O3")
 add_compile_options("-ftree-vectorize" "-msse3")
 add_compile_definitions("nullptr=NULL")
+add_compile_definitions("GLFW_WINDOW_DECORATION_USING_ENUM")
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
-set(CMAKE_VERBOSE_MAKEFILE ON CACHE INTERNAL "")
+# set(CMAKE_VERBOSE_MAKEFILE ON CACHE INTERNAL "")
 
 find_package(OpenGL REQUIRED)
 

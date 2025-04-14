@@ -33,8 +33,6 @@
 #include "widgets.h"
 #include "xgl-object.h"
 
-#define REFER(a)             a *
-
 #define rt_error(fmt, ...)   fprintf(stderr, "[ERROR] " fmt ".\n", ##__VA_ARGS__)
 #define rt_message(fmt, ...) fprintf(stdout, "[INFO] " fmt ".\n", ##__VA_ARGS__)
 #define rt_warning(fmt, ...) fprintf(stdout, "[WARNING] " fmt ".\n", ##__VA_ARGS__)

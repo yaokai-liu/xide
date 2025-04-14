@@ -49,7 +49,6 @@ typedef struct Rect2D {
   float leftUp[2];
   float rightDown[2];
   float radius[4];
-  uint32_t color;
 } Rect2D;
 
 typedef PixelVertex2D Line[2];

@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xide - An integrated development environment
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -35,7 +35,7 @@
 
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
-  IdeWindow *window = ideCreateWindow(1000, 800, "xIDE - {.projectName}", allocator);
+  IdeWindow *window = ideCreateWindow(1000, 800, "xIDE", allocator);
   if (!window) { return nullptr; }
   IDE *ide = allocator->calloc(1, sizeof(IDE));
   ide->allocator = allocator;
@@ -70,7 +70,7 @@ CharModelSet *ideGenCharModelSet(IDE *ide, const Font *font) {
   return set;
 }
 
-uint32_t ideUpdateTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, CharModelSet *set) {
+uint32_t ideUpdateCharacterTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, CharModelSet *set) {
   const Allocator *allocator = ide->allocator;
   TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
   const uint32_t old_width = atlas->width, old_height = atlas->height;
@@ -128,7 +128,7 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, C
   last = Array_last_real(update_array);
   for (; character <= last; character++) {
     const CharModel *model = AVLTree_get(set->charTree, *character);
-    model = Array_vert2real(set->modelArray, model);
+    model = Array_virt2real(set->modelArray, model);
     FT_Load_Char(set->face, *character, FT_LOAD_RENDER);
     const uint32_t offset = model->offset;
     const uint8_t *data = set->face->glyph->bitmap.buffer;
@@ -142,8 +142,6 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, C
   glTextureParameteri(atlas->texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
   glTextureParameteri(atlas->texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTextureParameteri(atlas->texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//  const float borderColor[] = {1.0f, 1.0f, 1.0f, 0.0f};
-//  glTextureParameterfv(atlas->texture, GL_TEXTURE_BORDER_COLOR, borderColor);
 
   uint32_t count = Array_length(update_array);
   releasePrimeArray(update_array);
@@ -154,6 +152,6 @@ uint32_t ideUpdateTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, C
 const CharModelSet * ideUpdateCharModelSet(IDE *ide, const Font *font, const Array/*<char_t>*/ *char_array) {
   CharModelSet *set = ideGenCharModelSet(ide, font);
   if (!set) { return nullptr; }
-  ideUpdateTextureAtlas(ide, char_array, set);
+  ideUpdateCharacterTextureAtlas(ide, char_array, set);
   return set;
 }

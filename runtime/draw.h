@@ -54,8 +54,8 @@ typedef struct DrawTask {
   uint32_t texture_unit;
 } DrawTask;
 
-DrawTask *ideCreateNonTextureDrawTask(const Array * vertex_array, const Array * color_array,
-                                      const Array * index_array, const Allocator * allocator);
+DrawTask *ideCreateNonTextureDrawTask(const Array *vertex_array, const Array * color_array,
+                                      const Array *index_array, const Allocator * allocator);
 DrawTask *ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array, uint32_t atlas_index,
                                     uint32_t texture_unit, const Allocator *const allocator);
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
@@ -69,8 +69,10 @@ DrawTask *ideCreatePixelLines(const Array *line_array, uint32_t plane_index, con
 DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);
 DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
 
-DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array, const CharModelSet *set,
+DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *anchor_array, const CharModelSet *set,
                                 uint32_t plane_index, const Font *font);
+DrawTask *ideCreateText2DByArray(IDE *ide, const Array *char_array, const Array *vert_array,
+                                 uint32_t plane_index, const Font *font);
 DrawTask *ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, float c_space, uint32_t mode,
                              uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
 DrawTask *ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D *anchor, float c_space, uint32_t mode,

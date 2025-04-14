@@ -196,7 +196,7 @@ DrawTask *ideCreatePolygon2D(const Array * const vertex_array, const uint32_t pl
     rgba2XGLColor(vertices[i].color, &color);
     vertex[AXIS_X] = vertices[i].coord[AXIS_X];
     vertex[AXIS_Y] = vertices[i].coord[AXIS_Y];
-    vertex[AXIS_Z] = plane_index;
+    vertex[AXIS_Z] = (float) plane_index;
     vertex[AXIS_W] = 0.0f;
     Array_append(coord_array, vertex, 1);
     Array_append(color_array, color, 1);
@@ -226,7 +226,7 @@ DrawTask *ideCreateCurveArea2D(const Array * const vertex_array, const uint32_t 
     rgba2XGLColor(vertices[i].color, &color);
     vertex[AXIS_X] = vertices[i].coord[AXIS_X];
     vertex[AXIS_Y] = vertices[i].coord[AXIS_Y];
-    vertex[AXIS_Z] = plane_index;
+    vertex[AXIS_Z] = (float) plane_index;
     vertex[AXIS_W] = 0.0f;
     Array_append(coord_array, vertex, 1);
     Array_append(color_array, color, 1);
@@ -287,7 +287,7 @@ DrawTask *ideCreatePolyline2D(const Array * const vertex_array, const uint32_t p
     rgba2XGLColor(vertices[i].color, &color);
     vertex[AXIS_X] = vertices[i].coord[AXIS_X];
     vertex[AXIS_Y] = vertices[i].coord[AXIS_Y];
-    vertex[AXIS_Z] = plane_index;
+    vertex[AXIS_Z] = (float) plane_index;
     vertex[AXIS_W] = 0.0f;
     Array_append(coord_array, vertex, 1);
     Array_append(color_array, color, 1);
@@ -351,12 +351,7 @@ DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, const uint3
 }
 
 #define lenof(array) (sizeof(array) / sizeof(typeof((array)[0])))
-inline DrawTask *ideCreateText2DByArray(IDE *ide, const Array /*<char_t>*/ *char_array, const Array /*<Vertex2D>*/ *vert_array,
-                                       uint32_t plane_index, const Font *font) {
-  if (!ide || !char_array || !vert_array || !font) { return nullptr; }
-  const CharModelSet *set = ideUpdateCharModelSet(ide, font, char_array);
-  return ideCreateDrawTextTask(ide, char_array, vert_array, set, plane_index, font);
-}
+
 inline DrawTask *
 ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array, const CharModelSet *set,
                       uint32_t plane_index, const Font *font) {
@@ -371,7 +366,7 @@ ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array
   const char_t * const string = Array_real_addr(char_array, 0);
   for (uint32_t i = 0; i < count; i++) {
     const CharModel *model = AVLTree_get(set->charTree, string[i]);
-    model = Array_vert2real(set->modelArray, model);
+    model = Array_virt2real(set->modelArray, model);
     XGLVertex vertices[4] = {};
     xglGenCharCoord2D(model, &pixel_vertices[i], atlas, vertices);
     GLuint indices[6] = {
@@ -390,6 +385,13 @@ ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array
   releasePrimeArray(index_array);
 
   return task;
+}
+
+inline DrawTask *ideCreateText2DByArray(IDE *ide, const Array /*<char_t>*/ *char_array, const Array /*<Vertex2D>*/ *vert_array,
+                                        uint32_t plane_index, const Font *font) {
+  if (!ide || !char_array || !vert_array || !font) { return nullptr; }
+  const CharModelSet *set = ideUpdateCharModelSet(ide, font, char_array);
+  return ideCreateDrawTextTask(ide, char_array, vert_array, set, plane_index, font);
 }
 
 inline DrawTask *
