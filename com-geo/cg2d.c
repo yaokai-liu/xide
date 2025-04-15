@@ -78,7 +78,7 @@ struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge);
 float outAngleValue(const XGLCoord *constvertices, const VNI *vni);
 Array *buildVniAndIncArray(const Array *vert_array, Array *inc_arrays, const Allocator *allocator);
 bool isEarVNI(const VNI *vni);
-VNI *findEarVNI(VNI *vnies, int count);
+VNI *findEarVNI(VNI *constvnies, const uint32_t count);
 int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge);
 bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert);
 bool isSameEdge(const CG2DEdge *edge1, const CG2DEdge *edge2);
@@ -233,7 +233,7 @@ inline bool isEarVNI(const VNI *vni) {
   return vni->enabled && vni->outAngle > epsilon && vni->nInnerVert == 0;
 }
 
-inline VNI *findEarVNI(VNI * const vnies, const int count) {
+inline VNI *findEarVNI(VNI *const vnies, const uint32_t count) {
   VNI *vni = &vnies[0];
   for (int i = 0; i < count; i++) {
     VNI *vni2 = &vnies[i];
@@ -264,27 +264,22 @@ inline bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert) {
 
 Array *buildVniAndIncArray(const Array * const vert_array, Array * const inc_arrays,
                            const Allocator * const allocator) {
-  const int n_verts = (int) Array_length(vert_array);
-  if (n_verts < 3) { return nullptr; }
+  const int n_vertices = (int) Array_length(vert_array);
+  if (n_vertices < 3) { return nullptr; }
 
   Array *pVNI_array = Array_new(sizeof(VNI), -1, allocator);
   const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
-  for (int ndx = 0; ndx < n_verts; ndx++) {
-    const int v1 = (ndx + n_verts - 1) % n_verts;
-    const int v2 = (ndx + n_verts + 1) % n_verts;
-    VNI vni = {};
-    vni.left = v1;
-    vni.right = v2;
-    vni.index = ndx;
+  for (int index = 0; index < n_vertices; index++) {
+    const int v1 = (index + n_vertices - 1) % n_vertices;
+    const int v2 = (index + n_vertices + 1) % n_vertices;
+    VNI vni = {.left = v1, .right = v2, .index = index, .enabled = true, .nInnerVert = 0};
     vni.outAngle = outAngleValue(vertices, &vni);
-    vni.enabled = true;
-    vni.nInnerVert = 0;
-    for (int i = 0; i < n_verts; i++) {
-      if (i == ndx || i == v1 || i == v2) { continue; }
+    for (int i = 0; i < n_vertices; i++) {
+      if (i == index || i == v1 || i == v2) { continue; }
       if (vertInTriangle(vertices, &vni, i)) {
         vni.nInnerVert++;
         Array *n_inc_array = arrays_get(inc_arrays, i);
-        Array_append(n_inc_array, &ndx, 1);
+        Array_append(n_inc_array, &index, 1);
       }
     }
     Array_append(pVNI_array, &vni, 1);
@@ -336,12 +331,14 @@ void legalizeTriangulation(struct Triangle * const triangles, struct SharedEdge 
     (triangle)->indices[2] = ear_vni->right;                            \
   } while (false)
 Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *allocator) {
-  const int count = (int) Array_length(vert_array);
+  const uint32_t count = Array_length(vert_array);
   const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
 
   // arrays for every vertex that records those angle the vertex in.
   Array *inc_arrays = allocator->calloc(count, sizeof_array);
-  for (int i = 0; i < count; i++) { Array_init(arrays_get(inc_arrays, i), sizeof(int), allocator); }
+  for (uint32_t i = 0; i < count; i++) {
+    Array_init(arrays_get(inc_arrays, i), sizeof(int), allocator);
+  }
   // build vni and include array
   Array * const pVNI_array = buildVniAndIncArray(vert_array, inc_arrays, allocator);
 
@@ -374,20 +371,19 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
 
     VNI *left = &vnies[ear_vni->left];
     VNI *right = &vnies[ear_vni->right];
-    // update convexity of left and right
-    left->outAngle = outAngleValue(vertices, left);
-    right->outAngle = outAngleValue(vertices, right);
     // update number of inner vertices for angles those include current vertex
     const Array * const inc_array = arrays_get(inc_arrays, ear_vni->index);
     const int * const indices = Array_real_addr(inc_array, 0);
-    const int n_indices = (int) Array_length(inc_array);
-    for (int i = 0; i < n_indices; i++) { vnies[indices[i]].nInnerVert--; }
+    const uint32_t n_indices = Array_length(inc_array);
+    for (uint32_t i = 0; i < n_indices; i++) { vnies[indices[i]].nInnerVert--; }
     if (vertInTriangle(vertices, left, ear_vni->right)) { left->nInnerVert--; }
     if (vertInTriangle(vertices, right, ear_vni->left)) { right->nInnerVert--; }
     // connect left and right
     left->right = ear_vni->right;
     right->left = ear_vni->left;
-
+    // update convexity of left and right
+    left->outAngle = outAngleValue(vertices, left);
+    right->outAngle = outAngleValue(vertices, right);
 
     // find other ear vertex
     ear_vni = findEarVNI(vnies, count);

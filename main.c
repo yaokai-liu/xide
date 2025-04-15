@@ -69,12 +69,13 @@ int main(int argc, char *argv[]) {
     {.coord = {800.0f, 900.0f}, .color = 0xFFFF00FF},
     {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
     {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
-    {.coord = {300.0f, 800.0f}, .color = 0xFFFF00FF},
-//    {.coord = {350.0f, 750.0f}, .color = 0xFFFF00FF},
+//    {.coord = {300.0f, 800.0f}, .color = 0xFFFF00FF},
+    {.coord = {450.0f, 700.0f}, .color = 0xFFFF00FF},
   };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 11);
   task = ideCreatePolygon2D(vertex_array, 50, false, allocator);
+//  task = ideCreatePolyline2D(vertex_array, 50, true, allocator);
   ideAddTasks(ide, task, shader);
   allocator->free(task);
   Array_reset(vertex_array, nullptr);
@@ -144,6 +145,7 @@ int main(int argc, char *argv[]) {
   ideAddTasks(ide, task, shader);
   releasePrimeArray(vertex_array);
   releasePrimeArray(char_array);
+  allocator->free(task);
 
   #define TEXT "Hello OpenGL and FreeType"
   XGLVector2D size = {};
@@ -151,10 +153,12 @@ int main(int argc, char *argv[]) {
   DrawTask *task1 = ideCreateTextStr2DByStr(ide, TEXT" 1", &anchor, -0.25f,
                                           TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font1, size);
   ideAddTasks(ide, task1, shader);
+  allocator->free(task1);
   anchor.coord[AXIS_Y] -= size[AXIS_Y] + 5;
   DrawTask *task2 = ideCreateTextStr2DByStr(ide, TEXT " 2", &anchor, -1.5f,
                                           TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font2, size);
   ideAddTasks(ide, task2, shader);
+  allocator->free(task2);
 
   glLineWidth(1);
   glEnable(GL_MULTISAMPLE);
