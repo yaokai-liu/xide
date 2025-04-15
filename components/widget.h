@@ -29,36 +29,35 @@
 
 #include "array.h"
 #include "char_t.h"
+#include "enum.h"
 #include "shape2D.h"
 #include <stdint.h>
 
-typedef struct ColorGroup {
-  uint32_t plain;
-  uint32_t onFocus;
-  uint32_t onHover;
-  uint32_t onClick;
-} IDEColorGroup;
+typedef bool fn_area(uint32_t coord[2]);
+typedef uint32_t fn_color(uint32_t coord[2], uint32_t status);
 
-#define STRUCT_WIDGET                    \
-  uint32_t type;                         \
-  int geometry[4];                       \
-  float viewport[4];                     \
-  uint32_t colors[4];                    \
-  Array /* <DrawTask> */ *drawTaskArray; \
-  Array /* <Widget> */ *subWidgets
-
+/**
+ ** Suggestion:
+ **   1. The geometry object defined by `funcRange`
+ **      is suggested more convex and more connected.
+ **   2. The `geometry` is suggested smallest that
+ **      can only just place `funcRange`.
+ **/
 typedef struct Widget {
-  STRUCT_WIDGET;
+  uint32_t type;
+  uint32_t property;
+  uint32_t status;
+  uint32_t box[4];
+  fn_area *funcRange;
+  fn_color *funcColor;
 } Widget;
 
-typedef struct ToolBar {
-  STRUCT_WIDGET;
-  int direction;
-} ToolBar;
-
-typedef struct RollBar {
-  uint32_t width;
-  IDEColorGroup colors[2];
-} IDERollBar;
+/**
+ ** Suggestion:
+ **    If a widget's `funcRange` is not nullptr,
+ **    this function is suggested to call
+ **    after change `box` or `funcRange`.
+ **/
+int32_t IdeWidget_adjust_box(Widget *widget);
 
 #endif  // XIDE_WIDGET_H

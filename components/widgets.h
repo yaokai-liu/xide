@@ -27,9 +27,9 @@
 #ifndef XIDE_WIDGETS_H
 #define XIDE_WIDGETS_H
 
-#include "definition.h"
+#include "container.h"
+#include "enum.h"
 #include "item.h"
-#include "shape2D.h"
 #include "widget.h"
 #include "window.h"
 

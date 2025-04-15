@@ -25,7 +25,7 @@
  **/
 
 #include "utils.h"
-#include "definition.h"
+#include "enum.h"
 #include <math.h>
 
 void rgba2XGLColor(uint32_t rgba, XGLColor *gl_color) {

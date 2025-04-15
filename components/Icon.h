@@ -1,6 +1,6 @@
 /* License
  *
- * xide - An integrated development environment
+ * ${PROJ_DESCRIPTION}
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,32 +18,19 @@
  *
  *
  * Project Name: xide
- * Module Name: runtime
- * Filename: ide.h
+ * Module Name: components
+ * Filename: Icon.h
  * Creator: Yaokai Liu
- * Create Date: 2025-02-22
+ * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_IDE_H
-#define XIDE_IDE_H
+#ifndef XIDE_ICON_H
+#define XIDE_ICON_H
 
-#include "array.h"
-#include "font-manage.h"
-#include "window.h"
+#include "widget.h"
+typedef struct Icon {
+  Widget __SUPER__;
+} Icon;
 
-typedef struct IDE {
-  const Allocator *allocator;
-  const char_t *workdir;
-  IdeWindow *window;
-  Array *drawTaskArray;  // Array<DrawTask>
-  Array *shaderProgramArray;  // Array<GLuint>
-  FontManager *fontManager;
-  TextureAtlasManager *atlasManager;
-} IDE;
-
-IDE *IDE_new(const char_t *workdir, const Allocator *allocator);
-void IDE_destroy(IDE *ide);
-const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array);
-
-#endif  // XIDE_IDE_H
+#endif  // XIDE_ICON_H

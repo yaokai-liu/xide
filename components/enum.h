@@ -24,8 +24,8 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_DEFINITION_H
-#define XIDE_DEFINITION_H
+#ifndef XIDE_ENUM_H
+#define XIDE_ENUM_H
 
 // Do not promise that direction order will be clockwise or counter-clockwise.
 enum DIRECTION {
@@ -54,7 +54,18 @@ enum CAX {
   CAX_A = 3
 };
 
-enum RECT_CORNER { RC_LT, RC_LB, RC_RT, RC_RB };
+enum BOX_EDGE {
+  BE_LEFT,
+  BE_RIGHT,
+  BE_TOP,
+  BE_BOTTOM
+};
+enum BOX_CORNER {
+  BC_LT,
+  BC_LB,
+  BC_RT,
+  BC_RB
+};
 
 enum CONFIG {
   CONFIG_X = 0,
@@ -80,4 +91,26 @@ enum VERTEX {
   VERTEX_END = 1,
 };
 
-#endif  // XIDE_DEFINITION_H
+typedef enum IDEWidgetTypeEnum : uint32_t {
+  WT_NONE = 0,
+  WT_WIDGET,
+  WT_VIEW,
+  WT_ITEM,
+  WT_BAR,
+} WTEnum;
+
+typedef enum IDEWidgetPropertyEnum : uint32_t {
+  WP_NORMAL = 0b0000,
+  WP_CUSTOM_SHAPE = 0b0001,
+  WP_CUSTOM_CURSOR = 0b0010,
+  WP_CUSTOM_BACKGROUND = 0b0100,
+} WPEnum;
+
+typedef enum IDEWidgetStatusEnum : uint32_t {
+  WS_NORMAL = 0b0000,
+  WS_FOCUSED = 0b0001,
+  WS_HOVERED = 0b0010,
+  WS_CLICKED = 0b0100,
+} WSEnum;
+
+#endif  // XIDE_ENUM_H

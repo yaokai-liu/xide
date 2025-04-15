@@ -28,10 +28,10 @@
 #define XIDE_DRAW_H
 
 #include "array.h"
+#include "ide.h"
 #include "texture-manage.h"
 #include "widgets.h"
 #include "xgl-object.h"
-#include "ide.h"
 
 enum TASK_TYPE_ENUM {
   TT_LINES = 1,
@@ -45,7 +45,7 @@ typedef struct DrawTask {
   uint32_t task_type;
   iXGLshProg program;
   GLsizei n_index;
-  GLuint  depth;
+  GLuint depth;
   iXGLVao VAO;
   iXGLIbo IBO;
   Array *VBOs;  // Array<iXGLVbo>
@@ -54,10 +54,10 @@ typedef struct DrawTask {
   uint32_t texture_unit;
 } DrawTask;
 
-DrawTask *ideCreateNonTextureDrawTask(const Array *vertex_array, const Array * color_array,
-                                      const Array *index_array, const Allocator * allocator);
-DrawTask *ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array, uint32_t atlas_index,
-                                    uint32_t texture_unit, const Allocator *const allocator);
+DrawTask *ideCreateNonTextureDrawTask(const Array *vertex_array, const Array *color_array, const Array *index_array,
+                                      const Allocator *allocator);
+DrawTask *ideCreateTexturedDrawTask(const Array * const vertex_array, const Array *index_array, uint32_t atlas_index,
+                                    uint32_t texture_unit, const Allocator * const allocator);
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
 DrawTask *ideCreatePolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);
@@ -66,13 +66,15 @@ DrawTask *ideCreateCurveArea2D(const Array *vertex_array, uint32_t plane_index, 
 DrawTask *ideCreatePolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
 
 DrawTask *ideCreatePixelLines(const Array *line_array, uint32_t plane_index, const Allocator *allocator);
-DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);
-DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
+DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid,
+                                  const Allocator *allocator);
+DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle,
+                                   const Allocator *allocator);
 
 DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *anchor_array, const CharModelSet *set,
                                 uint32_t plane_index, const Font *font);
-DrawTask *ideCreateText2DByArray(IDE *ide, const Array *char_array, const Array *vert_array,
-                                 uint32_t plane_index, const Font *font);
+DrawTask *ideCreateText2DByArray(IDE *ide, const Array *char_array, const Array *vert_array, uint32_t plane_index,
+                                 const Font *font);
 DrawTask *ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, float c_space, uint32_t mode,
                              uint32_t plane_index, const Font *font, XGLVector2D feedback_vec);
 DrawTask *ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D *anchor, float c_space, uint32_t mode,
@@ -84,6 +86,6 @@ void ideDrawLines(const DrawTask *task, const GLfloat viewport[2]);
 void ideDrawArea(const DrawTask *task, const GLfloat viewport[2]);
 void ideDrawPolyline(const DrawTask *task, const GLfloat viewport[2]);
 void ideDrawText(IDE *ide, const DrawTask *task, const GLfloat viewport[2]);
-void ideDraw(const DrawTask * task, IDE * ide);
+void ideDraw(const DrawTask *task, IDE *ide);
 
 #endif  // XIDE_DRAW_H

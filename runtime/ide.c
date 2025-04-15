@@ -26,13 +26,12 @@
  **/
 
 #include "ide.h"
-#include "enum.h"
+#include "minmax.h"
+#include "object-enum.h"
 #include "print.h"
 #include "runtime.h"
 #include "texture-manage.h"
 #include "utils.h"
-#include "minmax.h"
-
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   IdeWindow *window = ideCreateWindow(1000, 800, "xIDE", allocator);
@@ -87,15 +86,16 @@ uint32_t ideUpdateCharacterTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char
     }
     const uint32_t sub_width = set->face->glyph->bitmap.width + 1;
     const uint32_t sub_height = set->face->glyph->bitmap.rows;
-    const int32_t bearing_x  = set->face->glyph->bitmap_left;
-    const int32_t bearing_y  = set->face->glyph->bitmap_top;
-    const int64_t advance_x  = set->face->glyph->advance.x;
-    const int64_t advance_y  = set->face->glyph->advance.y;
+    const int32_t bearing_x = set->face->glyph->bitmap_left;
+    const int32_t bearing_y = set->face->glyph->bitmap_top;
+    const int64_t advance_x = set->face->glyph->advance.x;
+    const int64_t advance_y = set->face->glyph->advance.y;
     const CharModel model = {
-        .code=*character, .offset=current_width,
-        .size={ [AXIS_X]=sub_width, [AXIS_Y]=sub_height },
-        .bearing={ [AXIS_X]=bearing_x, [AXIS_Y]=bearing_y },
-        .advance={ [AXIS_X]=advance_x, [AXIS_Y]=advance_y }
+      .code = *character,
+      .offset = current_width,
+      .size = {[AXIS_X] = sub_width, [AXIS_Y] = sub_height},
+      .bearing = {[AXIS_X] = bearing_x, [AXIS_Y] = bearing_y },
+      .advance = {[AXIS_X] = advance_x, [AXIS_Y] = advance_y }
     };
     Array_append(set->modelArray, &model, 1);
     Array_append(update_array, character, 1);
@@ -112,13 +112,9 @@ uint32_t ideUpdateCharacterTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char
   }
   const uint32_t old_texture = atlas->texture;
   glCreateTextures(GL_TEXTURE_2D, 1, &atlas->texture);
-  glTextureStorage2D(atlas->texture, 1, GL_R8,
-                     (GLsizei) current_width, (GLsizei) current_height);
+  glTextureStorage2D(atlas->texture, 1, GL_R8, (GLsizei) current_width, (GLsizei) current_height);
   if (old_texture) {
-    glCopyImageSubData(old_texture, GL_TEXTURE_2D,
-                       0, 0, 0, 0,
-                       atlas->texture, GL_TEXTURE_2D,
-                       0, 0, 0, 0,
+    glCopyImageSubData(old_texture, GL_TEXTURE_2D, 0, 0, 0, 0, atlas->texture, GL_TEXTURE_2D, 0, 0, 0, 0,
                        (GLsizei) old_width - 1, (GLsizei) old_height, 0);
     glDeleteTextures(1, &old_texture);
   }
@@ -132,9 +128,8 @@ uint32_t ideUpdateCharacterTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char
     FT_Load_Char(set->face, *character, FT_LOAD_RENDER);
     const uint32_t offset = model->offset;
     const uint8_t *data = set->face->glyph->bitmap.buffer;
-    glTextureSubImage2D(atlas->texture, 0, (GLint) offset, 0,
-                        (GLsizei) model->size[AXIS_X] - 1, (GLsizei) model->size[AXIS_Y],
-                        GL_RED, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(atlas->texture, 0, (GLint) offset, 0, (GLsizei) model->size[AXIS_X] - 1,
+                        (GLsizei) model->size[AXIS_Y], GL_RED, GL_UNSIGNED_BYTE, data);
   }
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
@@ -148,8 +143,7 @@ uint32_t ideUpdateCharacterTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char
   return count;
 }
 
-
-const CharModelSet * ideUpdateCharModelSet(IDE *ide, const Font *font, const Array/*<char_t>*/ *char_array) {
+const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array) {
   CharModelSet *set = ideGenCharModelSet(ide, font);
   if (!set) { return nullptr; }
   ideUpdateCharacterTextureAtlas(ide, char_array, set);

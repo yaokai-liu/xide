@@ -85,7 +85,6 @@ typedef struct XGLVertex {
   XGLTexCoord tex_coord;
 } XGLVertex;
 
-
 enum UNIFORM_DATA_TYPE {
   UD_INT,
   UD_UINT,

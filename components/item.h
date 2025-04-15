@@ -27,11 +27,19 @@
 #ifndef XIDE_ITEM_H
 #define XIDE_ITEM_H
 
+#include "Icon.h"
+#include "Text.h"
 #include <stdint.h>
 
 typedef struct Item {
-  uint16_t config[4];
-  void *content;
+  Widget __SUPER__;
+  Icon *icon;
+  Text *text;
 } Item;
+
+typedef struct ExpandableItem {
+  Item __SUPER__;
+  Icon *expdIcon;
+} ExpandableItem;
 
 #endif  // XIDE_ITEM_H

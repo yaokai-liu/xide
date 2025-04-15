@@ -41,9 +41,7 @@ enum PATH_TYPE {
 
 uint32_t isAbsolutePath(const char_t *path) {
   if (path[0] == '/') { return PT_UNIX_ABS; }
-  if ('A'<= path[0] && path[0] <= 'Z' && path[1] == ':' && path[2] == '\\') {
-    return PT_WIN_ABS;
-  }
+  if ('A' <= path[0] && path[0] <= 'Z' && path[1] == ':' && path[2] == '\\') { return PT_WIN_ABS; }
   return PT_RELATED;
 }
 
@@ -166,7 +164,7 @@ void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
     const uint32_t depth = tasks[ndx].depth;
     if (task->depth == depth) { break; }
     n_tasks /= 2;
-    ndx += task->depth < depth ? - n_tasks : n_tasks;
+    ndx += task->depth < depth ? -n_tasks : n_tasks;
   }
   Array_insert(ide->drawTaskArray, ndx, task, 1);
 }
@@ -266,10 +264,10 @@ bool ideShouldStopRender(IdeWindow *window) {
 
 void ideWindowShow(IDE *ide) {
   ideRepeatDrawUi(ide);
-//  pthread_t uiThread;
-//  pthread_create(&uiThread, nullptr, (void *(*) (void *) ) ideRepeatDrawUi, ide);
-//  pthread_detach(uiThread);
-//  while (!ideShouldStopRender(ide->window)) { glfwPollEvents(); }
-//  void *res;
-//  pthread_join(uiThread, &res);
+  //  pthread_t uiThread;
+  //  pthread_create(&uiThread, nullptr, (void *(*) (void *) ) ideRepeatDrawUi, ide);
+  //  pthread_detach(uiThread);
+  //  while (!ideShouldStopRender(ide->window)) { glfwPollEvents(); }
+  //  void *res;
+  //  pthread_join(uiThread, &res);
 }

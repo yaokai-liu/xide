@@ -40,9 +40,9 @@ typedef struct Vertex2D {
 } Vertex2D;
 
 typedef struct PixelRect2D {
-  uint32_t leftUp[2];
-  uint32_t rightDown[2];
-  uint32_t radius[4];
+  int32_t leftUp[2];
+  int32_t rightDown[2];
+  int32_t radius[4];
 } PixelRect2D;
 
 typedef struct Rect2D {

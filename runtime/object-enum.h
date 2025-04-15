@@ -25,8 +25,8 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_ENUM_H
-#define XIDE_ENUM_H
+#ifndef XIDE_OBJECT_ENUM_H
+#define XIDE_OBJECT_ENUM_H
 
 enum IDE_OBJECT {
   enum_IDE_NONE = 0,
@@ -37,4 +37,4 @@ enum IDE_OBJECT {
   enum_IDE_TEXTURE_ATLAS,
 };
 
-#endif  // XIDE_ENUM_H
+#endif  // XIDE_OBJECT_ENUM_H

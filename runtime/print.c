@@ -25,35 +25,35 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "minmax.h"
 #include "print.h"
 #include "draw.h"
+#include "font-manage.h"
 #include "ide.h"
+#include "minmax.h"
 #include "runtime.h"
 #include "utils.h"
-#include "font-manage.h"
 
-inline void
-xglGenCharCoord2D(const CharModel *model, const Vertex2D *center, const TextureAtlas *atlas, XGLVertex dest[4]) {
+inline void xglGenCharCoord2D(const CharModel *model, const Vertex2D *center, const TextureAtlas *atlas,
+                              XGLVertex dest[4]) {
   constexpr float scale = 0.5f;
-  dest[RC_LT].coord[AXIS_X] = ((float) center->coord[AXIS_X]) - ((float) model->size[AXIS_X]) * scale;
-  dest[RC_LT].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) - ((float) model->size[AXIS_Y]) * scale;
-  dest[RC_RT].coord[AXIS_X] = ((float) center->coord[AXIS_X]) + ((float) model->size[AXIS_X]) * scale;
-  dest[RC_RT].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) - ((float) model->size[AXIS_Y]) * scale;
-  dest[RC_LB].coord[AXIS_X] = ((float) center->coord[AXIS_X]) - ((float) model->size[AXIS_X]) * scale;
-  dest[RC_LB].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) + ((float) model->size[AXIS_Y]) * scale;
-  dest[RC_RB].coord[AXIS_X] = ((float) center->coord[AXIS_X]) + ((float) model->size[AXIS_X]) * scale;
-  dest[RC_RB].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) + ((float) model->size[AXIS_Y]) * scale;
-  rgba2XGLColor(center->color, &dest[RC_LT].color);
-  rgba2XGLColor(center->color, &dest[RC_RT].color);
-  rgba2XGLColor(center->color, &dest[RC_LB].color);
-  rgba2XGLColor(center->color, &dest[RC_RB].color);
-  dest[RC_LT].tex_coord[AXIS_X] = ((float) model->offset - 1);
-  dest[RC_LT].tex_coord[AXIS_Y] = 0.0f;
-  dest[RC_RT].tex_coord[AXIS_X] = (float) (model->offset + model->size[AXIS_X]);
-  dest[RC_RT].tex_coord[AXIS_Y] = 0.0f;
-  dest[RC_LB].tex_coord[AXIS_X] = (float) (model->offset - 1);
-  dest[RC_LB].tex_coord[AXIS_Y] = (float) model->size[AXIS_Y];
-  dest[RC_RB].tex_coord[AXIS_X] = (float) (model->offset + model->size[AXIS_X]);
-  dest[RC_RB].tex_coord[AXIS_Y] = (float) model->size[AXIS_Y];
+  dest[BC_LT].coord[AXIS_X] = ((float) center->coord[AXIS_X]) - ((float) model->size[AXIS_X]) * scale;
+  dest[BC_LT].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) - ((float) model->size[AXIS_Y]) * scale;
+  dest[BC_RT].coord[AXIS_X] = ((float) center->coord[AXIS_X]) + ((float) model->size[AXIS_X]) * scale;
+  dest[BC_RT].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) - ((float) model->size[AXIS_Y]) * scale;
+  dest[BC_LB].coord[AXIS_X] = ((float) center->coord[AXIS_X]) - ((float) model->size[AXIS_X]) * scale;
+  dest[BC_LB].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) + ((float) model->size[AXIS_Y]) * scale;
+  dest[BC_RB].coord[AXIS_X] = ((float) center->coord[AXIS_X]) + ((float) model->size[AXIS_X]) * scale;
+  dest[BC_RB].coord[AXIS_Y] = ((float) center->coord[AXIS_Y]) + ((float) model->size[AXIS_Y]) * scale;
+  rgba2XGLColor(center->color, &dest[BC_LT].color);
+  rgba2XGLColor(center->color, &dest[BC_RT].color);
+  rgba2XGLColor(center->color, &dest[BC_LB].color);
+  rgba2XGLColor(center->color, &dest[BC_RB].color);
+  dest[BC_LT].tex_coord[AXIS_X] = ((float) model->offset - 1);
+  dest[BC_LT].tex_coord[AXIS_Y] = 0.0f;
+  dest[BC_RT].tex_coord[AXIS_X] = (float) (model->offset + model->size[AXIS_X]);
+  dest[BC_RT].tex_coord[AXIS_Y] = 0.0f;
+  dest[BC_LB].tex_coord[AXIS_X] = (float) (model->offset - 1);
+  dest[BC_LB].tex_coord[AXIS_Y] = (float) model->size[AXIS_Y];
+  dest[BC_RB].tex_coord[AXIS_X] = (float) (model->offset + model->size[AXIS_X]);
+  dest[BC_RB].tex_coord[AXIS_Y] = (float) model->size[AXIS_Y];
 }

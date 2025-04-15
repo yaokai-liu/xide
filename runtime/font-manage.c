@@ -25,10 +25,10 @@
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "minmax.h"
 #include "font-manage.h"
-#include "enum.h"
 #include "ft2build.h"
+#include "minmax.h"
+#include "object-enum.h"
 #include "runtime.h"
 #include "xgl-object.h"
 #include FT_FREETYPE_H
@@ -78,7 +78,8 @@ CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font) {
   }
   FT_Set_Pixel_Sizes(face, 0, font->size);
   CharModelSet set = {
-    .face = face, .font = {.path = font->path, .index = font->index, .size = font->size}, .atlas = 0
+    .face = face, .font = {.path = font->path, .index = font->index, .size = font->size},
+         .atlas = 0
   };
   set.modelArray = Array_new(sizeof(CharModel), enum_IDE_CHAR_MODEL, manager->allocator);
   set.charTree = AVLTree_new(manager->allocator, nullptr);
@@ -100,11 +101,9 @@ CharModelSet *FontManager_findFont(FontManager *manager, const Font *font) {
   return nullptr;
 }
 
-
-Array/*<Vertex2D>*/ *
-charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                           const Vertex2D * anchor, float c_space, uint32_t mode,
-                           XGLVector2D feedback_vec, const Allocator *allocator) {
+Array /*<Vertex2D>*/ *charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
+                                                 const Vertex2D *anchor, float c_space, uint32_t mode,
+                                                 XGLVector2D feedback_vec, const Allocator *allocator) {
   const uint32_t count = Array_length(char_array);
   if (!count) { return nullptr; }
   const char_t * const string = Array_real_addr(char_array, 0);
@@ -114,13 +113,13 @@ charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *ch
   for (uint32_t i = 0; i < count; i++) {
     const CharModel *model = AVLTree_get(set->charTree, string[i]);
     model = Array_virt2real(set->modelArray, model);
-    offset_x  = ((float) model->size[AXIS_X]) / 2 + ((float) model->bearing[AXIS_X]);
-    offset_y  = ((float) model->bearing[AXIS_Y]) - ((float) model->size[AXIS_Y]) / 2;
+    offset_x = ((float) model->size[AXIS_X]) / 2 + ((float) model->bearing[AXIS_X]);
+    offset_y = ((float) model->bearing[AXIS_Y]) - ((float) model->size[AXIS_Y]) / 2;
     vertices[i].coord[AXIS_X] = offset_x + origin;
     vertices[i].coord[AXIS_Y] = offset_y;
     vertices[i].color = anchor->color;
     height = max(height, (float) model->size[AXIS_Y]);
-    origin +=  1.0f / 64 * (float) (model->advance[AXIS_X]) + c_space;
+    origin += 1.0f / 64 * (float) (model->advance[AXIS_X]) + c_space;
   }
   width = origin;
   if (feedback_vec) {
@@ -159,9 +158,8 @@ charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *ch
   return vertex_array;
 }
 
-Array/*<Vertex2D>*/ *
-charModelSetGenVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                           const Vertex2D * anchor, float c_space, uint32_t mode,
-                           XGLVector2D feedback_vec, const Allocator *allocator) {
+Array /*<Vertex2D>*/ *charModelSetGenVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
+                                                 const Vertex2D *anchor, float c_space, uint32_t mode,
+                                                 XGLVector2D feedback_vec, const Allocator *allocator) {
   return nullptr;
 }

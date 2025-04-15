@@ -25,3 +25,30 @@
  **/
 
 #include "widget.h"
+#include "enum.h"
+#include "minmax.h"
+
+int32_t IdeWidget_adjust_box(Widget *widget) {
+  if (widget->box[BE_LEFT] > widget->box[BE_RIGHT] || widget->box[BE_TOP] > widget->box[BE_BOTTOM]) { return -1; }
+  if (widget->funcRange) {
+    uint32_t left = widget->box[BE_RIGHT], right = widget->box[BE_LEFT];
+    uint32_t top = widget->box[BE_BOTTOM], bottom = widget->box[BE_TOP];
+    for (uint32_t i = widget->box[BE_TOP]; i <= widget->box[BE_BOTTOM]; i++) {
+      uint32_t j = widget->box[BE_LEFT];
+      uint32_t coord[2] = {j, i};
+      while (j <= widget->box[BE_RIGHT] && !widget->funcRange(coord)) { j++, coord[0] = j; }
+      left = min(left, j);
+      if (top >= widget->box[BE_BOTTOM] && widget->funcRange(coord)) { top = i; }
+      if (bottom <= widget->box[BE_TOP] && widget->funcRange(coord)) { bottom = i; }
+      for (; j <= widget->box[BE_RIGHT]; j++, coord[0] = j) {
+        if (widget->funcRange(coord)) { right = max(right, j); }
+      }
+    }
+    // update widget box
+    widget->box[BE_LEFT] = max(left, widget->box[BE_LEFT]);
+    widget->box[BE_RIGHT] = min(right, widget->box[BE_RIGHT]);
+    widget->box[BE_TOP] = max(top, widget->box[BE_TOP]);
+    widget->box[BE_BOTTOM] = min(bottom, widget->box[BE_BOTTOM]);
+  }
+  return 0;
+}

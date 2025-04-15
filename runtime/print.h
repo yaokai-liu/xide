@@ -29,10 +29,10 @@
 #define XIDE_PRINT_H
 
 #include "char_t.h"
-#include "definition.h"
+#include "object-enum.h"
+#include "shape2D.h"
 #include "texture-manage.h"
 #include "xgl-object.h"
-#include "shape2D.h"
 
 enum TEXT_STYLE {
   TS_RIGHT = 0b00,
@@ -60,8 +60,8 @@ typedef struct CharModel {
   uint32_t code;
   uint32_t offset;
   uint32_t size[2];
-  int64_t  advance[2];
-  int32_t  bearing[2];
+  int64_t advance[2];
+  int32_t bearing[2];
 } CharModel;
 
 typedef XGLRgba fn_pcolor_t(uint32_t pos[2]);

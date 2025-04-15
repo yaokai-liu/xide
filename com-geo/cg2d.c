@@ -25,7 +25,7 @@
  **/
 
 #include "cg2d.h"
-#include "definition.h"
+#include "enum.h"
 #include "xgl-object.h"
 #include <float.h>
 #include <math.h>
@@ -42,8 +42,7 @@
 
 #define square(x)           ((x) * (x))
 #define square_diff(x, y)   (square(x) - square(y))
-#define vert_distance(x, y) \
-  sqrtf(square((x)[AXIS_X] - (y)[AXIS_X]) + square((x)[AXIS_Y] - (y)[AXIS_Y]))
+#define vert_distance(x, y) sqrtf(square((x)[AXIS_X] - (y)[AXIS_X]) + square((x)[AXIS_Y] - (y)[AXIS_Y]))
 
 typedef int CG2DEdge[2];
 struct Triangle {
@@ -87,26 +86,23 @@ bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DE
 
 inline bool isSameEdge(const CG2DEdge * const edge1, const CG2DEdge * const edge2) {
   bool b = ((*edge1)[0] == (*edge2)[0] && (*edge1)[1] == (*edge2)[1])
-        || ((*edge1)[0] == (*edge2)[1] && (*edge1)[1] == (*edge2)[0]);
+           || ((*edge1)[0] == (*edge2)[1] && (*edge1)[1] == (*edge2)[0]);
   return b;
 }
 
 bool edgeInTriangle(const CG2DEdge * const edge, const struct Triangle * const triangle) {
   const CG2DEdge edges[3] = {
-      {triangle->indices[0], triangle->indices[1]},
-      {triangle->indices[1], triangle->indices[2]},
-      {triangle->indices[2], triangle->indices[0]},
+    {triangle->indices[0], triangle->indices[1]},
+    {triangle->indices[1], triangle->indices[2]},
+    {triangle->indices[2], triangle->indices[0]},
   };
-  return isSameEdge(edge, &(edges[0]))
-      || isSameEdge(edge, &(edges[1]))
-      || isSameEdge(edge, &(edges[2]));
+  return isSameEdge(edge, &(edges[0])) || isSameEdge(edge, &(edges[1])) || isSameEdge(edge, &(edges[2]));
 }
 
-#define _vec_cross(v1, v2) \
-  ((v1)[AXIS_X] * (v2)[AXIS_Y] - (v1)[AXIS_Y] * (v2)[AXIS_X])
+#define _vec_cross(v1, v2) ((v1)[AXIS_X] * (v2)[AXIS_Y] - (v1)[AXIS_Y] * (v2)[AXIS_X])
 #define vec_cross(o, p1, p2)                                   \
   (((p1)[AXIS_X] - (o)[AXIS_X]) * ((p2)[AXIS_Y] - (o)[AXIS_Y]) \
- - ((p1)[AXIS_Y] - (o)[AXIS_Y]) * ((p2)[AXIS_X] - (o)[AXIS_X]))
+   - ((p1)[AXIS_Y] - (o)[AXIS_Y]) * ((p2)[AXIS_X] - (o)[AXIS_X]))
 inline bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DEdge l2) {
   float AC_AD = vec_cross(vertices[l1[0]], vertices[l2[0]], vertices[l2[1]]);
   float BC_BD = vec_cross(vertices[l1[1]], vertices[l2[0]], vertices[l2[1]]);
@@ -187,13 +183,10 @@ inline bool vertInTriangle(const GLfloat vertices[][4], const VNI *vni, uint32_t
      vertices[index][AXIS_Y] - vertices[vni->right][AXIS_Y],
      }
   };
-  const float crosses[3] = {
-    _vec_cross(vectors[0], vectors[1]),
-    _vec_cross(vectors[1], vectors[2]),
-    _vec_cross(vectors[2], vectors[0])
-  };
+  const float crosses[3] = {_vec_cross(vectors[0], vectors[1]), _vec_cross(vectors[1], vectors[2]),
+                            _vec_cross(vectors[2], vectors[0])};
   return (crosses[0] >= 0 && crosses[1] >= 0 && crosses[2] >= 0)
-      || (crosses[0] <= 0 && crosses[1] <= 0 && crosses[2] <= 0);
+         || (crosses[0] <= 0 && crosses[1] <= 0 && crosses[2] <= 0);
 }
 
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
@@ -205,27 +198,28 @@ struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
   return nullptr;
 }
 
-#define angle_cross(angle_vertices)                             \
-  (((angle_vertices)[1][AXIS_X] - (angle_vertices)[0][AXIS_X])  \
- * ((angle_vertices)[2][AXIS_Y] - (angle_vertices)[1][AXIS_Y])  \
- - ((angle_vertices)[1][AXIS_Y] - (angle_vertices)[0][AXIS_Y])  \
- * ((angle_vertices)[2][AXIS_X] - (angle_vertices)[1][AXIS_X]))
-#define angle_dot(angle_vertices)                               \
-  (((angle_vertices)[1][AXIS_X] - (angle_vertices)[0][AXIS_X])  \
- * ((angle_vertices)[2][AXIS_X] - (angle_vertices)[1][AXIS_X])  \
- + ((angle_vertices)[1][AXIS_Y] - (angle_vertices)[0][AXIS_Y])  \
- * ((angle_vertices)[2][AXIS_Y] - (angle_vertices)[1][AXIS_Y]))
-float outAngleValue(const XGLCoord *const vertices, const VNI *vni) {
+#define angle_cross(angle_vertices)                                \
+  (((angle_vertices)[1][AXIS_X] - (angle_vertices)[0][AXIS_X])     \
+     * ((angle_vertices)[2][AXIS_Y] - (angle_vertices)[1][AXIS_Y]) \
+   - ((angle_vertices)[1][AXIS_Y] - (angle_vertices)[0][AXIS_Y])   \
+       * ((angle_vertices)[2][AXIS_X] - (angle_vertices)[1][AXIS_X]))
+#define angle_dot(angle_vertices)                                  \
+  (((angle_vertices)[1][AXIS_X] - (angle_vertices)[0][AXIS_X])     \
+     * ((angle_vertices)[2][AXIS_X] - (angle_vertices)[1][AXIS_X]) \
+   + ((angle_vertices)[1][AXIS_Y] - (angle_vertices)[0][AXIS_Y])   \
+       * ((angle_vertices)[2][AXIS_Y] - (angle_vertices)[1][AXIS_Y]))
+float outAngleValue(const XGLCoord * const vertices, const VNI *vni) {
   const XGLCoord angle_vertices[3] = {
     {vertices[vni->left][AXIS_X],  vertices[vni->left][AXIS_Y] },
     {vertices[vni->index][AXIS_X], vertices[vni->index][AXIS_Y]},
     {vertices[vni->right][AXIS_X], vertices[vni->right][AXIS_Y]},
   };
-  float norm_prod = vert_distance(angle_vertices[0], angle_vertices[1]) * vert_distance(angle_vertices[1], angle_vertices[2]);
+  float norm_prod =
+    vert_distance(angle_vertices[0], angle_vertices[1]) * vert_distance(angle_vertices[1], angle_vertices[2]);
   float angle_cro = angle_cross(angle_vertices);
   float angle_dot = angle_dot(angle_vertices);
   float angle_cos = angle_dot / norm_prod;
-  float angle = angle_cro  > 0 ? acosf(angle_cos) : - acosf(angle_cos);
+  float angle = angle_cro > 0 ? acosf(angle_cos) : -acosf(angle_cos);
   return angle;
 }
 
@@ -233,7 +227,7 @@ inline bool isEarVNI(const VNI *vni) {
   return vni->enabled && vni->outAngle > epsilon && vni->nInnerVert == 0;
 }
 
-inline VNI *findEarVNI(VNI *const vnies, const uint32_t count) {
+inline VNI *findEarVNI(VNI * const vnies, const uint32_t count) {
   VNI *vni = &vnies[0];
   for (int i = 0; i < count; i++) {
     VNI *vni2 = &vnies[i];
@@ -336,9 +330,7 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
 
   // arrays for every vertex that records those angle the vertex in.
   Array *inc_arrays = allocator->calloc(count, sizeof_array);
-  for (uint32_t i = 0; i < count; i++) {
-    Array_init(arrays_get(inc_arrays, i), sizeof(int), allocator);
-  }
+  for (uint32_t i = 0; i < count; i++) { Array_init(arrays_get(inc_arrays, i), sizeof(int), allocator); }
   // build vni and include array
   Array * const pVNI_array = buildVniAndIncArray(vert_array, inc_arrays, allocator);
 

@@ -24,16 +24,16 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "minmax.h"
 #include "draw.h"
 #include "GLFW/glfw3.h"
 #include "cg2d.h"
 #include "glad/glad.h"
+#include "minmax.h"
+#include "object-enum.h"
 #include "print.h"
 #include "utils.h"
 #include "widgets.h"
 #include "xgl-object.h"
-#include "enum.h"
 
 #define xglInitSingleAttrVBO(loc, data_array, data_type, normed)                                       \
   do {                                                                                                 \
@@ -79,9 +79,9 @@ inline DrawTask *ideCreateNonTextureDrawTask(const Array * const vertex_array, c
   return task;
 }
 
-inline DrawTask *
-ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_array,
-                          uint32_t atlas_index, uint32_t texture_unit, const Allocator *const allocator) {
+inline DrawTask *ideCreateTexturedDrawTask(const Array * const vertex_array, const Array *index_array,
+                                           uint32_t atlas_index, uint32_t texture_unit,
+                                           const Allocator * const allocator) {
   iXGLVao VAO = {};
   glCreateVertexArrays(1, &VAO);
   glEnableVertexArrayAttrib(VAO, LOC_COORD);
@@ -98,14 +98,14 @@ ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_ar
   const GLvoid *address = Array_real_addr((vertex_array), 0);
   glNamedBufferStorage(VBO, total_size, address, 0);
   glVertexArrayAttribBinding(VAO, LOC_COORD, 0);
-  glVertexArrayAttribFormat(VAO, LOC_COORD, sizeof(XGLCoord) / sizeof(GLfloat),
-                            GL_FLOAT, GL_FALSE, offsetof(XGLVertex, coord));
+  glVertexArrayAttribFormat(VAO, LOC_COORD, sizeof(XGLCoord) / sizeof(GLfloat), GL_FLOAT, GL_FALSE,
+                            offsetof(XGLVertex, coord));
   glVertexArrayAttribBinding(VAO, LOC_COLOR, 0);
-  glVertexArrayAttribFormat(VAO, LOC_COLOR, sizeof(XGLColor) / sizeof(GLfloat),
-                            GL_FLOAT, GL_FALSE, offsetof(XGLVertex, color));
+  glVertexArrayAttribFormat(VAO, LOC_COLOR, sizeof(XGLColor) / sizeof(GLfloat), GL_FLOAT, GL_FALSE,
+                            offsetof(XGLVertex, color));
   glVertexArrayAttribBinding(VAO, LOC_TEXTURE_COORD, 0);
-  glVertexArrayAttribFormat(VAO, LOC_TEXTURE_COORD, sizeof(XGLTexCoord) / sizeof(GLfloat),
-                            GL_FLOAT, GL_TRUE, offsetof(XGLVertex, tex_coord));
+  glVertexArrayAttribFormat(VAO, LOC_TEXTURE_COORD, sizeof(XGLTexCoord) / sizeof(GLfloat), GL_FLOAT, GL_TRUE,
+                            offsetof(XGLVertex, tex_coord));
 
   iXGLVbo IBO = 0;
   glCreateBuffers(1, &IBO);
@@ -125,9 +125,9 @@ ideCreateTexturedDrawTask(const Array *const vertex_array, const Array *index_ar
 
   Array_append(task->VBOs, &VBO, 1);
   iXGLVUniform uniforms[] = {
-    {uniform_type(US_4SCA, UD_INT), LOC_VIEWPORT    },
+    {uniform_type(US_4SCA, UD_INT),   LOC_VIEWPORT          },
     {uniform_type(US_2SCA, UD_FLOAT), LOC_TEXTURE_ATLAS_SIZE},
-    {uniform_type(US_1SCA, UD_INT), LOC_TEXTURE_UNIT}
+    {uniform_type(US_1SCA, UD_INT),   LOC_TEXTURE_UNIT      }
   };
   Array_append(task->uniforms, uniforms, 1);
 
@@ -352,9 +352,8 @@ DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, const uint3
 
 #define lenof(array) (sizeof(array) / sizeof(typeof((array)[0])))
 
-inline DrawTask *
-ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array, const CharModelSet *set,
-                      uint32_t plane_index, const Font *font) {
+inline DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array,
+                                       const CharModelSet *set, uint32_t plane_index, const Font *font) {
   if (!ide || !char_array || !vert_array || !set || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
   TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
@@ -369,10 +368,7 @@ ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array
     model = Array_virt2real(set->modelArray, model);
     XGLVertex vertices[4] = {};
     xglGenCharCoord2D(model, &pixel_vertices[i], atlas, vertices);
-    GLuint indices[6] = {
-        i * 4 + RC_LT, i * 4 + RC_RT, i * 4 + RC_LB,
-        i * 4 + RC_RT, i * 4 + RC_LB, i * 4 + RC_RB
-    };
+    GLuint indices[6] = {i * 4 + BC_LT, i * 4 + BC_RT, i * 4 + BC_LB, i * 4 + BC_RT, i * 4 + BC_LB, i * 4 + BC_RB};
     Array_append(vertex_array, vertices, lenof(vertices));
     Array_append(index_array, indices, lenof(indices));
   }
@@ -387,17 +383,17 @@ ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array
   return task;
 }
 
-inline DrawTask *ideCreateText2DByArray(IDE *ide, const Array /*<char_t>*/ *char_array, const Array /*<Vertex2D>*/ *vert_array,
-                                        uint32_t plane_index, const Font *font) {
+inline DrawTask *ideCreateText2DByArray(IDE *ide, const Array /*<char_t>*/ *char_array,
+                                        const Array /*<Vertex2D>*/ *vert_array, uint32_t plane_index,
+                                        const Font *font) {
   if (!ide || !char_array || !vert_array || !font) { return nullptr; }
   const CharModelSet *set = ideUpdateCharModelSet(ide, font, char_array);
   return ideCreateDrawTextTask(ide, char_array, vert_array, set, plane_index, font);
 }
 
-inline DrawTask *
-ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor,
-                const float c_space, const uint32_t mode,
-                uint32_t plane_index, const Font *font, XGLVector2D feedback_vec) {
+inline DrawTask *ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, const float c_space,
+                                    const uint32_t mode, uint32_t plane_index, const Font *font,
+                                    XGLVector2D feedback_vec) {
   if (!ide || !char_array || !anchor || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
   const CharModelSet *set = ideUpdateCharModelSet(ide, font, char_array);
@@ -412,10 +408,9 @@ ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor,
   return task;
 }
 
-inline DrawTask *
-ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D *anchor,
-                      float c_space, uint32_t mode,
-                      uint32_t plane_index, const Font *font, XGLVector2D feedback_vec) {
+inline DrawTask *ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D *anchor, float c_space,
+                                         uint32_t mode, uint32_t plane_index, const Font *font,
+                                         XGLVector2D feedback_vec) {
   if (!ide || !string || !anchor || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
   Array *char_array = Array_new(sizeof(char_t), enum_IDE_CHAR, allocator);
@@ -474,7 +469,7 @@ void ideDrawText(IDE *ide, const DrawTask *task, const GLfloat viewport[2]) {
   glBindVertexArray(0);
 }
 
-inline void ideDraw(const DrawTask *const task, IDE * ide) {
+inline void ideDraw(const DrawTask * const task, IDE *ide) {
   const float * const viewport = (const float *) &ide->window->info.viewport;
   switch (task->task_type) {
     case TT_LINES: {
