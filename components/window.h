@@ -30,29 +30,15 @@
 #include "allocator.h"
 #include "array.h"
 #include "char_t.h"
-#include "widget.h"
+#include "widget-group.h"
 #include <stdint.h>
 
-struct WinMetaInfo {
-  void *handle;
-  int geometry[4];
+typedef struct Window {
+  Widget SUPER;
+  void * handle;
   float viewport[4];
-  const char_t *title;
-};
-
-typedef struct Dialog {
-  struct WinMetaInfo info;
-  const Allocator *allocator;
-} Dialog;
-
-typedef struct MainWindow {
-  struct WinMetaInfo info;
-  const Allocator *allocator;
-  Widget *topBar;
-  Widget *rightBar;
-  Widget *bottomBar;
-  Widget *leftBar;
   Widget *central;
-} IdeWindow;
+  Widget *bars[4];
+} Window, Dialog;
 
 #endif  // XIDE_WINDOW_H

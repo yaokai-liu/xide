@@ -32,13 +32,13 @@
 void ideSetWindowSize(GLFWwindow *handle, int width, int height) {
   glViewport(0, 0, width, height);
   IDE *ide = glfwGetWindowUserPointer(handle);
-  IdeWindow *window = ide->window;
+  Window *window = ide->mainWindow;
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
-  window->info.viewport[0] = (float) viewport[0];
-  window->info.viewport[1] = (float) viewport[1];
-  window->info.viewport[2] = (float) viewport[2];
-  window->info.viewport[3] = (float) viewport[3];
+  window->viewport[0] = (float) viewport[0];
+  window->viewport[1] = (float) viewport[1];
+  window->viewport[2] = (float) viewport[2];
+  window->viewport[3] = (float) viewport[3];
 }
 
 void ideWindowRefreshCallback(GLFWwindow *handle) {
@@ -47,8 +47,8 @@ void ideWindowRefreshCallback(GLFWwindow *handle) {
   glFinish();
 }
 
-void ideProcessInput(IdeWindow *window) {
-  GLFWwindow *handle = window->info.handle;
+void ideProcessInput(Window *window) {
+  GLFWwindow *handle = window->handle;
   if (glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(handle, true); }
 }
 

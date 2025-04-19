@@ -36,12 +36,12 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
     for (uint32_t i = widget->box[BE_TOP]; i <= widget->box[BE_BOTTOM]; i++) {
       uint32_t j = widget->box[BE_LEFT];
       uint32_t coord[2] = {j, i};
-      while (j <= widget->box[BE_RIGHT] && !widget->funcRange(coord)) { j++, coord[0] = j; }
+      while (j <= widget->box[BE_RIGHT] && !widget->funcRange(widget, coord)) { j++, coord[0] = j; }
       left = min(left, j);
-      if (top >= widget->box[BE_BOTTOM] && widget->funcRange(coord)) { top = i; }
-      if (bottom <= widget->box[BE_TOP] && widget->funcRange(coord)) { bottom = i; }
+      if (top >= widget->box[BE_BOTTOM] && widget->funcRange(widget, coord)) { top = i; }
+      if (bottom <= widget->box[BE_TOP] && widget->funcRange(widget, coord)) { bottom = i; }
       for (; j <= widget->box[BE_RIGHT]; j++, coord[0] = j) {
-        if (widget->funcRange(coord)) { right = max(right, j); }
+        if (widget->funcRange(widget, coord)) { right = max(right, j); }
       }
     }
     // update widget box

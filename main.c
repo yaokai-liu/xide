@@ -58,20 +58,35 @@ int main(int argc, char *argv[]) {
 
   DrawTask *task;
 
+//  Vertex2D vertices[] = {
+//    {.coord = {200.0f, 400.0f}, .color = 0xFFFFFFFF},
+//    {.coord = {300.0f, 200.0f}, .color = 0xFF00FFFF},
+//    {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF},
+//    {.coord = {600.0f, 300.0f}, .color = 0x00FFFFFF},
+//    {.coord = {700.0f, 600.0f}, .color = 0xFF00FFFF},
+//    {.coord = {800.0f, 800.0f}, .color = 0xFFFF00FF},
+//    {.coord = {900.0f, 700.0f}, .color = 0x00FFFFFF},
+//    {.coord = {800.0f, 900.0f}, .color = 0xFFFF00FF},
+//    {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
+//    {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
+//    {.coord = {450.0f, 700.0f}, .color = 0xFFFF00FF},
+////    {.coord = {300.0f, 800.0f}, .color = 0xFFFF00FF},
+//  };
   Vertex2D vertices[] = {
-    {.coord = {200.0f, 400.0f}, .color = 0xFFFFFFFF},
-    {.coord = {300.0f, 200.0f}, .color = 0xFF00FFFF},
-    {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF},
-    {.coord = {600.0f, 300.0f}, .color = 0x00FFFFFF},
-    {.coord = {700.0f, 600.0f}, .color = 0xFF00FFFF},
-    {.coord = {800.0f, 800.0f}, .color = 0xFFFF00FF},
-    {.coord = {900.0f, 700.0f}, .color = 0x00FFFFFF},
-    {.coord = {800.0f, 900.0f}, .color = 0xFFFF00FF},
-    {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
-    {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
-//    {.coord = {300.0f, 800.0f}, .color = 0xFFFF00FF},
     {.coord = {450.0f, 700.0f}, .color = 0xFFFF00FF},
+    {.coord = {300.0f, 600.0f}, .color = 0xFFFF00FF},
+    {.coord = {500.0f, 800.0f}, .color = 0xFFFF00FF},
+    {.coord = {800.0f, 900.0f}, .color = 0xFFFF00FF},
+    {.coord = {900.0f, 700.0f}, .color = 0x00FFFFFF},
+    {.coord = {800.0f, 800.0f}, .color = 0xFFFF00FF},
+    {.coord = {700.0f, 600.0f}, .color = 0xFF00FFFF},
+    {.coord = {600.0f, 300.0f}, .color = 0x00FFFFFF},
+    {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF},
+    {.coord = {300.0f, 200.0f}, .color = 0xFF00FFFF},
+    {.coord = {200.0f, 400.0f}, .color = 0xFFFFFFFF},
+//    {.coord = {300.0f, 800.0f}, .color = 0xFFFF00FF},
   };
+
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 11);
   task = ideCreatePolygon2D(vertex_array, 50, false, allocator);
@@ -140,7 +155,7 @@ int main(int argc, char *argv[]) {
   for (uint32_t i = 'a'; i < 'z'; i ++) { char_set[i - 'a'] = (char_t) i; }
   Array_append(char_array, char_set, 'z' - 'a');
   vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
-  Array_append(vertex_array, vertices, 11);
+  Array_append(vertex_array, vertices, 12);
   task = ideCreateText2DByArray(ide, char_array, vertex_array, 50, &font);
   ideAddTasks(ide, task, shader);
   releasePrimeArray(vertex_array);

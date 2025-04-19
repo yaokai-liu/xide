@@ -30,7 +30,7 @@
 
 #include "widget.h"
 typedef struct Icon {
-  Widget __SUPER__;
+  Widget SUPER;
 } Icon;
 
 #endif  // XIDE_ICON_H

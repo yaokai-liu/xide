@@ -47,7 +47,7 @@
 typedef int CG2DEdge[2];
 struct Triangle {
   float vertices[3][2];
-  int indices[3];
+  uint32_t indices[3];
 };
 struct Circle {
   float center[2];
@@ -74,15 +74,17 @@ bool vertInTriangle(const GLfloat vertices[][4], const VNI *vni, uint32_t index)
 bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert);
 void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circle);
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge);
-float outAngleValue(const XGLCoord *constvertices, const VNI *vni);
+float outAngleValue(const XGLCoord *vertices, const VNI *vni);
+int32_t calculatePolygonWinding(const XGLCoord *vertices, uint32_t n_vertices);
 Array *buildVniAndIncArray(const Array *vert_array, Array *inc_arrays, const Allocator *allocator);
 bool isEarVNI(const VNI *vni);
-VNI *findEarVNI(VNI *constvnies, const uint32_t count);
+VNI *findEarVNI(VNI *vnies, uint32_t count);
 int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge);
 bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert);
 bool isSameEdge(const CG2DEdge *edge1, const CG2DEdge *edge2);
 bool edgeInTriangle(const CG2DEdge *edge, const struct Triangle *triangle);
 bool intersectedSegment(const XGLCoord *vertices, const CG2DEdge l1, const CG2DEdge l2);
+Array *xglEarClippingTriangulate2D_clockwise(const Array *vert_array, const Allocator *allocator);
 
 inline bool isSameEdge(const CG2DEdge * const edge1, const CG2DEdge * const edge2) {
   bool b = ((*edge1)[0] == (*edge2)[0] && (*edge1)[1] == (*edge2)[1])
@@ -185,8 +187,11 @@ inline bool vertInTriangle(const GLfloat vertices[][4], const VNI *vni, uint32_t
   };
   const float crosses[3] = {_vec_cross(vectors[0], vectors[1]), _vec_cross(vectors[1], vectors[2]),
                             _vec_cross(vectors[2], vectors[0])};
-  return (crosses[0] >= 0 && crosses[1] >= 0 && crosses[2] >= 0)
-         || (crosses[0] <= 0 && crosses[1] <= 0 && crosses[2] <= 0);
+  if ((crosses[0] > 0 && crosses[1] > 0 && crosses[2] > 0)
+   || (crosses[0] < 0 && crosses[1] < 0 && crosses[2] < 0)) {
+    return true;
+  }
+  return false;
 }
 
 struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
@@ -228,12 +233,18 @@ inline bool isEarVNI(const VNI *vni) {
 }
 
 inline VNI *findEarVNI(VNI * const vnies, const uint32_t count) {
-  VNI *vni = &vnies[0];
+  VNI *vni = nullptr;
   for (int i = 0; i < count; i++) {
     VNI *vni2 = &vnies[i];
     bool a = isEarVNI(vni2);
-    if (a && vni2->outAngle >= vni->outAngle) { vni = vni2; }
+    if (!a) { continue; }
+    if (vni2->outAngle > pi - epsilon) {
+      vni2->enabled = false;
+      continue;
+    }
+    if (!vni || vni2->outAngle > vni->outAngle) { vni = vni2; }
   }
+  if (!vni) { return nullptr; }
   if (vni->enabled && isEarVNI(vni)) {
     vni->enabled = false;
     return vni;
@@ -254,8 +265,18 @@ inline bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert) {
   return a * b <= 0;
 }
 
-#define arrays_get(arrays, ndx) ((Array *) (((void *) inc_arrays) + (ndx) * sizeof_array))
 
+int32_t calculatePolygonWinding(const XGLCoord *vertices, const uint32_t n_vertices) {
+  double sum = 0.0;
+  for (int i = 0; i < n_vertices - 1; i++) {
+    sum += (vertices[i + 1][AXIS_X] - vertices[i][AXIS_X]) * (vertices[i + 1][AXIS_Y] + vertices[i][AXIS_Y]);
+  }
+  sum += (vertices[0][AXIS_X] - vertices[n_vertices - 1][AXIS_X]) * (vertices[0][AXIS_Y] + vertices[n_vertices - 1][AXIS_Y]);
+  // negative the result for the axis mirrored on AXIS_Y
+  return sum >= 0 ? -1 : 1;
+}
+
+#define arrays_get(arrays, ndx) ((Array *) (((void *) inc_arrays) + (ndx) * sizeof_array))
 Array *buildVniAndIncArray(const Array * const vert_array, Array * const inc_arrays,
                            const Allocator * const allocator) {
   const int n_vertices = (int) Array_length(vert_array);
@@ -312,6 +333,29 @@ void legalizeTriangulation(struct Triangle * const triangles, struct SharedEdge 
   } while (flipped);
 }
 
+
+Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *allocator) {
+  const uint32_t count = Array_length(vert_array);
+  const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
+  const int32_t order = calculatePolygonWinding(vertices, count);
+  Array *reversed_array = nullptr;
+  if (order < 0) {
+    reversed_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
+    for (uint32_t i = 0; i < count; i++) {
+      Array_append(reversed_array, vertices[count - i - 1], 1);
+    }
+    Array *reversed_result_array = xglEarClippingTriangulate2D_clockwise(reversed_array, allocator);
+    releasePrimeArray(reversed_array);
+    const uint32_t n_indices = Array_length(reversed_result_array);
+    uint32_t *indices = Array_first_real(reversed_result_array);
+    for (uint32_t i = 0; i < n_indices; i ++) {
+      indices[i] = count - indices[i] - 1;
+    }
+    return reversed_result_array;
+  }
+  return xglEarClippingTriangulate2D_clockwise(vert_array, allocator);
+}
+
 #define populateTriangleFromEarVNI(triangle)                            \
   do {                                                                  \
     (triangle)->vertices[0][AXIS_X] = vertices[ear_vni->left][AXIS_X];  \
@@ -324,7 +368,7 @@ void legalizeTriangulation(struct Triangle * const triangles, struct SharedEdge 
     (triangle)->indices[1] = ear_vni->index;                            \
     (triangle)->indices[2] = ear_vni->right;                            \
   } while (false)
-Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *allocator) {
+Array *xglEarClippingTriangulate2D_clockwise(const Array *vert_array, const Allocator *allocator) {
   const uint32_t count = Array_length(vert_array);
   const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
 

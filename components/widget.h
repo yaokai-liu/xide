@@ -33,8 +33,10 @@
 #include "shape2D.h"
 #include <stdint.h>
 
-typedef bool fn_area(uint32_t coord[2]);
-typedef uint32_t fn_color(uint32_t coord[2], uint32_t status);
+typedef struct Widget Widget;
+
+typedef bool fn_area(Widget *widget, uint32_t coord[2]);
+typedef uint32_t fn_color(Widget *widget, uint32_t coord[2]);
 
 /**
  ** Suggestion:
@@ -47,17 +49,13 @@ typedef struct Widget {
   uint32_t type;
   uint32_t property;
   uint32_t status;
+  const Allocator *allocator;
+  void * instance; // maybe a virtual address
   uint32_t box[4];
   fn_area *funcRange;
   fn_color *funcColor;
 } Widget;
 
-/**
- ** Suggestion:
- **    If a widget's `funcRange` is not nullptr,
- **    this function is suggested to call
- **    after change `box` or `funcRange`.
- **/
 int32_t IdeWidget_adjust_box(Widget *widget);
 
 #endif  // XIDE_WIDGET_H

@@ -34,22 +34,22 @@
 #include "utils.h"
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
-  IdeWindow *window = ideCreateWindow(1000, 800, "xIDE", allocator);
+  Window *window = ideCreateWindow(1000, 1000, "xIDE", allocator);
   if (!window) { return nullptr; }
   IDE *ide = allocator->calloc(1, sizeof(IDE));
   ide->allocator = allocator;
   ide->workdir = workdir;
-  ide->window = window;
+  ide->mainWindow = window;
   ide->atlasManager = Array_new(sizeof(TextureAtlas), enum_IDE_TEXTURE_ATLAS, allocator);
   ide->fontManager = FontManager_new(allocator);
   ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-  glfwSetWindowUserPointer(window->info.handle, ide);
+  glfwSetWindowUserPointer(window->handle, ide);
 
   return ide;
 }
 void IDE_destroy(IDE *ide) {
-  ideDestroyWindow(ide->window);
+  ideDestroyWindow(ide->mainWindow);
   Array_reset(ide->drawTaskArray, (destruct_t *) xglDestroyDrawTask);
   Array_destroy(ide->drawTaskArray);
   releasePrimeArray(ide->shaderProgramArray);

@@ -30,7 +30,7 @@
 
 #include "widget.h"
 typedef struct Text {
-  Widget __SUPER__;
+  Widget SUPER;
 } Text;
 
 #endif  // XIDE_TEXT_H

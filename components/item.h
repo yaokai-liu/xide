@@ -32,13 +32,13 @@
 #include <stdint.h>
 
 typedef struct Item {
-  Widget __SUPER__;
+  Widget SUPER;
   Icon *icon;
   Text *text;
 } Item;
 
 typedef struct ExpandableItem {
-  Item __SUPER__;
+  Item SUPER;
   Icon *expdIcon;
 } ExpandableItem;
 

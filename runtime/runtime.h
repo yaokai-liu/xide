@@ -49,19 +49,19 @@ typedef struct {
 GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count);
 int initializeGlad();
 GLFWmonitor *switchMonitor(int index);
-void switchWindow(IdeWindow *window);
+void switchWindow(Window *window);
 
-void ideSetWindowTitle(IdeWindow *handle, const char_t *title);
+void ideSetWindowTitle(Window *handle, const char_t *title);
 void ideSetWindowSize(GLFWwindow *handle, int width, int height);
 void ideWindowRefreshCallback(GLFWwindow *handle);
-void ideProcessInput(IdeWindow *window);
-IdeWindow *ideCreateWindow(int width, int height, const char_t *title, const Allocator *allocator);
-void ideDestroyWindow(IdeWindow *window);
+void ideProcessInput(Window *window);
+Window *ideCreateWindow(int width, int height, const char_t *title, const Allocator *allocator);
+void ideDestroyWindow(Window *window);
 
 void ideDrawUiOnce(IDE *ide);
 void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram);
 
-bool ideShouldStopRender(IdeWindow *window);
+bool ideShouldStopRender(Window *window);
 void ideWindowShow(IDE *ide);
 
 #endif  // XIDE_RUNTIME_H

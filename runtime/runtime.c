@@ -134,8 +134,8 @@ int initializeGlad() {
   return 0;
 }
 
-void switchWindow(IdeWindow *window) {
-  glfwMakeContextCurrent(window->info.handle);
+void switchWindow(Window *window) {
+  glfwMakeContextCurrent(window->handle);
   glfwSwapInterval(1);
 }
 
@@ -171,19 +171,19 @@ void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
 
 void ideDrawUiOnce(IDE *ide) {
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  if (ide->window->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
+  if (ide->mainWindow->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
   glClear(GL_COLOR_BUFFER_BIT);
   const uint32_t n_tasks = Array_length(ide->drawTaskArray);
   const DrawTask *tasks = Array_real_addr(ide->drawTaskArray, 0);
   for (uint32_t i = 0; i < n_tasks; i++) { ideDraw(&tasks[i], ide); }
-  glfwSwapBuffers(ide->window->info.handle);
+  glfwSwapBuffers(ide->mainWindow->handle);
 }
 
-inline void ideSetWindowTitle(IdeWindow *window, const char_t *title) {
-  window->info.title = title;
+inline void ideSetWindowTitle(Window *window, const char_t *title) {
+//  window->TitleBar. = title;
 }
 
-IdeWindow *ideCreateWindow(const int width, const int height, const char_t *title, const Allocator *allocator) {
+Window *ideCreateWindow(const int width, const int height, const char_t *title, const Allocator *allocator) {
   rt_message("Using GLFW Version: %d.%d", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
   // Required OpenGL version: 4.5.0
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -218,25 +218,27 @@ IdeWindow *ideCreateWindow(const int width, const int height, const char_t *titl
   glfwSetWindowSizeCallback(handle, ideSetWindowSize);
   glfwSetWindowRefreshCallback(handle, ideWindowRefreshCallback);
 
-  IdeWindow * const window = allocator->calloc(1, sizeof(IdeWindow));
-  window->allocator = allocator;
-
-  window->info.handle = handle;
+  Window * const window = allocator->calloc(1, sizeof(Window));
+  window->SUPER.type = WT_WINDOW;
+  window->SUPER.property = WP_NORMAL;
+  window->SUPER.status = WS_FOCUSED;
+  window->SUPER.allocator = allocator;
+  window->SUPER.instance = window;
 
   int pos_x, pos_y;
   glfwGetWindowPos(handle, &pos_x, &pos_y);
-  window->info.geometry[0] = pos_x;
-  window->info.geometry[0] = pos_y;
-  window->info.geometry[0] = width;
-  window->info.geometry[0] = height;
-
-  window->info.title = title;
+  window->SUPER.box[BE_LEFT] = pos_x;
+  window->SUPER.box[BE_TOP] = pos_y;
+  window->SUPER.box[BE_RIGHT] = pos_x + width;
+  window->SUPER.box[BE_BOTTOM] = pos_y + height;
 
   GLint viewport[4] = {0, 0, width, height};
-  window->info.viewport[0] = (float) viewport[0];
-  window->info.viewport[1] = (float) viewport[1];
-  window->info.viewport[2] = (float) viewport[2];
-  window->info.viewport[3] = (float) viewport[3];
+  window->viewport[BG_X] = (float) viewport[0];
+  window->viewport[BG_Y] = (float) viewport[1];
+  window->viewport[BG_W] = (float) viewport[2];
+  window->viewport[BG_H] = (float) viewport[3];
+
+  window->handle = handle;
 
   // set window title
   ideSetWindowTitle(window, title);
@@ -244,22 +246,22 @@ IdeWindow *ideCreateWindow(const int width, const int height, const char_t *titl
   return window;
 }
 
-void ideDestroyWindow(IdeWindow *window) {
-  glfwDestroyWindow(window->info.handle);
-  window->allocator->free(window);
+void ideDestroyWindow(Window *window) {
+  glfwDestroyWindow(window->handle);
+  window->SUPER.allocator->free(window);
 }
 
 void *ideRepeatDrawUi(IDE *ide) {
-  while (!ideShouldStopRender(ide->window)) {
-    ideProcessInput(ide->window);
+  while (!ideShouldStopRender(ide->mainWindow)) {
+    ideProcessInput(ide->mainWindow);
     ideDrawUiOnce(ide);
     glfwPollEvents();
   }
   return nullptr;
 }
 
-bool ideShouldStopRender(IdeWindow *window) {
-  return glfwWindowShouldClose(window->info.handle);
+bool ideShouldStopRender(Window *window) {
+  return glfwWindowShouldClose(window->handle);
 }
 
 void ideWindowShow(IDE *ide) {

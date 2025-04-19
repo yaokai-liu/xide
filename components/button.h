@@ -31,7 +31,7 @@
 #include "widget.h"
 
 typedef struct Button {
-  Widget __SUPER__;
+  Widget SUPER;
   Widget *content;
 } Button;
 

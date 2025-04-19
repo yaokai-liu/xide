@@ -67,6 +67,13 @@ enum BOX_CORNER {
   BC_RB
 };
 
+enum BOX_GEO {
+  BG_X,
+  BG_Y,
+  BG_W,
+  BG_H,
+};
+
 enum CONFIG {
   CONFIG_X = 0,
   CONFIG_Y = 1,
@@ -94,8 +101,10 @@ enum VERTEX {
 typedef enum IDEWidgetTypeEnum : uint32_t {
   WT_NONE = 0,
   WT_WIDGET,
+  WT_WINDOW,
   WT_VIEW,
   WT_ITEM,
+  WT_TEXT,
   WT_BAR,
 } WTEnum;
 

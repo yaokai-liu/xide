@@ -19,10 +19,20 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: container.c
+ * Filename: container.h
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "container.h"
+#ifndef XIDE_WIDGET_GROUP_H
+#define XIDE_WIDGET_GROUP_H
+
+#include "widget.h"
+
+typedef struct WidgetGroup {
+  Widget SUPER;
+  Array *subWidgets;
+} WidgetGroup;
+
+#endif  // XIDE_WIDGET_GROUP_H

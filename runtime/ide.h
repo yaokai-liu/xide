@@ -35,7 +35,7 @@
 typedef struct IDE {
   const Allocator *allocator;
   const char_t *workdir;
-  IdeWindow *window;
+  Window *mainWindow;
   Array *drawTaskArray;  // Array<DrawTask>
   Array *shaderProgramArray;  // Array<GLuint>
   FontManager *fontManager;

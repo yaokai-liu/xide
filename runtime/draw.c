@@ -470,7 +470,7 @@ void ideDrawText(IDE *ide, const DrawTask *task, const GLfloat viewport[2]) {
 }
 
 inline void ideDraw(const DrawTask * const task, IDE *ide) {
-  const float * const viewport = (const float *) &ide->window->info.viewport;
+  const float * const viewport = (const float *) &ide->mainWindow->viewport;
   switch (task->task_type) {
     case TT_LINES: {
       return ideDrawLines(task, viewport);
