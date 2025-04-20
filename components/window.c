@@ -25,3 +25,82 @@
  **/
 
 #include "window.h"
+#include "runtime.h"
+
+inline void Window_resize(Window *window, int32_t width, int32_t height) {
+  glfwWindowResize(window->handle, width, height);
+}
+
+inline void Window_setTitle(Window *window, const char_t *title) {
+    window->bars[BE_TOP];
+}
+
+Window *Window_new(int width, int height, const char_t *title, const Allocator *allocator) {
+  rt_message("Using GLFW Version: %d.%d", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
+  // Required OpenGL version: 4.5.0
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+  glfwWindowHint(GLFW_DECORATED, GLFW_WIN_DECO_NO_TITLE_BAR);
+
+  // TODO: loadPluginsFrom(directory) async;
+  // TODO: loadProjectFrom(directory) async;
+  // TODO: setupUiFrom(filepath) main thread;
+
+  if (!title) { title = "xIDE"; }
+
+  GLFWwindow *handle = glfwCreateWindow(width, height, title, nullptr, nullptr);
+  if (!handle) {
+    const char_t *err_msg = nullptr;
+    glfwGetError(&err_msg);
+    rt_error("failed to create GLFW window: %s", err_msg);
+    return nullptr;
+  }
+  // make context
+  glfwMakeContextCurrent(handle);
+  // set swap interval
+  glfwSwapInterval(1);
+  // initialize glad
+  if (initializeGlad()) { return nullptr; }
+  // set opengl viewport
+  glViewport(0, 0, width, height);
+
+  glfwSetWindowSizeCallback(handle, glfwWindowResize);
+  glfwSetWindowRefreshCallback(handle, glfwWindowRefresh);
+
+  Window * const window = allocator->calloc(1, sizeof(Window));
+  window->SUPER.type = WT_WINDOW;
+  window->SUPER.property = WP_NORMAL;
+  window->SUPER.status = WS_FOCUSED;
+  window->SUPER.allocator = allocator;
+  window->SUPER.instance = window;
+
+  int pos_x, pos_y;
+  glfwGetWindowPos(handle, &pos_x, &pos_y);
+  window->SUPER.box[BE_LEFT] = pos_x;
+  window->SUPER.box[BE_TOP] = pos_y;
+  window->SUPER.box[BE_RIGHT] = pos_x + width;
+  window->SUPER.box[BE_BOTTOM] = pos_y + height;
+
+  GLint viewport[4] = {0, 0, width, height};
+  window->viewport[BG_X] = (float) viewport[0];
+  window->viewport[BG_Y] = (float) viewport[1];
+  window->viewport[BG_W] = (float) viewport[2];
+  window->viewport[BG_H] = (float) viewport[3];
+
+  window->handle = handle;
+
+  // set window title
+  Window_setTitle(window, title);
+
+  return window;
+}
+
+void Window_destroy(Window *window) {
+  glfwDestroyWindow(window->handle);
+  window->SUPER.allocator->free(window);
+}

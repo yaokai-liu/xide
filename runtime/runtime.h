@@ -29,14 +29,10 @@
 
 #include "draw.h"
 #include "glad/glad.h"
-#include "glfw/glfw3.h"
+#include "GLFW/glfw3.h"
 #include "widgets.h"
 #include "xgl-object.h"
-
-#define rt_error(fmt, ...)   fprintf(stderr, "[ERROR] " fmt ".\n", ##__VA_ARGS__)
-#define rt_message(fmt, ...) fprintf(stdout, "[INFO] " fmt ".\n", ##__VA_ARGS__)
-#define rt_warning(fmt, ...) fprintf(stdout, "[WARNING] " fmt ".\n", ##__VA_ARGS__)
-#define rt_debug(fmt, ...)   fprintf(stdout, "[DEBUG] " fmt ".\n", ##__VA_ARGS__)
+#include "runtime-msg.h"
 
 void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                              const GLchar *message, const void *userParam);
@@ -49,14 +45,10 @@ typedef struct {
 GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count);
 int initializeGlad();
 GLFWmonitor *switchMonitor(int index);
-void switchWindow(Window *window);
+void ideSwitchWindow(Window *window);
 
-void ideSetWindowTitle(Window *handle, const char_t *title);
-void ideSetWindowSize(GLFWwindow *handle, int width, int height);
-void ideWindowRefreshCallback(GLFWwindow *handle);
-void ideProcessInput(Window *window);
-Window *ideCreateWindow(int width, int height, const char_t *title, const Allocator *allocator);
-void ideDestroyWindow(Window *window);
+void glfwWindowResize(GLFWwindow *handle, int width, int height);
+void glfwWindowRefresh(GLFWwindow *handle);
 
 void ideDrawUiOnce(IDE *ide);
 void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram);

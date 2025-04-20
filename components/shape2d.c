@@ -24,7 +24,7 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "shape2D.h"
+#include "shape2d.h"
 #include "enum.h"
 #include <math.h>
 

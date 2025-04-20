@@ -34,7 +34,7 @@
 #include "utils.h"
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
-  Window *window = ideCreateWindow(1000, 1000, "xIDE", allocator);
+  Window *window = Window_new(1000, 1000, "xIDE", allocator);
   if (!window) { return nullptr; }
   IDE *ide = allocator->calloc(1, sizeof(IDE));
   ide->allocator = allocator;
@@ -49,7 +49,7 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   return ide;
 }
 void IDE_destroy(IDE *ide) {
-  ideDestroyWindow(ide->mainWindow);
+  Window_destroy(ide->mainWindow);
   Array_reset(ide->drawTaskArray, (destruct_t *) xglDestroyDrawTask);
   Array_destroy(ide->drawTaskArray);
   releasePrimeArray(ide->shaderProgramArray);

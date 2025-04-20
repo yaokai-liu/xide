@@ -39,18 +39,6 @@ typedef struct Vertex2D {
   uint32_t color;
 } Vertex2D;
 
-typedef struct PixelRect2D {
-  int32_t leftUp[2];
-  int32_t rightDown[2];
-  int32_t radius[4];
-} PixelRect2D;
-
-typedef struct Rect2D {
-  float leftUp[2];
-  float rightDown[2];
-  float radius[4];
-} Rect2D;
-
 typedef PixelVertex2D Line[2];
 float SLine_length(const Line line);
 

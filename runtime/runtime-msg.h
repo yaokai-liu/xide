@@ -18,20 +18,22 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: Icon.h
+ * Module Name: runtime
+ * Filename: runtime-msg.h
  * Creator: Yaokai Liu
- * Create Date: 2025-04-15
+ * Create Date: 2025-04-19
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_ICON_H
-#define XIDE_ICON_H
+#ifndef XIDE_RUNTIME_MSG_H
+#define XIDE_RUNTIME_MSG_H
 
-#include "widget.h"
-typedef struct Icon {
-  Widget SUPER;
-//  Picture *icon;
-} Icon;
+#include <stdio.h>
 
-#endif  // XIDE_ICON_H
+#define rt_error(fmt, ...)   fprintf(stderr, "[ERROR] " fmt ".\n", ##__VA_ARGS__)
+#define rt_message(fmt, ...) fprintf(stdout, "[INFO] " fmt ".\n", ##__VA_ARGS__)
+#define rt_warning(fmt, ...) fprintf(stdout, "[WARNING] " fmt ".\n", ##__VA_ARGS__)
+#define rt_debug(fmt, ...)   fprintf(stdout, "[DEBUG] " fmt ".\n", ##__VA_ARGS__)
+
+
+#endif  // XIDE_RUNTIME_MSG_H

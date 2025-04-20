@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-void ideSetWindowSize(GLFWwindow *handle, int width, int height) {
+void glfwWindowResize(GLFWwindow *handle, int width, int height) {
   glViewport(0, 0, width, height);
   IDE *ide = glfwGetWindowUserPointer(handle);
   Window *window = ide->mainWindow;
@@ -41,13 +41,13 @@ void ideSetWindowSize(GLFWwindow *handle, int width, int height) {
   window->viewport[3] = (float) viewport[3];
 }
 
-void ideWindowRefreshCallback(GLFWwindow *handle) {
+void glfwWindowRefresh(GLFWwindow *handle) {
   IDE *ide = glfwGetWindowUserPointer(handle);
   ideDrawUiOnce(ide);
   glFinish();
 }
 
-void ideProcessInput(Window *window) {
+void Window_processInput(Window *window) {
   GLFWwindow *handle = window->handle;
   if (glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(handle, true); }
 }

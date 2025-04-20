@@ -37,9 +37,12 @@ typedef struct Item {
   Text *text;
 } Item;
 
-typedef struct ExpandableItem {
-  Item SUPER;
-  Icon *expdIcon;
-} ExpandableItem;
+typedef struct FolderItem {
+  Widget SUPER;
+  Icon *fIcon;
+  Icon *iIcon;
+  Text *text;
+  uint32_t status;
+} FolderItem;
 
 #endif  // XIDE_ITEM_H

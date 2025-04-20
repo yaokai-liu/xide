@@ -30,7 +30,7 @@
 #include "array.h"
 #include "char_t.h"
 #include "enum.h"
-#include "shape2D.h"
+#include "shape2d.h"
 #include <stdint.h>
 
 typedef struct Widget Widget;

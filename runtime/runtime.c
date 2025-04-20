@@ -134,7 +134,7 @@ int initializeGlad() {
   return 0;
 }
 
-void switchWindow(Window *window) {
+void ideSwitchWindow(Window *window) {
   glfwMakeContextCurrent(window->handle);
   glfwSwapInterval(1);
 }
@@ -179,81 +179,9 @@ void ideDrawUiOnce(IDE *ide) {
   glfwSwapBuffers(ide->mainWindow->handle);
 }
 
-inline void ideSetWindowTitle(Window *window, const char_t *title) {
-//  window->TitleBar. = title;
-}
-
-Window *ideCreateWindow(const int width, const int height, const char_t *title, const Allocator *allocator) {
-  rt_message("Using GLFW Version: %d.%d", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
-  // Required OpenGL version: 4.5.0
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-  glfwWindowHint(GLFW_DECORATED, GLFW_WIN_DECO_NO_TITLE_BAR);
-
-  // TODO: loadPluginsFrom(directory) async;
-  // TODO: loadProjectFrom(directory) async;
-  // TODO: setupUiFrom(filepath) main thread;
-
-  GLFWwindow *handle = glfwCreateWindow(width, height, title, nullptr, nullptr);
-  if (!handle) {
-    const char_t *err_msg = nullptr;
-    glfwGetError(&err_msg);
-    rt_error("failed to create GLFW window: %s", err_msg);
-    return nullptr;
-  }
-  // make context
-  glfwMakeContextCurrent(handle);
-  // set swap interval
-  glfwSwapInterval(1);
-  // initialize glad
-  if (initializeGlad()) { return nullptr; }
-  // set opengl viewport
-  glViewport(0, 0, width, height);
-
-  glfwSetWindowSizeCallback(handle, ideSetWindowSize);
-  glfwSetWindowRefreshCallback(handle, ideWindowRefreshCallback);
-
-  Window * const window = allocator->calloc(1, sizeof(Window));
-  window->SUPER.type = WT_WINDOW;
-  window->SUPER.property = WP_NORMAL;
-  window->SUPER.status = WS_FOCUSED;
-  window->SUPER.allocator = allocator;
-  window->SUPER.instance = window;
-
-  int pos_x, pos_y;
-  glfwGetWindowPos(handle, &pos_x, &pos_y);
-  window->SUPER.box[BE_LEFT] = pos_x;
-  window->SUPER.box[BE_TOP] = pos_y;
-  window->SUPER.box[BE_RIGHT] = pos_x + width;
-  window->SUPER.box[BE_BOTTOM] = pos_y + height;
-
-  GLint viewport[4] = {0, 0, width, height};
-  window->viewport[BG_X] = (float) viewport[0];
-  window->viewport[BG_Y] = (float) viewport[1];
-  window->viewport[BG_W] = (float) viewport[2];
-  window->viewport[BG_H] = (float) viewport[3];
-
-  window->handle = handle;
-
-  // set window title
-  ideSetWindowTitle(window, title);
-
-  return window;
-}
-
-void ideDestroyWindow(Window *window) {
-  glfwDestroyWindow(window->handle);
-  window->SUPER.allocator->free(window);
-}
-
 void *ideRepeatDrawUi(IDE *ide) {
   while (!ideShouldStopRender(ide->mainWindow)) {
-    ideProcessInput(ide->mainWindow);
+    Window_processInput(ide->mainWindow);
     ideDrawUiOnce(ide);
     glfwPollEvents();
   }

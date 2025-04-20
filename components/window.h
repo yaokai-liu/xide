@@ -41,4 +41,10 @@ typedef struct Window {
   Widget *bars[4];
 } Window, Dialog;
 
+void Window_setTitle(Window *window, const char_t *title);
+void Window_processInput(Window *window);
+Window *Window_new(int width, int height, const char_t *title, const Allocator *allocator);
+void Window_destroy(Window *window);
+
+
 #endif  // XIDE_WINDOW_H
