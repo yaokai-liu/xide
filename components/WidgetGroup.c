@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xide - An integrated development environment
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,20 +19,10 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: button.h
+ * Filename: container.c
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_BUTTON_H
-#define XIDE_BUTTON_H
-
-#include "widget.h"
-
-typedef struct Button {
-  Widget SUPER;
-  Widget *content;
-} Button;
-
-#endif  // XIDE_BUTTON_H
+#include "WidgetGroup.h"

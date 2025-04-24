@@ -18,44 +18,10 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: widget.h
+ * Filename: item.c
  * Creator: Yaokai Liu
- * Create Date: 2024-7-6
+ * Create Date: 2024-7-9
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_WIDGET_H
-#define XIDE_WIDGET_H
-
-#include "array.h"
-#include "char_t.h"
-#include "enum.h"
-#include "shape2d.h"
-#include <stdint.h>
-
-typedef struct Widget Widget;
-
-typedef bool fn_area(Widget *widget, uint32_t coord[2]);
-typedef uint32_t fn_color(Widget *widget, uint32_t coord[2]);
-
-/**
- ** Suggestion:
- **   1. The geometry object defined by `funcRange`
- **      is suggested more convex and more connected.
- **   2. The `geometry` is suggested smallest that
- **      can only just place `funcRange`.
- **/
-typedef struct Widget {
-  uint32_t type;
-  uint32_t property;
-  uint32_t status;
-  const Allocator *allocator;
-  void * instance; // maybe a virtual address
-  uint32_t box[4];
-  fn_area *funcRange;
-  fn_color *funcColor;
-} Widget;
-
-int32_t IdeWidget_adjust_box(Widget *widget);
-
-#endif  // XIDE_WIDGET_H
+#include "Item.h"

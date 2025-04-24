@@ -28,9 +28,9 @@
 #ifndef XIDE_IDE_H
 #define XIDE_IDE_H
 
+#include "Window.h"
 #include "array.h"
 #include "font-manage.h"
-#include "window.h"
 
 typedef struct IDE {
   const Allocator *allocator;
@@ -45,5 +45,8 @@ typedef struct IDE {
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator);
 void IDE_destroy(IDE *ide);
 const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array);
+
+void ideMakeText(IDE *ide, Text *widget);
+Window *ideMakeWindow(IDE *ide, int width, int height, const char_t *title);
 
 #endif  // XIDE_IDE_H

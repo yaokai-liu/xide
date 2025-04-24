@@ -28,7 +28,7 @@
 #define XIDE_ENUM_H
 
 // Do not promise that direction order will be clockwise or counter-clockwise.
-enum DIRECTION {
+enum DISTRIBUTE_DIRECTION {
   DIRECTION_C = 0,
   DIRECTION_TC = 1,
   DIRECTION_BC = 2,
@@ -56,10 +56,11 @@ enum CAX {
 
 enum BOX_EDGE {
   BE_LEFT,
-  BE_RIGHT,
   BE_TOP,
+  BE_RIGHT,
   BE_BOTTOM
 };
+
 enum BOX_CORNER {
   BC_LT,
   BC_LB,
@@ -68,10 +69,10 @@ enum BOX_CORNER {
 };
 
 enum BOX_GEO {
-  BG_X,
-  BG_Y,
-  BG_W,
-  BG_H,
+  BG_X = BE_LEFT,
+  BG_Y = BE_TOP,
+  BG_W = BE_RIGHT,
+  BG_H = BE_BOTTOM,
 };
 
 enum CONFIG {
@@ -81,21 +82,17 @@ enum CONFIG {
   CONFIG_H = 3
 };
 
-enum WIDGET_STATUS {
-  PLAIN = 0,
-  ON_FOCUS = 1,
-  ON_HOVER = 2,
-  ON_CLICK = 3,
-};
-
 // Do not promise that direction order will be clockwise or counter-clockwise.
-enum VERTEX {
-  VERTEX_LT = 0,
-  VERTEX_RT = 1,
-  VERTEX_RB = 2,
-  VERTEX_LB = 3,
-  VERTEX_BEGIN = 0,
-  VERTEX_END = 1,
+enum VERTEX_ORDER {
+  // rectangle vertex order
+  VERT_LT = 0,
+  VERT_RT = 1,
+  VERT_RB = 2,
+  VERT_LB = 3,
+
+  // straight line vertex order
+  VERT_BEGIN = 0,
+  VERT_END = 1,
 };
 
 typedef enum IDEWidgetTypeEnum : uint32_t {
@@ -106,20 +103,35 @@ typedef enum IDEWidgetTypeEnum : uint32_t {
   WT_ITEM,
   WT_TEXT,
   WT_BAR,
+
+  // Re-interpret the widget as custom defined.
+  WT_CUSTOM_WIDGET = 0x80000000
 } WTEnum;
 
-typedef enum IDEWidgetPropertyEnum : uint32_t {
-  WP_NORMAL = 0b0000,
-  WP_CUSTOM_SHAPE = 0b0001,
-  WP_CUSTOM_CURSOR = 0b0010,
-  WP_CUSTOM_BACKGROUND = 0b0100,
+typedef enum IDEWidgetPropertyEnum : uint64_t {
+  WP_NONE = 0x00LL,
+
+  // `parent` field is a virtual pointer
+  WP_PARENT_REFER = 0x01,
+  // Interpret `child` field as children
+  WP_CHILD_CHILDREN = 0x02,
+
+  // Box field interpret as geometry.
+  WP_BOX_AS_GEOMETRY = 0x01LL << 8,
+  // Box always adjust to widget range.
+  WP_BOX_ALWAYS_RE_ADJUST = 0x02LL << 8,
+  // Geometry changed will influence the parent.
+  WP_RE_GEO_TO_PARENT = 0x01LL << 16,
+  // Geometry changed will influence children.
+  WP_RE_GEO_TO_CHILDREN = 0x02LL << 16,
 } WPEnum;
 
 typedef enum IDEWidgetStatusEnum : uint32_t {
-  WS_NORMAL = 0b0000,
-  WS_FOCUSED = 0b0001,
-  WS_HOVERED = 0b0010,
-  WS_CLICKED = 0b0100,
+  WS_NORMAL  = 0x0,
+  WS_FOCUSED = 0x1,
+  WS_HOVERED = 0x2,
+  WS_CLICKED = 0x4,
+  WS_HIDDEN  = 0x8,
 } WSEnum;
 
 #endif  // XIDE_ENUM_H

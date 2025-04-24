@@ -27,10 +27,10 @@
 #ifndef XIDE_WIDGETS_H
 #define XIDE_WIDGETS_H
 
+#include "Item.h"
+#include "Widget.h"
+#include "WidgetGroup.h"
+#include "Window.h"
 #include "enum.h"
-#include "item.h"
-#include "widget-group.h"
-#include "widget.h"
-#include "window.h"
 
 #endif  // XIDE_WIDGETS_H

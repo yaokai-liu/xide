@@ -160,14 +160,14 @@ DrawTask *ideCreatePixelLines(const Array * const line_array, const uint32_t pla
     GLint indices[2] = {2 * i, 2 * i + 1};
     rgba2XGLColor(lines[i][0].color, &colors[0]);
     rgba2XGLColor(lines[i][1].color, &colors[1]);
-    vertices[VERTEX_BEGIN][AXIS_X] = (float) lines[i][0].coord[AXIS_X];
-    vertices[VERTEX_BEGIN][AXIS_Y] = (float) lines[i][0].coord[AXIS_Y];
-    vertices[VERTEX_BEGIN][AXIS_Z] = (float) plane_index;
-    vertices[VERTEX_BEGIN][AXIS_W] = 0.0f;
-    vertices[VERTEX_END][AXIS_X] = (float) lines[i][1].coord[AXIS_X];
-    vertices[VERTEX_END][AXIS_Y] = (float) lines[i][1].coord[AXIS_Y];
-    vertices[VERTEX_END][AXIS_Z] = (float) plane_index;
-    vertices[VERTEX_END][AXIS_W] = 0.0f;
+    vertices[VERT_BEGIN][AXIS_X] = (float) lines[i][0].coord[AXIS_X];
+    vertices[VERT_BEGIN][AXIS_Y] = (float) lines[i][0].coord[AXIS_Y];
+    vertices[VERT_BEGIN][AXIS_Z] = (float) plane_index;
+    vertices[VERT_BEGIN][AXIS_W] = 0.0f;
+    vertices[VERT_END][AXIS_X] = (float) lines[i][1].coord[AXIS_X];
+    vertices[VERT_END][AXIS_Y] = (float) lines[i][1].coord[AXIS_Y];
+    vertices[VERT_END][AXIS_Z] = (float) plane_index;
+    vertices[VERT_END][AXIS_W] = 0.0f;
     Array_append(vertex_array, vertices, 2);
     Array_append(color_array, colors, 2);
     Array_append(index_array, indices, 2);
@@ -399,9 +399,9 @@ inline DrawTask *ideCreateTextStr2D(IDE *ide, const Array *char_array, const Ver
   const CharModelSet *set = ideUpdateCharModelSet(ide, font, char_array);
   Array *vertex_array = nullptr;
   if ((mode & TS_D_MASK) == TS_VERTICAL) {
-    vertex_array = charModelSetGenVCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
+    vertex_array = CharModelSet_genVCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
   } else {
-    vertex_array = charModelSetGenHCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
+    vertex_array = CharModelSet_genHCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
   }
   DrawTask * const task = ideCreateDrawTextTask(ide, char_array, vertex_array, set, plane_index, font);
   if (vertex_array) { releasePrimeArray(vertex_array); }

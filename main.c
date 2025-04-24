@@ -89,10 +89,10 @@ int main(int argc, char *argv[]) {
 
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 11);
-  task = ideCreatePolygon2D(vertex_array, 50, false, allocator);
+//  task = ideCreatePolygon2D(vertex_array, 50, false, allocator);
 //  task = ideCreatePolyline2D(vertex_array, 50, true, allocator);
-  ideAddTasks(ide, task, shader);
-  allocator->free(task);
+//  ideAddTasks(ide, task, shader);
+//  allocator->free(task);
   Array_reset(vertex_array, nullptr);
 
   for (int i = 0; i < 100; i ++) {
@@ -107,9 +107,9 @@ int main(int argc, char *argv[]) {
   }
   Vertex2D center = { .coord = {400.0f, 400.0f }, .color = 0xFFFF77FF};
   Array_append(vertex_array, &center, 1);
-  task = ideCreateCurveArea2D(vertex_array, 10, true, true, allocator);
-  ideAddTasks(ide, task, shader);
-  allocator->free(task);
+//  task = ideCreateCurveArea2D(vertex_array, 10, true, true, allocator);
+//  ideAddTasks(ide, task, shader);
+//  allocator->free(task);
   releasePrimeArray(vertex_array);
 
   Line lines[] = {
@@ -132,9 +132,9 @@ int main(int argc, char *argv[]) {
   };
   Array *line_array = Array_new(sizeof(Line), enum_XGL_LINE, allocator);
   Array_append(line_array, lines, 4);
-  task = ideCreatePixelLines(line_array, 0, allocator);
-  ideAddTasks(ide, task, shader);
-  allocator->free(task);
+//  task = ideCreatePixelLines(line_array, 0, allocator);
+//  ideAddTasks(ide, task, shader);
+//  allocator->free(task);
   releasePrimeArray(line_array);
 
   Font font = {.path = "fonts/SourceHanSerifSC-Regular.otf", .index = 0, .size = 32};
@@ -156,24 +156,25 @@ int main(int argc, char *argv[]) {
   Array_append(char_array, char_set, 'z' - 'a');
   vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, 12);
-  task = ideCreateText2DByArray(ide, char_array, vertex_array, 50, &font);
-  ideAddTasks(ide, task, shader);
+//  task = ideCreateText2DByArray(ide, char_array, vertex_array, 50, &font);
+//  ideAddTasks(ide, task, shader);
+  //  allocator->free(task);
   releasePrimeArray(vertex_array);
   releasePrimeArray(char_array);
-  allocator->free(task);
 
   #define TEXT "Hello OpenGL and FreeType"
-  XGLVector2D size = {};
-  Vertex2D anchor = {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF};
-  DrawTask *task1 = ideCreateTextStr2DByStr(ide, TEXT" 1", &anchor, -0.25f,
-                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font1, size);
-  ideAddTasks(ide, task1, shader);
-  allocator->free(task1);
-  anchor.coord[AXIS_Y] -= size[AXIS_Y] + 5;
-  DrawTask *task2 = ideCreateTextStr2DByStr(ide, TEXT " 2", &anchor, -1.5f,
-                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font2, size);
-  ideAddTasks(ide, task2, shader);
-  allocator->free(task2);
+//  XGLVector2D size = {};
+//  Vertex2D anchor = {.coord = {500.0f, 100.0f}, .color = 0xFFFF00FF};
+//  DrawTask *task1 = ideCreateTextStr2DByStr(ide, TEXT" 1", &anchor, -0.25f,
+//                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font1, size);
+//  ideAddTasks(ide, task1, shader);
+//  allocator->free(task1);
+//  anchor.coord[AXIS_Y] -= size[AXIS_Y] + 5;
+//  anchor.coord[AXIS_X] -= size[AXIS_Y] + 5;
+//  DrawTask *task2 = ideCreateTextStr2DByStr(ide, TEXT " 2", &anchor, -1.5f,
+//                                          TS_RIGHT | TS_ABOVE | TS_HORIZONTAL, 0, &font2, size);
+//  ideAddTasks(ide, task2, shader);
+//  allocator->free(task2);
 
   glLineWidth(1);
   glEnable(GL_MULTISAMPLE);

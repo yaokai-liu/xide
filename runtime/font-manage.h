@@ -47,12 +47,13 @@ typedef struct FontManager FontManager;
 
 FontManager *FontManager_new(const Allocator *allocator);
 void FontManager_destroy(FontManager *manager);
-CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font);
-CharModelSet *FontManager_findFont(FontManager *manager, const Font *font);
-Array /*<Vertex2D>*/ *charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
+REFER(CharModelSet) FontManager_loadFont(FontManager *manager, const Font *font);
+REFER(CharModelSet) FontManager_findFont(FontManager *manager, const Font *font);
+CharModelSet *FontManager_realCharModelSet(FontManager *manager, REFER(CharModelSet) set);
+Array /*<Vertex2D>*/ *CharModelSet_genHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
                                                  const Vertex2D *anchor, float c_space, uint32_t mode,
                                                  XGLVector2D feedback_vec, const Allocator *allocator);
-Array /*<Vertex2D>*/ *charModelSetGenVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
+Array /*<Vertex2D>*/ *CharModelSet_genVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
                                                  const Vertex2D *anchor, float c_space, uint32_t mode,
                                                  XGLVector2D feedback_vec, const Allocator *allocator);
 

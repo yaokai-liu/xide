@@ -30,7 +30,6 @@
 #include "array.h"
 #include "ide.h"
 #include "texture-manage.h"
-#include "widgets.h"
 #include "xgl-object.h"
 
 enum TASK_TYPE_ENUM {
@@ -56,8 +55,8 @@ typedef struct DrawTask {
 
 DrawTask *ideCreateNonTextureDrawTask(const Array *vertex_array, const Array *color_array, const Array *index_array,
                                       const Allocator *allocator);
-DrawTask *ideCreateTexturedDrawTask(const Array * const vertex_array, const Array *index_array, uint32_t atlas_index,
-                                    uint32_t texture_unit, const Allocator * const allocator);
+DrawTask *ideCreateTexturedDrawTask(const Array *vertex_array, const Array *index_array, uint32_t atlas_index,
+                                    uint32_t texture_unit, const Allocator *allocator);
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
 DrawTask *ideCreatePolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);

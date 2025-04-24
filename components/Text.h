@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xide - An integrated development environment
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,9 +28,17 @@
 #ifndef XIDE_TEXT_H
 #define XIDE_TEXT_H
 
-#include "widget.h"
+#include "Widget.h"
+#include "font-manage.h"
+
 typedef struct Text {
   Widget SUPER;
+  string_t text;
+  Font    font;
+  uint32_t mode;
 } Text;
+
+void *Text_draw(Text *text);
+void *Text_update(Text *text);
 
 #endif  // XIDE_TEXT_H

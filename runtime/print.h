@@ -51,7 +51,7 @@ enum TEXT_STYLE {
 };
 
 typedef struct Font {
-  char_t *path;  // path to font file
+  const char_t *path;  // path to font file
   uint64_t index;
   uint32_t size;
 } Font;

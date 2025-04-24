@@ -18,10 +18,25 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: item.c
+ * Filename: item.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-9
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "item.h"
+#ifndef XIDE_ITEM_H
+#define XIDE_ITEM_H
+
+#include "Icon.h"
+#include "Text.h"
+#include <stdint.h>
+
+typedef struct FolderItem {
+  Widget    SUPER;
+  Icon *    fIcon;
+  Icon *    iIcon;
+  Text *    text;
+  uint32_t  status;
+} FolderItem;
+
+#endif  // XIDE_ITEM_H

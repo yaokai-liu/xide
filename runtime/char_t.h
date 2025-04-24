@@ -28,6 +28,8 @@
 #define XIDE_CHAR_T_H
 
 typedef char char_t;
+typedef const char_t *string_t;
 #define string_t(_str) _str
+
 
 #endif  // XIDE_CHAR_T_H

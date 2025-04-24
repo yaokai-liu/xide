@@ -34,17 +34,29 @@
 #include "utils.h"
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
-  Window *window = Window_new(1000, 1000, "xIDE", allocator);
-  if (!window) { return nullptr; }
   IDE *ide = allocator->calloc(1, sizeof(IDE));
   ide->allocator = allocator;
   ide->workdir = workdir;
-  ide->mainWindow = window;
   ide->atlasManager = Array_new(sizeof(TextureAtlas), enum_IDE_TEXTURE_ATLAS, allocator);
   ide->fontManager = FontManager_new(allocator);
   ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-  glfwSetWindowUserPointer(window->handle, ide);
+
+  ShaderInfo shaderInfos[] = {
+    {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
+    {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
+  };
+  GLuint *shader = ideCompileShaders(ide, shaderInfos, 2);
+  if (!shader) {
+    IDE_destroy(ide);
+    glfwTerminate();
+  }
+
+  ide->mainWindow = ideMakeWindow(ide, 1000, 1000, "xIDE");
+  if (!ide->mainWindow) { return nullptr; }
+
+  Widget ** ppWidget = Array_first_real(ide->mainWindow->bars[BE_TOP]->child.children);
+  ideAddTasks(ide, (*ppWidget)->drawTask, shader);
 
   return ide;
 }
@@ -62,6 +74,7 @@ void IDE_destroy(IDE *ide) {
 CharModelSet *ideGenCharModelSet(IDE *ide, const Font *font) {
   CharModelSet *set = FontManager_loadFont(ide->fontManager, font);
   if (!set) { return nullptr; }
+  set = FontManager_realCharModelSet(ide->fontManager, set);
   if (set->atlas) { return set; }
   TextureAtlas atlas = {.unit = 0, .texture = 0, .width = 0, .height = 0};
   Array_append(ide->atlasManager, &atlas, 1);
@@ -148,4 +161,30 @@ const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Arra
   if (!set) { return nullptr; }
   ideUpdateCharacterTextureAtlas(ide, char_array, set);
   return set;
+}
+
+void ideMakeText(IDE *ide, Text *widget) {
+  PixelVertex2D pixel_anchor = {.coord = {0, 0}, .color = 0xFFFFFFFF};
+  if (widget->SUPER.funcColor) {
+    pixel_anchor.color = widget->SUPER.funcColor((Widget *) widget, pixel_anchor.coord);
+  }
+  IdeWidget_local2global((Widget *) widget, pixel_anchor.coord);
+  Vertex2D anchor = {
+    .coord = {
+      [AXIS_X] = (float) pixel_anchor.coord[AXIS_X],
+      [AXIS_Y] = (float) pixel_anchor.coord[AXIS_Y]
+    },
+    .color = pixel_anchor.color
+  };
+  float end[2] = {};
+  if (widget->SUPER.drawTask) { xglDestroyDrawTask(widget->SUPER.drawTask, ide->allocator); }
+  widget->SUPER.drawTask = ideCreateTextStr2DByStr(ide, widget->text, &anchor, 0.1f, widget->mode,
+                                         0, &widget->font, end);
+  if (widget->SUPER.property & WP_BOX_AS_GEOMETRY) {
+    widget->SUPER.box[BE_RIGHT] = (int) end[AXIS_X] + 1;
+    widget->SUPER.box[BE_BOTTOM] = (int) end[AXIS_Y] + 1;
+  } else {
+    widget->SUPER.box[BE_RIGHT] = widget->SUPER.box[BE_LEFT] + (int) end[AXIS_X] + 1;
+    widget->SUPER.box[BE_BOTTOM] = widget->SUPER.box[BE_TOP] + (int) end[AXIS_Y] + 1;
+  }
 }

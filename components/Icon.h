@@ -1,6 +1,6 @@
 /* License
  *
- * ${PROJ_DESCRIPTION}
+ * xide - An integrated development environment
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 #ifndef XIDE_ICON_H
 #define XIDE_ICON_H
 
-#include "widget.h"
+#include "Widget.h"
 typedef struct Icon {
   Widget SUPER;
 //  Picture *icon;

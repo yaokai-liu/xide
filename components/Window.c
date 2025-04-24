@@ -24,18 +24,36 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "window.h"
+#include "Window.h"
 #include "runtime.h"
 
 inline void Window_resize(Window *window, int32_t width, int32_t height) {
   glfwWindowResize(window->handle, width, height);
 }
 
-inline void Window_setTitle(Window *window, const char_t *title) {
-    window->bars[BE_TOP];
+inline void Window_setTextTitle(Window *window, Text *text) {
+    Widget *topbar = window->SUPER.allocator->calloc(1, sizeof(Widget));
+    topbar->type = WT_BAR;
+    topbar->status = WS_FOCUSED;
+    topbar->property = WP_RE_GEO_TO_CHILDREN | WP_CHILD_CHILDREN | WP_BOX_AS_GEOMETRY;
+    topbar->allocator = window->SUPER.allocator;
+    topbar->parent = (Widget *) window;
+    topbar->box[BE_TOP] = 0;
+    topbar->box[BE_LEFT] = 0;
+    // topbar as wide as the window
+    topbar->box[BE_RIGHT] = Widget_width((Widget *)window);
+    topbar->box[BE_BOTTOM] = Widget_height((Widget *)text) + 10;
+    topbar->funcRange = nullptr;
+    topbar->funcColor = nullptr;
+    topbar->funcUpdate = nullptr;
+    topbar->child.children = Array_new(sizeof(Widget *), WT_WIDGET, topbar->allocator);
+    IdeWidget_append(topbar, (Widget *) text);
+    window->bars[BE_TOP] = topbar;
+
+
 }
 
-Window *Window_new(int width, int height, const char_t *title, const Allocator *allocator) {
+Window *ideMakeWindow(IDE *ide, int width, int height, const char_t *title) {
   rt_message("Using GLFW Version: %d.%d", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
   // Required OpenGL version: 4.5.0
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -72,12 +90,15 @@ Window *Window_new(int width, int height, const char_t *title, const Allocator *
   glfwSetWindowSizeCallback(handle, glfwWindowResize);
   glfwSetWindowRefreshCallback(handle, glfwWindowRefresh);
 
-  Window * const window = allocator->calloc(1, sizeof(Window));
+  Window * const window = ide->allocator->calloc(1, sizeof(Window));
   window->SUPER.type = WT_WINDOW;
-  window->SUPER.property = WP_NORMAL;
+  window->SUPER.property = WP_BOX_AS_GEOMETRY | WP_RE_GEO_TO_CHILDREN;
   window->SUPER.status = WS_FOCUSED;
-  window->SUPER.allocator = allocator;
-  window->SUPER.instance = window;
+  window->SUPER.allocator = ide->allocator;
+  window->SUPER.parent = nullptr;
+  window->SUPER.funcRange = nullptr;
+  window->SUPER.funcColor = nullptr;
+  window->SUPER.funcUpdate = nullptr;
 
   int pos_x, pos_y;
   glfwGetWindowPos(handle, &pos_x, &pos_y);
@@ -93,9 +114,23 @@ Window *Window_new(int width, int height, const char_t *title, const Allocator *
   window->viewport[BG_H] = (float) viewport[3];
 
   window->handle = handle;
+  glfwSetWindowUserPointer(window->handle, ide);
 
   // set window title
-  Window_setTitle(window, title);
+  const Font IDE_DEFAULT_FONT = {.path = "fonts/JetBrainsMono-Regular.ttf", .index = 0, .size = 14};
+
+  Text *text = window->SUPER.allocator->calloc(1, sizeof(Text));
+  text->SUPER.type = WT_TEXT;
+  text->SUPER.status = WS_FOCUSED;
+  text->SUPER.property = WP_BOX_ALWAYS_RE_ADJUST;
+  text->SUPER.allocator = window->SUPER.allocator;
+  text->SUPER.box[BE_LEFT] = 5;
+  text->SUPER.box[BE_TOP] = 5;
+  text->text = title;
+  text->font = IDE_DEFAULT_FONT;
+  text->mode = TS_RIGHT | TS_BELOW | TS_HORIZONTAL;
+  ideMakeText(ide, text);
+  Window_setTextTitle(window, text);
 
   return window;
 }

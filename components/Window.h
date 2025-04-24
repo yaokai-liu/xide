@@ -18,31 +18,32 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: item.h
+ * Filename: window.h
  * Creator: Yaokai Liu
- * Create Date: 2024-7-9
+ * Create Date: 2024-7-6
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_ITEM_H
-#define XIDE_ITEM_H
+#ifndef XIDE_WINDOW_H
+#define XIDE_WINDOW_H
 
-#include "Icon.h"
-#include "Text.h"
+#include "allocator.h"
+#include "array.h"
+#include "char_t.h"
 #include <stdint.h>
+#include "Text.h"
 
-typedef struct Item {
+typedef struct Window {
   Widget SUPER;
-  Icon *icon;
-  Text *text;
-} Item;
+  void * handle;
+  float viewport[4];
+  Widget *central;
+  Widget *bars[4];
+} Window, Dialog;
 
-typedef struct FolderItem {
-  Widget SUPER;
-  Icon *fIcon;
-  Icon *iIcon;
-  Text *text;
-  uint32_t status;
-} FolderItem;
+void Window_setTextTitle(Window *window, Text *text);
+void Window_processInput(Window *window);
+void Window_destroy(Window *window);
 
-#endif  // XIDE_ITEM_H
+
+#endif  // XIDE_WINDOW_H

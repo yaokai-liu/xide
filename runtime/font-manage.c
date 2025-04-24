@@ -45,7 +45,7 @@ void releaseCharModelSet(CharModelSet *set, const Allocator *) {
   AVLTree_destroy(set->charTree, nullptr);
 }
 
-FontManager *FontManager_new(const Allocator *allocator) {
+inline FontManager *FontManager_new(const Allocator *allocator) {
   FT_Library ft;
   if (FT_Init_FreeType(&ft)) {
     rt_error("Could not init FreeType Library");
@@ -58,13 +58,13 @@ FontManager *FontManager_new(const Allocator *allocator) {
   return manager;
 }
 
-void FontManager_destroy(FontManager *manager) {
+inline void FontManager_destroy(FontManager *manager) {
   Array_reset(manager->setArray, (destruct_t *) releaseCharModelSet);
   FT_Done_FreeType(manager->ftLibrary);
   manager->allocator->free(manager);
 }
 
-CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font) {
+inline CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font) {
   CharModelSet *pSet = FontManager_findFont(manager, font);
   if (pSet) {
     rt_message("Loaded font");
@@ -84,10 +84,10 @@ CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font) {
   set.modelArray = Array_new(sizeof(CharModel), enum_IDE_CHAR_MODEL, manager->allocator);
   set.charTree = AVLTree_new(manager->allocator, nullptr);
   Array_append(manager->setArray, &set, 1);
-  return Array_last_real(manager->setArray);
+  return Array_last_virt(manager->setArray);
 }
 
-CharModelSet *FontManager_findFont(FontManager *manager, const Font *font) {
+inline CharModelSet *FontManager_findFont(FontManager *manager, const Font *font) {
   if (Array_length(manager->setArray) == 0) { return nullptr; }
   CharModelSet *first = Array_first_real(manager->setArray);
   CharModelSet *last = Array_last_real(manager->setArray);
@@ -96,12 +96,16 @@ CharModelSet *FontManager_findFont(FontManager *manager, const Font *font) {
     if (font->size != f->size) { continue; }
     if (font->index != f->index) { continue; }
     if (strcmp(font->path, f->path) != 0) { continue; }
-    return set;
+    return Array_real2virt(manager->setArray, set);
   }
   return nullptr;
 }
 
-Array /*<Vertex2D>*/ *charModelSetGenHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
+inline CharModelSet *FontManager_realCharModelSet(FontManager *manager, REFER(CharModelSet) set) {
+  return Array_virt2real(manager->setArray, set);
+}
+
+Array /*<Vertex2D>*/ *CharModelSet_genHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
                                                  const Vertex2D *anchor, float c_space, uint32_t mode,
                                                  XGLVector2D feedback_vec, const Allocator *allocator) {
   const uint32_t count = Array_length(char_array);
@@ -158,7 +162,7 @@ Array /*<Vertex2D>*/ *charModelSetGenHCoordArray(const CharModelSet *set, const 
   return vertex_array;
 }
 
-Array /*<Vertex2D>*/ *charModelSetGenVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
+Array /*<Vertex2D>*/ *CharModelSet_genVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
                                                  const Vertex2D *anchor, float c_space, uint32_t mode,
                                                  XGLVector2D feedback_vec, const Allocator *allocator) {
   return nullptr;
