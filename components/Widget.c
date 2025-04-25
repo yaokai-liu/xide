@@ -18,7 +18,7 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: widget.c
+ * Filename: Widget.c
  * Creator: Yaokai Liu
  * Create Date: 2024-7-6
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
@@ -76,13 +76,6 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
   (widget->property & WP_BOX_AS_GEOMETRY) ? box2geo(box, widget->box) : widget->box;
 
   return 0;
-}
-
-void IdeWidget_append(Widget *widget, Widget *child) {
-  if ((widget->property & WP_CHILD_CHILDREN) && widget->child.children) {
-    Array_append(widget->child.children, &child, 1);
-    child->parent = widget;
-  }
 }
 
 int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]) {

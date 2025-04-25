@@ -18,7 +18,7 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: shape.h
+ * Filename: shape2d.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-9
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.

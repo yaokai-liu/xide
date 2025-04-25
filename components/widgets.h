@@ -27,9 +27,9 @@
 #ifndef XIDE_WIDGETS_H
 #define XIDE_WIDGETS_H
 
+#include "Box.h"
 #include "Item.h"
 #include "Widget.h"
-#include "WidgetGroup.h"
 #include "Window.h"
 #include "enum.h"
 

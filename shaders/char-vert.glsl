@@ -1,9 +1,9 @@
-#version 450 core
+#version 460 core
 layout (location = 0) in vec4 aPos;
 layout (location = 1) in vec4 aCol;
 layout (location = 2) in vec2 aTex;
-layout (location = 3) uniform vec4 viewport;
-layout (location = 4) uniform vec2 texSize;
+layout (location = 3) uniform uvec4 viewport;
+layout (location = 4) uniform uvec2 texSize;
 out vec4 vsColor;
 out vec2 texCoord;
 

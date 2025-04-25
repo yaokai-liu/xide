@@ -19,10 +19,26 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: container.c
+ * Filename: Box.h
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "WidgetGroup.h"
+#ifndef XIDE_BOX_H
+#define XIDE_BOX_H
+
+#include "Widget.h"
+
+typedef struct Box {
+  Widget SUPER;
+  Array *children; // Array<Widget *>
+  Array *borderVertices; // Array<PixelVertex2D>
+} Box;
+
+void Box_update(Widget *_box);
+void Box_draw(Widget *_box);
+
+void Box_append(Box *box, Widget *child);
+
+#endif  // XIDE_BOX_H

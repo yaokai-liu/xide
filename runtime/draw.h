@@ -81,10 +81,10 @@ DrawTask *ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D
 
 void xglBindShaderProgram(DrawTask *task, GLuint program);
 
-void ideDrawLines(const DrawTask *task, const GLfloat viewport[2]);
-void ideDrawArea(const DrawTask *task, const GLfloat viewport[2]);
-void ideDrawPolyline(const DrawTask *task, const GLfloat viewport[2]);
-void ideDrawText(IDE *ide, const DrawTask *task, const GLfloat viewport[2]);
+void ideDrawLines(const DrawTask *task, const uint32_t viewport[4]);
+void ideDrawArea(const DrawTask *task, const uint32_t viewport[4]);
+void ideDrawPolyline(const DrawTask *task, const uint32_t viewport[4]);
+void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[2]);
 void ideDraw(const DrawTask *task, IDE *ide);
 
 #endif  // XIDE_DRAW_H

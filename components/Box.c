@@ -19,18 +19,41 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: Text.c
+ * Filename: container.c
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "Text.h"
+#include "Box.h"
 #include "draw.h"
 
-void Text_draw(Widget *_text) {
-  if (_text->drawTask) { ideDraw(_text->drawTask, _text->runtimeContext); }
-}
-void Text_update(Widget *_text) {
 
+void Box_append(Box *box, Widget *child) {
+  if (box->children) {
+    Array_append(box->children, &child, 1);
+    child->parent = (Widget *) box;
+  }
+}
+void Box_update(Widget *_box) {
+  Box *box = (Box *)_box;
+  if (!(_box->property & WP_RE_GEO_TO_CHILDREN)) { return ; }
+  if (!box->children) { return ; }
+  uint32_t n_children = Array_length(box->children);
+  Widget * const*children = Array_first_real(box->children);
+  for (uint32_t i = 0; i < n_children; i++) {
+    Widget_update(children[i]);
+  }
+}
+
+void Box_draw(Widget *_box) {
+  Box *box = (Box *)_box;
+  if (_box->drawTask) { ideDraw(_box->drawTask, _box->runtimeContext); }
+  if (box->borderVertices) { }
+  if (!box->children) { return ; }
+  uint32_t n_children = Array_length(box->children);
+  Widget * const*children = Array_first_real(box->children);
+  for (uint32_t i = 0; i < n_children; i++) {
+    Widget_draw(children[i]);
+  }
 }

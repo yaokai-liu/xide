@@ -35,10 +35,11 @@ void glfwWindowResize(GLFWwindow *handle, int width, int height) {
   Window *window = ide->mainWindow;
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
-  window->viewport[0] = (float) viewport[0];
-  window->viewport[1] = (float) viewport[1];
-  window->viewport[2] = (float) viewport[2];
-  window->viewport[3] = (float) viewport[3];
+  window->SUPER.box[BG_X] = viewport[BG_X];
+  window->SUPER.box[BG_Y] = viewport[BG_Y];
+  window->SUPER.box[BG_W] = viewport[BG_W];
+  window->SUPER.box[BG_H] = viewport[BG_H];
+  window->SUPER.funcUpdate((Widget *)window);
 }
 
 void glfwWindowRefresh(GLFWwindow *handle) {

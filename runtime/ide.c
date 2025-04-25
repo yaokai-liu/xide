@@ -26,12 +26,18 @@
  **/
 
 #include "ide.h"
+#include "color.h"
 #include "minmax.h"
 #include "object-enum.h"
 #include "print.h"
 #include "runtime.h"
 #include "texture-manage.h"
 #include "utils.h"
+
+#define DEFAULT_SHADER 0
+#define DEFAULT_CHAR_SHADER 1
+
+GLFWwindow *ideInitGlfwGLContext(IDE *ide, int width, int height);
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   IDE *ide = allocator->calloc(1, sizeof(IDE));
@@ -41,22 +47,20 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   ide->fontManager = FontManager_new(allocator);
   ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-
-  ShaderInfo shaderInfos[] = {
-    {"shaders/char-vert.glsl", GL_VERTEX_SHADER  },
-    {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}
+  GLFWwindow *handle = ideInitGlfwGLContext(ide, 1000, 1000);
+  ShaderInfo shaderInfos[][2] = {
+    [DEFAULT_SHADER] = {{"shaders/vert-default.glsl", GL_VERTEX_SHADER},
+     {"shaders/frag-default.glsl", GL_FRAGMENT_SHADER}},
+    [DEFAULT_CHAR_SHADER] = {{"shaders/char-vert.glsl", GL_VERTEX_SHADER},
+     {"shaders/char-frag.glsl", GL_FRAGMENT_SHADER}}
   };
-  GLuint *shader = ideCompileShaders(ide, shaderInfos, 2);
-  if (!shader) {
-    IDE_destroy(ide);
-    glfwTerminate();
-  }
+  ide->defaultShader[DEFAULT_SHADER] = ideCompileShaders(ide, shaderInfos[DEFAULT_SHADER], 2);
+  ide->defaultShader[DEFAULT_CHAR_SHADER] = ideCompileShaders(ide, shaderInfos[DEFAULT_CHAR_SHADER], 2);
+  if (!ide->defaultShader[0] || !ide->defaultShader[1]) { IDE_destroy(ide); glfwTerminate(); }
 
-  ide->mainWindow = ideMakeWindow(ide, 1000, 1000, "xIDE");
+  ide->mainWindow = ideMakeWindow(ide, handle, "xide");
   if (!ide->mainWindow) { return nullptr; }
-
-  Widget ** ppWidget = Array_first_real(ide->mainWindow->bars[BE_TOP]->child.children);
-  ideAddTasks(ide, (*ppWidget)->drawTask, shader);
+  glfwSetWindowUserPointer(ide->mainWindow->handle, ide);
 
   return ide;
 }
@@ -69,6 +73,43 @@ void IDE_destroy(IDE *ide) {
   Array_destroy(ide->atlasManager);
   FontManager_destroy(ide->fontManager);
   ide->allocator->free(ide);
+}
+
+GLFWwindow *ideInitGlfwGLContext(IDE *ide, int width, int height) {
+  rt_message("Using GLFW Version: %d.%d, build from source code", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
+  // Required OpenGL version: 4.6.0
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+  glfwWindowHint(GLFW_DECORATED, GLFW_WIN_DECO_NO_TITLE_BAR);
+
+  // TODO: loadPluginsFrom(directory) async;
+  // TODO: loadProjectFrom(directory) async;
+  // TODO: setupUiFrom(filepath) main thread;
+
+  GLFWwindow *handle = glfwCreateWindow(width, height, "", nullptr, nullptr);
+  if (!handle) {
+    const char_t *err_msg = nullptr;
+    glfwGetError(&err_msg);
+    rt_error("failed to create GLFW window: %s", err_msg);
+    return nullptr;
+  }
+  // make context
+  glfwMakeContextCurrent(handle);
+  // set swap interval
+  glfwSwapInterval(1);
+  // initialize glad
+  if (initializeGlad()) { return nullptr; }
+  // set opengl viewport
+  glViewport(0, 0, width, height);
+
+  glfwSetWindowSizeCallback(handle, glfwWindowResize);
+  glfwSetWindowRefreshCallback(handle, glfwWindowRefresh);
+  return handle;
 }
 
 CharModelSet *ideGenCharModelSet(IDE *ide, const Font *font) {
@@ -163,28 +204,45 @@ const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Arra
   return set;
 }
 
-void ideMakeText(IDE *ide, Text *widget) {
-  PixelVertex2D pixel_anchor = {.coord = {0, 0}, .color = 0xFFFFFFFF};
-  if (widget->SUPER.funcColor) {
-    pixel_anchor.color = widget->SUPER.funcColor((Widget *) widget, pixel_anchor.coord);
-  }
-  IdeWidget_local2global((Widget *) widget, pixel_anchor.coord);
+void ideMakeWidgetBox(IDE *ide, Widget *widget) {
+  Vertex2D corners[] = {
+    {(float) widget->box[BE_LEFT],  (float) widget->box[BE_TOP], RGB_CLEAR},
+    {(float) widget->box[BE_RIGHT], (float) widget->box[BE_TOP], RGB_CLEAR},
+    {(float) widget->box[BE_RIGHT], (float) widget->box[BE_BOTTOM], RGB_CLEAR},
+    {(float) widget->box[BE_LEFT],  (float) widget->box[BE_BOTTOM], RGB_CLEAR},
+  };
+  Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, widget->allocator);
+  Array_append(vertex_array, corners, 4);
+  if (widget->drawTask) { xglDestroyDrawTask(widget->drawTask, ide->allocator); }
+  widget->drawTask = ideCreatePolygon2D(vertex_array, 0, true, widget->allocator);
+  GLuint *shader = (widget->shader)
+                     ? Array_virt2real(ide->shaderProgramArray, widget->shader)
+                     :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_SHADER]);
+  xglBindShaderProgram(widget->drawTask, *shader);
+  releasePrimeArray(vertex_array);
+}
+
+void ideMakeText(IDE *ide, Text *text) {
+  PixelVertex2D pixel_anchor = {.coord = {0, 0}, .color = text->color};
+  IdeWidget_local2global((Widget *) text, pixel_anchor.coord);
   Vertex2D anchor = {
-    .coord = {
-      [AXIS_X] = (float) pixel_anchor.coord[AXIS_X],
-      [AXIS_Y] = (float) pixel_anchor.coord[AXIS_Y]
-    },
+    .coord = {[AXIS_X] = (float) pixel_anchor.coord[AXIS_X],
+              [AXIS_Y] = (float) pixel_anchor.coord[AXIS_Y]},
     .color = pixel_anchor.color
   };
   float end[2] = {};
-  if (widget->SUPER.drawTask) { xglDestroyDrawTask(widget->SUPER.drawTask, ide->allocator); }
-  widget->SUPER.drawTask = ideCreateTextStr2DByStr(ide, widget->text, &anchor, 0.1f, widget->mode,
-                                         0, &widget->font, end);
-  if (widget->SUPER.property & WP_BOX_AS_GEOMETRY) {
-    widget->SUPER.box[BE_RIGHT] = (int) end[AXIS_X] + 1;
-    widget->SUPER.box[BE_BOTTOM] = (int) end[AXIS_Y] + 1;
+  if (text->SUPER.drawTask) { xglDestroyDrawTask(text->SUPER.drawTask, ide->allocator); }
+  text->SUPER.drawTask = ideCreateTextStr2DByStr(ide, text->text, &anchor, 0.1f, text->mode,
+                                         0, &text->font, end);
+  if (text->SUPER.property & WP_BOX_AS_GEOMETRY) {
+    text->SUPER.box[BE_RIGHT] = (int) end[AXIS_X] + 1;
+    text->SUPER.box[BE_BOTTOM] = (int) end[AXIS_Y] + 1;
   } else {
-    widget->SUPER.box[BE_RIGHT] = widget->SUPER.box[BE_LEFT] + (int) end[AXIS_X] + 1;
-    widget->SUPER.box[BE_BOTTOM] = widget->SUPER.box[BE_TOP] + (int) end[AXIS_Y] + 1;
+    text->SUPER.box[BE_RIGHT] = text->SUPER.box[BE_LEFT] + (int) end[AXIS_X] + 1;
+    text->SUPER.box[BE_BOTTOM] = text->SUPER.box[BE_TOP] + (int) end[AXIS_Y] + 1;
   }
+  GLuint *shader = (text->SUPER.shader)
+                 ? Array_virt2real(ide->shaderProgramArray, text->SUPER.shader)
+                 :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_CHAR_SHADER]);
+  xglBindShaderProgram(text->SUPER.drawTask, *shader);
 }

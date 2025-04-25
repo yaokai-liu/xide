@@ -18,7 +18,7 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: window.h
+ * Filename: Window.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-6
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
@@ -36,10 +36,12 @@
 typedef struct Window {
   Widget SUPER;
   void * handle;
-  float viewport[4];
   Widget *central;
   Widget *bars[4];
 } Window, Dialog;
+
+void Window_draw(Widget *_window);
+void Window_update(Widget *_window);
 
 void Window_setTextTitle(Window *window, Text *text);
 void Window_processInput(Window *window);

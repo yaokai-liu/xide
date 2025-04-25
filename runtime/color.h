@@ -1,6 +1,6 @@
 /* License
  *
- * xide - An integrated development environment
+ * ${PROJ_DESCRIPTION}
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,21 +18,23 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: container.h
+ * Module Name: runtime
+ * Filename: color.h
  * Creator: Yaokai Liu
- * Create Date: 2025-04-15
+ * Create Date: 2025-04-25
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_WIDGET_GROUP_H
-#define XIDE_WIDGET_GROUP_H
+#ifndef XIDE_COLOR_H
+#define XIDE_COLOR_H
 
-#include "Widget.h"
+enum RGB_COLOR_PRESET {
+  RGB_CLEAR = 0x00000000,
+  RGB_BLACK = 0x000000FF,
+  RGB_WHITE = 0xFFFFFFFF,
+  RGB_RED = 0xFF0000FF,
+  RGB_BLUE = 0x0000FFFF,
+  RGB_GREEN = 0x00FF00FF,
+};
 
-typedef struct WidgetGroup {
-  Widget SUPER;
-  Array *subWidgets;
-} WidgetGroup;
-
-#endif  // XIDE_WIDGET_GROUP_H
+#endif  // XIDE_COLOR_H

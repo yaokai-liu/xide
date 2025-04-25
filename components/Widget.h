@@ -18,7 +18,7 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: widget.h
+ * Filename: Widget.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-6
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
@@ -33,13 +33,14 @@
 #include "shape2d.h"
 #include <stdint.h>
 
+typedef struct IDE IDE;
 typedef struct DrawTask DrawTask;
 
 typedef struct Widget Widget;
 
+typedef void fn_draw(Widget *widget);
 typedef void fn_update(Widget *widget);
 typedef bool fn_area(Widget *widget, uint32_t coord[2]);
-typedef uint32_t fn_color(Widget *widget, uint32_t coord[2]);
 
 /**
  ** If the `type` field's `WT_CUSTOM_WIDGET` set on,
@@ -54,44 +55,26 @@ typedef uint32_t fn_color(Widget *widget, uint32_t coord[2]);
  **      can only just place `funcRange`.
  **/
 typedef struct Widget {
-
   uint32_t type;
-
   uint32_t status;
-
   /**
    ** If the `type` field's `WT_CUSTOM_WIDGET` set on,
    ** this field will be a pointer to a custom defined address.
    **/
   uint64_t property;
-
   const Allocator *allocator;
-
-  const uint8_t *msgBuffer;
-
-  DrawTask *drawTask;
-
   Widget *parent;
-
-  union {
-    Widget *child;
-    Array  *children; // Array<Widget *>
-  } child;
-
+  IDE *runtimeContext;
+  fn_draw *funcDraw;
+  fn_area *funcRange;
+  fn_update *funcUpdate;
+  DrawTask *drawTask;
+  REFER(uint32_t) shader;
   /// Normally, using `enum BOX_EDGE` as index for box,
   /// but if property `WP_BOX_AS_GEOMETRY` set on,
   /// using `enum BOX_GEO` as index for box.
   uint32_t box[4];
-
-
-  // basic methods of widget.
-
-  fn_area *funcRange;
-  fn_color *funcColor;
-  fn_update *funcUpdate;
 } Widget;
-
-void IdeWidget_append(Widget *widget, Widget *child);
 
 int32_t IdeWidget_adjust_box(Widget *widget);
 int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]);
@@ -102,4 +85,7 @@ int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]);
 #define  Widget_height(widget) ( \
   ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] : (widget)->box[BE_BOTTOM] - (widget)->box[BE_TOP] \
 )
+#define Widget_update(widget) do { if ((widget)->funcUpdate) (widget)->funcUpdate(widget); } while (false)
+#define Widget_draw(widget) do { if ((widget)->funcDraw) (widget)->funcDraw(widget); } while (false)
+
 #endif  // XIDE_WIDGET_H

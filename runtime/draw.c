@@ -420,16 +420,16 @@ inline DrawTask *ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const V
   return task;
 }
 
-inline void ideDrawLines(const DrawTask * const task, const GLfloat viewport[4]) {
+inline void ideDrawLines(const DrawTask *const task, const uint32_t viewport[4]) {
   glUseProgram(task->program);
   glBindVertexArray(task->VAO);
   int location = glGetUniformLocation(task->program, "viewport");
-  glProgramUniform4fv(task->program, location, 1, viewport);
+  glProgramUniform4uiv(task->program, location, 1, viewport);
   glDrawElements(GL_LINES, task->n_index, GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 }
 
-inline void ideDrawArea(const DrawTask * const task, const GLfloat viewport[4]) {
+inline void ideDrawArea(const DrawTask *const task, const uint32_t viewport[4]) {
   glUseProgram(task->program);
   glBindVertexArray(task->VAO);
   if (task->task_type == TT_SOLID_AREA) {
@@ -438,23 +438,23 @@ inline void ideDrawArea(const DrawTask * const task, const GLfloat viewport[4]) 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   }
   int location = glGetUniformLocation(task->program, "viewport");
-  glProgramUniform4fv(task->program, location, 1, viewport);
+  glProgramUniform4uiv(task->program, location, 1, viewport);
   glDrawElements(GL_TRIANGLES, task->n_index, GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 }
 
-inline void ideDrawPolyline(const DrawTask * const task, const GLfloat viewport[4]) {
+inline void ideDrawPolyline(const DrawTask *const task, const uint32_t viewport[4]) {
   glUseProgram(task->program);
   glBindVertexArray(task->VAO);
   int location = glGetUniformLocation(task->program, "viewport");
-  glProgramUniform4fv(task->program, location, 1, viewport);
+  glProgramUniform4uiv(task->program, location, 1, viewport);
   glDrawElements(GL_LINE_STRIP, task->n_index, GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 }
 
-void ideDrawText(IDE *ide, const DrawTask *task, const GLfloat viewport[2]) {
+void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[2]) {
   const TextureAtlas *atlas = Array_real_addr(ide->atlasManager, task->atlas_index);
-  const GLfloat atlas_size[2] = {[AXIS_X] = (float) atlas->width, [AXIS_Y] = (float) atlas->height};
+  const uint32_t atlas_size[2] = {[AXIS_X] = atlas->width, [AXIS_Y] = atlas->height};
   int loc_viewport = glGetUniformLocation(task->program, "viewport");
   int loc_atlas_size = glGetUniformLocation(task->program, "texSize");
   int loc_tex_unit = glGetUniformLocation(task->program, "tex");
@@ -462,15 +462,15 @@ void ideDrawText(IDE *ide, const DrawTask *task, const GLfloat viewport[2]) {
   glBindVertexArray(task->VAO);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   glBindTextureUnit(task->texture_unit, atlas->texture);
-  glProgramUniform4fv(task->program, loc_viewport, 1, viewport);
-  glProgramUniform2fv(task->program, loc_atlas_size, 1, atlas_size);
+  glProgramUniform4uiv(task->program, loc_viewport, 1, viewport);
+  glProgramUniform2uiv(task->program, loc_atlas_size, 1, atlas_size);
   glProgramUniform1i(task->program, loc_tex_unit, (GLint) task->texture_unit);
   glDrawElements(GL_TRIANGLES, task->n_index, GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 }
 
 inline void ideDraw(const DrawTask * const task, IDE *ide) {
-  const float * const viewport = (const float *) &ide->mainWindow->viewport;
+  const uint32_t *const viewport = ide->mainWindow->SUPER.box;
   switch (task->task_type) {
     case TT_LINES: {
       return ideDrawLines(task, viewport);

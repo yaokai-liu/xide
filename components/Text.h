@@ -36,9 +36,10 @@ typedef struct Text {
   string_t text;
   Font    font;
   uint32_t mode;
+  uint32_t color;
 } Text;
 
-void *Text_draw(Text *text);
-void *Text_update(Text *text);
+void Text_draw(Widget *_text);
+void Text_update(Widget *_text);
 
 #endif  // XIDE_TEXT_H

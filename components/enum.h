@@ -18,7 +18,7 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: definition.h
+ * Filename: enum.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-7
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.

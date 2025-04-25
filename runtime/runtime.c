@@ -170,12 +170,9 @@ void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
 }
 
 void ideDrawUiOnce(IDE *ide) {
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  if (ide->mainWindow->central) { glClearColor(0.2f, 0.3f, 0.3f, 1.0f); }
+//  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-  const uint32_t n_tasks = Array_length(ide->drawTaskArray);
-  const DrawTask *tasks = Array_real_addr(ide->drawTaskArray, 0);
-  for (uint32_t i = 0; i < n_tasks; i++) { ideDraw(&tasks[i], ide); }
+  Widget_draw((Widget *) ide->mainWindow);
   glfwSwapBuffers(ide->mainWindow->handle);
 }
 
