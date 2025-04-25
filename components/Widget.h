@@ -74,17 +74,28 @@ typedef struct Widget {
   /// but if property `WP_BOX_AS_GEOMETRY` set on,
   /// using `enum BOX_GEO` as index for box.
   uint32_t box[4];
+  uint32_t padding[4];
+  uint32_t margin[4];
 } Widget;
 
 int32_t IdeWidget_adjust_box(Widget *widget);
 int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]);
 
 #define  Widget_width(widget) ( \
-  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] : (widget)->box[BE_RIGHT] - (widget)->box[BE_LEFT] \
+  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] : (widget)->box[BE_R] - (widget)->box[BE_L] \
 )
 #define  Widget_height(widget) ( \
-  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] : (widget)->box[BE_BOTTOM] - (widget)->box[BE_TOP] \
+  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] : (widget)->box[BE_B] - (widget)->box[BE_T] \
 )
+#define Widget_getLeft(widget) (widget)->box[BE_L]
+#define Widget_getTop(widget) (widget)->box[BE_T]
+#define Widget_getRight(widget) ( \
+  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] + (widget)->box[BE_L] : (widget)->box[BE_R] \
+)
+#define Widget_getBottom(widget) ( \
+  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] + (widget)->box[BE_T] : (widget)->box[BE_B] \
+)
+
 #define Widget_update(widget) do { if ((widget)->funcUpdate) (widget)->funcUpdate(widget); } while (false)
 #define Widget_draw(widget) do { if ((widget)->funcDraw) (widget)->funcDraw(widget); } while (false)
 

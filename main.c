@@ -25,8 +25,8 @@
  **/
 
 #include "ide.h"
-#include "object-enum.h"
 #include "print.h"
+#include "runtime-enum.h"
 #include "runtime.h"
 #include <stdio.h>
 #if defined(_WIN32) || defined(_WIN64)

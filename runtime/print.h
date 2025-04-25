@@ -29,7 +29,7 @@
 #define XIDE_PRINT_H
 
 #include "char_t.h"
-#include "object-enum.h"
+#include "runtime-enum.h"
 #include "shape2d.h"
 #include "texture-manage.h"
 #include "xgl-object.h"

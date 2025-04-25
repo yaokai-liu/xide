@@ -27,11 +27,13 @@
 #ifndef XIDE_WINDOW_H
 #define XIDE_WINDOW_H
 
+#include "Text.h"
 #include "allocator.h"
 #include "array.h"
 #include "char_t.h"
 #include <stdint.h>
-#include "Text.h"
+
+typedef struct GLFWwindow GLFWwindow;
 
 typedef struct Window {
   Widget SUPER;
@@ -40,12 +42,14 @@ typedef struct Window {
   Widget *bars[4];
 } Window, Dialog;
 
+Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title);
+
 void Window_draw(Widget *_window);
 void Window_update(Widget *_window);
+void ideMakeWindow(IDE *ide, Widget *_window);
 
-void Window_setTextTitle(Window *window, Text *text);
+void Window_setTextTitle(Window *window, const char_t *title);
 void Window_processInput(Window *window);
 void Window_destroy(Window *window);
-
 
 #endif  // XIDE_WINDOW_H

@@ -11,7 +11,7 @@ void main()
 {
     vec2 ndcPosition = (aPos.xy / viewport.zw) * 2.0f - 1.0f;
     ndcPosition.y = -ndcPosition.y;
-    gl_Position = vec4(ndcPosition, aPos.z / 1024.0, 1.0f);
+    gl_Position = vec4(ndcPosition, aPos.z / 1024.0f, 1.0f);
     vsColor = aCol;
-    texCoord = aTex / texSize;
+    texCoord = aTex / float(texSize);
 }

@@ -19,14 +19,14 @@
  *
  * Project Name: xide
  * Module Name: runtime
- * Filename: enum.h
+ * Filename: runtime-enum.h
  * Creator: Yaokai Liu
  * Create Date: 2025-02-24
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_OBJECT_ENUM_H
-#define XIDE_OBJECT_ENUM_H
+#ifndef XIDE_RUNTIME_ENUM_H
+#define XIDE_RUNTIME_ENUM_H
 
 enum IDE_OBJECT {
   enum_IDE_NONE = 0,
@@ -37,4 +37,9 @@ enum IDE_OBJECT {
   enum_IDE_TEXTURE_ATLAS,
 };
 
-#endif  // XIDE_OBJECT_ENUM_H
+
+#define DEFAULT_SHADER 0
+#define DEFAULT_CHAR_SHADER 1
+
+
+#endif  // XIDE_RUNTIME_ENUM_H

@@ -29,8 +29,9 @@
 #include "cg2d.h"
 #include "glad/glad.h"
 #include "minmax.h"
-#include "object-enum.h"
 #include "print.h"
+#include "runtime-enum.h"
+#include "runtime-msg.h"
 #include "utils.h"
 #include "widgets.h"
 #include "xgl-object.h"
@@ -368,7 +369,8 @@ inline DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const 
     model = Array_virt2real(set->modelArray, model);
     XGLVertex vertices[4] = {};
     xglGenCharCoord2D(model, &pixel_vertices[i], atlas, vertices);
-    GLuint indices[6] = {i * 4 + BC_LT, i * 4 + BC_RT, i * 4 + BC_LB, i * 4 + BC_RT, i * 4 + BC_LB, i * 4 + BC_RB};
+    GLuint indices[6] = {i * 4 + BC_LT, i * 4 + BC_RT, i * 4 + BC_LB,
+                         i * 4 + BC_RT, i * 4 + BC_LB, i * 4 + BC_RB};
     Array_append(vertex_array, vertices, lenof(vertices));
     Array_append(index_array, indices, lenof(indices));
   }
@@ -452,7 +454,7 @@ inline void ideDrawPolyline(const DrawTask *const task, const uint32_t viewport[
   glBindVertexArray(0);
 }
 
-void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[2]) {
+void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[4]) {
   const TextureAtlas *atlas = Array_real_addr(ide->atlasManager, task->atlas_index);
   const uint32_t atlas_size[2] = {[AXIS_X] = atlas->width, [AXIS_Y] = atlas->height};
   int loc_viewport = glGetUniformLocation(task->program, "viewport");

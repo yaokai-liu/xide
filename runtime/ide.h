@@ -47,10 +47,5 @@ typedef struct IDE {
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator);
 void IDE_destroy(IDE *ide);
-const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array);
-
-void ideMakeText(IDE *ide, Text *text);
-void ideMakeWidgetBox(IDE *ide, Widget *widget);
-Window *ideMakeWindow(IDE *ide, GLFWwindow *handle, const char_t *title);
 
 #endif  // XIDE_IDE_H

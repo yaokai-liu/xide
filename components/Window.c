@@ -26,6 +26,7 @@
 
 #include "Window.h"
 #include "color.h"
+#include "minmax.h"
 #include "runtime.h"
 
 inline void Window_resize(Window *window, int32_t width, int32_t height) {
@@ -34,41 +35,67 @@ inline void Window_resize(Window *window, int32_t width, int32_t height) {
 
 
 void Topbar_update(Widget *_topbar) {
-  _topbar->box[BE_LEFT] = 0;
-  _topbar->box[BE_TOP] = 0;
-  // topbar as wide as the window
-  _topbar->box[BE_RIGHT] = Widget_width((Widget *)_topbar->parent);
-  ideMakeWidgetBox(_topbar->runtimeContext, _topbar);
+  Box *topbar = (Box *)_topbar;
+  _topbar->box[BG_X] = 0;
+  _topbar->box[BG_Y] = 0;
   Box_update(_topbar);
+  // topbar as wide as the window
+  _topbar->box[BG_W] = Widget_width((Widget *)_topbar->parent);
+  uint32_t stoke = _topbar->padding[BE_T];
+  if (topbar->children) {
+    uint32_t n_children = Array_length(topbar->children);
+    Widget * const*children = Array_first_real(topbar->children);
+    for (uint32_t i = 0; i < n_children; i++) {
+      stoke = max(stoke, Widget_getBottom(children[i]));
+    }
+  }
+  _topbar->box[BG_H] = stoke + _topbar->padding[BE_B];
+  ideMakeBox(_topbar->runtimeContext, _topbar);
 }
 
 #define lenof(_array)  (sizeof(_array) / sizeof(_array[0]))
-inline void Window_setTextTitle(Window *window, Text *text) {
+inline void Window_setTextTitle(Window *window, const char_t *title) {
     Box *topbar = window->SUPER.allocator->calloc(1, sizeof(Box));
     topbar->SUPER.type = WT_BAR;
     topbar->SUPER.status = WS_FOCUSED;
-    topbar->SUPER.property = WP_RE_GEO_TO_CHILDREN | WP_CHILD_CHILDREN;
+    topbar->SUPER.property = WP_RE_GEO_TO_CHILDREN | WP_BOX_AS_GEOMETRY;
     topbar->SUPER.allocator = window->SUPER.allocator;
     topbar->SUPER.runtimeContext = window->SUPER.runtimeContext;
     topbar->SUPER.parent = (Widget *) window;
-    topbar->SUPER.box[BE_LEFT] = 0;
-    topbar->SUPER.box[BE_TOP] = 0;
-
-    topbar->children = Array_new(sizeof(Widget *), WT_WIDGET, topbar->SUPER.allocator);
-    Box_append(topbar, (Widget *) text);
-    text->SUPER.runtimeContext = topbar->SUPER.runtimeContext;
-
-    // topbar as wide as the window
-    topbar->SUPER.box[BE_RIGHT] = Widget_width((Widget *)window);
-    topbar->SUPER.box[BE_BOTTOM] = Widget_height((Widget *)text) + 8;
+    topbar->SUPER.box[BE_L] = 0;
+    topbar->SUPER.box[BE_T] = 0;
     topbar->SUPER.funcDraw = Box_draw;
     topbar->SUPER.funcRange = nullptr;
     topbar->SUPER.funcUpdate = Topbar_update;
+    topbar->SUPER.padding[BE_L] = 10;
+    topbar->SUPER.padding[BE_R] = 10;
+    topbar->SUPER.padding[BE_T] = 5 ;
+    topbar->SUPER.padding[BE_B] = 5 ;
+    topbar->children = Array_new(sizeof(Widget *), WT_WIDGET, topbar->SUPER.allocator);
 
-    window->bars[BE_TOP] = (Widget *) topbar;
+    // set window title
+    const Font IDE_DEFAULT_FONT = {.path = "fonts/msyh.ttc", .index = 0, .size = 12};
+
+    Text *text = window->SUPER.allocator->calloc(1, sizeof(Text));
+    text->SUPER.type = WT_TEXT;
+    text->SUPER.status = WS_FOCUSED;
+    text->SUPER.property = WP_BOX_ALWAYS_RE_ADJUST;
+    text->SUPER.allocator = window->SUPER.allocator;
+    text->SUPER.funcDraw = Text_draw;
+    text->SUPER.funcUpdate = Text_update;
+    text->text = title;
+    text->font = IDE_DEFAULT_FONT;
+    text->mode = TS_RIGHT | TS_V_CENTER | TS_HORIZONTAL;
+    text->color = RGB_WHITE;
+    text->SUPER.box[BE_L] = topbar->SUPER.padding[BE_L];
+    text->SUPER.box[BE_T] = topbar->SUPER.padding[BE_T] + 10;
+
+    Box_append(topbar, (Widget *) text);
+
+    window->bars[BE_T] = (Widget *) topbar;
 }
 
-Window *ideMakeWindow(IDE *ide, GLFWwindow *handle, const char_t *title) {
+Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title) {
 
   Window * const window = ide->allocator->calloc(1, sizeof(Window));
   window->SUPER.type = WT_WINDOW;
@@ -88,24 +115,7 @@ Window *ideMakeWindow(IDE *ide, GLFWwindow *handle, const char_t *title) {
   window->SUPER.box[BG_H] = viewport[BG_H];
 
   window->handle = handle;
-
-  // set window title
-  const Font IDE_DEFAULT_FONT = {.path = "fonts/msyh.ttc", .index = 0, .size = 12};
-
-  Text *text = window->SUPER.allocator->calloc(1, sizeof(Text));
-  text->SUPER.type = WT_TEXT;
-  text->SUPER.status = WS_FOCUSED;
-  text->SUPER.property = WP_BOX_ALWAYS_RE_ADJUST;
-  text->SUPER.allocator = window->SUPER.allocator;
-  text->SUPER.funcDraw = Text_draw;
-  text->SUPER.box[BE_LEFT] = 4;
-  text->SUPER.box[BE_TOP] = 4;
-  text->text = title;
-  text->font = IDE_DEFAULT_FONT;
-  text->mode = TS_RIGHT | TS_BELOW | TS_HORIZONTAL;
-  text->color = RGB_WHITE;
-  ideMakeText(ide, text);
-  Window_setTextTitle(window, text);
+  Window_setTextTitle(window, title);
 
   return window;
 }
@@ -118,17 +128,19 @@ void Window_destroy(Window *window) {
 void Window_update(Widget *_window) {
   Window *window = (Window *)_window;
   if (window->central) { Widget_update(window->central); }
-  if (window->bars[BE_LEFT]) { Widget_update(window->bars[BE_LEFT]); }
-  if (window->bars[BE_TOP]) { Widget_update(window->bars[BE_TOP]); }
-  if (window->bars[BE_RIGHT]) { Widget_update(window->bars[BE_RIGHT]); }
-  if (window->bars[BE_BOTTOM]) { Widget_update(window->bars[BE_BOTTOM]); }
+  if (window->bars[BE_L]) { Widget_update(window->bars[BE_L]); }
+  if (window->bars[BE_T]) { Widget_update(window->bars[BE_T]); }
+  if (window->bars[BE_R]) { Widget_update(window->bars[BE_R]); }
+  if (window->bars[BE_B]) { Widget_update(window->bars[BE_B]); }
 }
 
 void Window_draw(Widget *_window) {
   Window *window = (Window *)_window;
   if (window->central) { Widget_draw(window->central); }
-  if (window->bars[BE_LEFT]) { Widget_draw(window->bars[BE_LEFT]); }
-  if (window->bars[BE_TOP]) { Widget_draw(window->bars[BE_TOP]); }
-  if (window->bars[BE_RIGHT]) { Widget_draw(window->bars[BE_RIGHT]); }
-  if (window->bars[BE_BOTTOM]) { Widget_draw(window->bars[BE_BOTTOM]); }
+  if (window->bars[BE_L]) { Widget_draw(window->bars[BE_L]); }
+  if (window->bars[BE_T]) { Widget_draw(window->bars[BE_T]); }
+  if (window->bars[BE_R]) { Widget_draw(window->bars[BE_R]); }
+  if (window->bars[BE_B]) { Widget_draw(window->bars[BE_B]); }
 }
+
+void ideMakeWindow(IDE *ide, Widget *_window) {}

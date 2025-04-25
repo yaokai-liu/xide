@@ -55,10 +55,10 @@ enum CAX {
 };
 
 enum BOX_EDGE {
-  BE_LEFT,
-  BE_TOP,
-  BE_RIGHT,
-  BE_BOTTOM
+  BE_L,
+  BE_T,
+  BE_R,
+  BE_B
 };
 
 enum BOX_CORNER {
@@ -69,10 +69,10 @@ enum BOX_CORNER {
 };
 
 enum BOX_GEO {
-  BG_X = BE_LEFT,
-  BG_Y = BE_TOP,
-  BG_W = BE_RIGHT,
-  BG_H = BE_BOTTOM,
+  BG_X = BE_L,
+  BG_Y = BE_T,
+  BG_W = BE_R,
+  BG_H = BE_B,
 };
 
 enum CONFIG {
@@ -113,8 +113,6 @@ typedef enum IDEWidgetPropertyEnum : uint64_t {
 
   // `parent` field is a virtual pointer
   WP_PARENT_REFER = 0x01,
-  // Interpret `child` field as children
-  WP_CHILD_CHILDREN = 0x02,
 
   // Box field interpret as geometry.
   WP_BOX_AS_GEOMETRY = 0x01LL << 8,
@@ -124,6 +122,8 @@ typedef enum IDEWidgetPropertyEnum : uint64_t {
   WP_RE_GEO_TO_PARENT = 0x01LL << 16,
   // Geometry changed will influence children.
   WP_RE_GEO_TO_CHILDREN = 0x02LL << 16,
+  // Geometry changed will influence children.
+  WP_RE_GEO_FROM_CHILDREN = 0x04LL << 16,
 } WPEnum;
 
 typedef enum IDEWidgetStatusEnum : uint32_t {

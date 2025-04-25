@@ -28,20 +28,7 @@
 #ifndef XIDE_FONT_MANAGE_H
 #define XIDE_FONT_MANAGE_H
 
-#include "array.h"
-#include "avl-tree.h"
-#include "char_t.h"
-#include "freetype/freetype.h"
-#include "print.h"
-#include <stdint.h>
-
-typedef struct CharModelSet {
-  FT_Face face;
-  Font font;
-  uint32_t atlas;
-  Array /*<CharModel>*/ *modelArray;
-  AVLTree /*<uint64_t, uint64_t>*/ *charTree;
-} CharModelSet;
+#include "char-model-set.h"
 
 typedef struct FontManager FontManager;
 
@@ -50,11 +37,5 @@ void FontManager_destroy(FontManager *manager);
 REFER(CharModelSet) FontManager_loadFont(FontManager *manager, const Font *font);
 REFER(CharModelSet) FontManager_findFont(FontManager *manager, const Font *font);
 CharModelSet *FontManager_realCharModelSet(FontManager *manager, REFER(CharModelSet) set);
-Array /*<Vertex2D>*/ *CharModelSet_genHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                                                 const Vertex2D *anchor, float c_space, uint32_t mode,
-                                                 XGLVector2D feedback_vec, const Allocator *allocator);
-Array /*<Vertex2D>*/ *CharModelSet_genVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                                                 const Vertex2D *anchor, float c_space, uint32_t mode,
-                                                 XGLVector2D feedback_vec, const Allocator *allocator);
 
 #endif  // XIDE_FONT_MANAGE_H
