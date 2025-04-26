@@ -1,6 +1,6 @@
 /* License
  *
- * xide - An integrated development environment
+ * ${PROJ_DESCRIPTION}
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,31 +18,22 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: Box.h
+ * Module Name: runtime
+ * Filename: callback.h
  * Creator: Yaokai Liu
- * Create Date: 2025-04-15
+ * Create Date: 2025-04-26
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_BOX_H
-#define XIDE_BOX_H
+#ifndef XIDE_CALLBACK_H
+#define XIDE_CALLBACK_H
 
-#include "Widget.h"
+void ideCallback_windowRefresh(GLFWwindow *handle);
+void ideCallback_windowResize(GLFWwindow *handle, int width, int height);
+void ideCallback_cursorPosition(GLFWwindow* handle, double pos_x, double pos_y);
 
-#define BOX_DEFAULT_STOKE 20
+void APIENTRY xglCallback_debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                             const GLchar *message, const void *userParam);
 
-typedef struct Box {
-  Widget SUPER;
-  Array *children; // Array<Widget *>
-  Array *corners; // Array<PixelVertex2D>
-} Box;
 
-Widget *Box_getSubWidget(Widget *_box, uint32_t local_coord[2]);
-void Box_update(Widget *_box);
-void Box_draw(Widget *_box);
-void ideMakeBox(IDE *ide, Widget *_box);
-
-void Box_append(Box *box, Widget *child);
-
-#endif  // XIDE_BOX_H
+#endif  // XIDE_CALLBACK_H

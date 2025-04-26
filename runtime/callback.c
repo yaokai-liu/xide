@@ -29,10 +29,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-void glfwWindowResize(GLFWwindow *handle, int width, int height) {
+void ideCallback_windowResize(GLFWwindow *handle, int width, int height) {
   glViewport(0, 0, width, height);
-  IDE *ide = glfwGetWindowUserPointer(handle);
-  Window *window = ide->mainWindow;
+  Window *window = glfwGetWindowUserPointer(handle);
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
   window->SUPER.box[BG_X] = viewport[BG_X];
@@ -42,18 +41,23 @@ void glfwWindowResize(GLFWwindow *handle, int width, int height) {
   window->SUPER.funcUpdate((Widget *)window);
 }
 
-void glfwWindowRefresh(GLFWwindow *handle) {
-  IDE *ide = glfwGetWindowUserPointer(handle);
-  ideDrawUiOnce(ide);
+void ideCallback_windowRefresh(GLFWwindow *handle) {
+  Window *window = glfwGetWindowUserPointer(handle);
+  ideDrawUiOnce(window->SUPER.runtimeContext);
   glFinish();
 }
+void ideCallback_cursorPosition(GLFWwindow* handle, double pos_x, double pos_y) {
+  Widget *_window = glfwGetWindowUserPointer(handle);
+  uint32_t pos[2] = { [AXIS_X] = (int) pos_x, [AXIS_Y] = (int) pos_y };
+  ideUpdateHoveredWidgetStack(_window->runtimeContext, pos);
+}
 
-void Window_processInput(Window *window) {
+void ideWindowProcessInput(Window *window) {
   GLFWwindow *handle = window->handle;
   if (glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(handle, true); }
 }
 
-void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+void APIENTRY xglCallback_debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                              const GLchar *message, const void *userParam) {
   if (id == 131169 || id == 131185 || id == 131218 || id == 131204) { return; }
   rt_debug("Debug message (%d): %s", id, message);

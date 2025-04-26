@@ -27,6 +27,7 @@
 #include "Widget.h"
 #include "enum.h"
 #include "minmax.h"
+#include "runtime-enum.h"
 uint32_t *geo2box(const uint32_t * restrict geo, uint32_t * restrict box);
 uint32_t *box2geo(const uint32_t * restrict box, uint32_t * restrict geo);
 
@@ -78,16 +79,54 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
   return 0;
 }
 
-int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]) {
-  if (!widget) { return 0; }
+inline int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]) {
   do {
     coord[AXIS_X] += widget->box[BE_L];
     coord[AXIS_Y] += widget->box[BE_T];
-    if (widget->property & WP_PARENT_REFER) {
-      return -1;
-    } else {
-      widget = widget->parent;
-    }
+    if (widget->property & WP_PARENT_REFER) { return 1; }
+    widget = widget->parent;
   } while (widget);
-  return 1;
+  return 0;
+}
+
+inline int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]) {
+  do {
+    coord[AXIS_X] -= widget->box[BE_L];
+    coord[AXIS_Y] -= widget->box[BE_T];
+    if (widget->property & WP_PARENT_REFER) { return 1; }
+    widget = widget->parent;
+  } while (widget);
+  return 0;
+}
+
+inline int32_t IdeWidget_parent2local(Widget *widget, uint32_t coord[2]) {
+  coord[AXIS_X] -= widget->box[BE_L];
+  coord[AXIS_Y] -= widget->box[BE_T];
+  return 0;
+}
+inline int32_t IdeWidget_local2parent(Widget *widget, uint32_t coord[2]) {
+  coord[AXIS_X] += widget->box[BE_L];
+  coord[AXIS_Y] += widget->box[BE_T];
+  return 0;
+}
+
+inline bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]) {
+  bool in_box = coord[AXIS_X] <= Widget_width(widget)
+             && coord[AXIS_Y] <= Widget_height(widget);
+  if (!widget->funcRange) { return in_box; }
+  return in_box && widget->funcRange(widget, coord);
+}
+
+void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args) {
+  switch (event_id) {
+    case enum_EVENT_CURSOR_ENTER: {
+      widget->status |= WS_HOVERED;
+      return nullptr;
+    }
+    case enum_EVENT_CURSOR_LEAVE: {
+      widget->status &= ~WS_HOVERED;
+      return nullptr;
+    }
+    default:{ return nullptr; }
+  }
 }

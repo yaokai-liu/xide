@@ -45,7 +45,6 @@ int main(int argc, char *argv[]) {
   IDE *ide = IDE_new(workdir, allocator);
   if (!ide) { glfwTerminate(); return -1; }
 
-//  glLineWidth(1);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

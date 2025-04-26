@@ -19,7 +19,7 @@
  *
  * Project Name: xide
  * Module Name: components
- * Filename: container.c
+ * Filename: Box.c
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
@@ -59,7 +59,6 @@ void Box_draw(Widget *_box) {
   }
 }
 
-
 void ideMakeBox(IDE *ide, Widget *_box) {
   Vertex2D corners[] = {
     {(float) _box->box[BE_L],  (float) _box->box[BE_T], 0x3c3f41ff},
@@ -76,4 +75,16 @@ void ideMakeBox(IDE *ide, Widget *_box) {
                      :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_SHADER]);
   xglBindShaderProgram(_box->drawTask, *shader);
   releasePrimeArray(vertex_array);
+}
+
+#define testLocal(w, c) ((w) && IdeWidget_testLocal(w, c))
+Widget *Box_getSubWidget(Widget *_box, uint32_t local_coord[2]) {
+  Box *box = (Box *)_box;
+  if (!box->children) { return nullptr; }
+  uint32_t n_children = Array_length(box->children);
+  Widget * const*children = Array_first_real(box->children);
+  for (uint32_t i = 0; i < n_children; i++) {
+    if (testLocal(children[i], local_coord)) { return children[i]; }
+  }
+  return nullptr;
 }

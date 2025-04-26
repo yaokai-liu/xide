@@ -28,14 +28,9 @@
 #define XIDE_RUNTIME_H
 
 #include "draw.h"
-#include "glad/glad.h"
 #include "GLFW/glfw3.h"
-#include "widgets.h"
 #include "xgl-object.h"
 #include "runtime-msg.h"
-
-void APIENTRY xglDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                             const GLchar *message, const void *userParam);
 
 typedef struct {
   char_t *path;
@@ -43,17 +38,18 @@ typedef struct {
 } ShaderInfo;
 
 GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count);
-int initializeGlad();
-GLFWmonitor *switchMonitor(int index);
-void ideSwitchWindow(Window *window);
 
-void glfwWindowResize(GLFWwindow *handle, int width, int height);
-void glfwWindowRefresh(GLFWwindow *handle);
+int ideInitializeGlad();
+GLFWwindow *ideInitGlfwGLContext(int width, int height);
+
+GLFWmonitor *ideSwitchMonitor(int index);
+void ideSwitchWindow(Window *window);
 
 void ideDrawUiOnce(IDE *ide);
 void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram);
 
-bool ideShouldStopRender(Window *window);
 void ideWindowShow(IDE *ide);
+bool ideShouldStopRender(Window *window);
+void ideUpdateHoveredWidgetStack(IDE *ide, uint32_t position[2]);
 
 #endif  // XIDE_RUNTIME_H

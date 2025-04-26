@@ -40,7 +40,9 @@ typedef struct Widget Widget;
 
 typedef void fn_draw(Widget *widget);
 typedef void fn_update(Widget *widget);
-typedef bool fn_area(Widget *widget, uint32_t coord[2]);
+typedef bool fn_area(Widget *widget, uint32_t local_coord[2]);
+typedef Widget *fn_subs(Widget *widget, uint32_t local_coord[2]);
+typedef void *fn_event(Widget *widget, uint32_t event_id, void *args);
 
 /**
  ** If the `type` field's `WT_CUSTOM_WIDGET` set on,
@@ -67,7 +69,9 @@ typedef struct Widget {
   IDE *runtimeContext;
   fn_draw *funcDraw;
   fn_area *funcRange;
+  fn_subs *getSubWidget;
   fn_update *funcUpdate;
+  fn_event *funcEventProc;
   DrawTask *drawTask;
   REFER(uint32_t) shader;
   /// Normally, using `enum BOX_EDGE` as index for box,
@@ -79,7 +83,14 @@ typedef struct Widget {
 } Widget;
 
 int32_t IdeWidget_adjust_box(Widget *widget);
+void IdeWidget_onHover(Widget *widget, uint32_t local_coord[2]);
+bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]);
 int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]);
+int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]);
+int32_t IdeWidget_parent2local(Widget *widget, uint32_t coord[2]);
+int32_t IdeWidget_local2parent(Widget *widget, uint32_t coord[2]);
+
+void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
 
 #define  Widget_width(widget) ( \
   ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] : (widget)->box[BE_R] - (widget)->box[BE_L] \
@@ -87,12 +98,12 @@ int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]);
 #define  Widget_height(widget) ( \
   ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] : (widget)->box[BE_B] - (widget)->box[BE_T] \
 )
-#define Widget_getLeft(widget) (widget)->box[BE_L]
-#define Widget_getTop(widget) (widget)->box[BE_T]
-#define Widget_getRight(widget) ( \
+#define Widget_left(widget) ((widget)->box[BE_L])
+#define Widget_top(widget) ((widget)->box[BE_T])
+#define Widget_right(widget) ( \
   ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] + (widget)->box[BE_L] : (widget)->box[BE_R] \
 )
-#define Widget_getBottom(widget) ( \
+#define Widget_bottom(widget) ( \
   ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] + (widget)->box[BE_T] : (widget)->box[BE_B] \
 )
 

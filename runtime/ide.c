@@ -26,15 +26,11 @@
  **/
 
 #include "ide.h"
-#include "color.h"
-#include "minmax.h"
 #include "print.h"
 #include "runtime-enum.h"
 #include "runtime.h"
 #include "texture-manage.h"
 #include "utils.h"
-
-GLFWwindow *ideInitGlfwGLContext(IDE *ide, int width, int height);
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   IDE *ide = allocator->calloc(1, sizeof(IDE));
@@ -44,7 +40,8 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   ide->fontManager = FontManager_new(allocator);
   ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-  GLFWwindow *handle = ideInitGlfwGLContext(ide, 1000, 1000);
+  ide->hoveredWidgetStack = Stack_new(allocator);
+  GLFWwindow *handle = ideInitGlfwGLContext(1000, 1000);
   ShaderInfo shaderInfos[][2] = {
     [DEFAULT_SHADER] = {{"shaders/vert-default.glsl", GL_VERTEX_SHADER},
      {"shaders/frag-default.glsl", GL_FRAGMENT_SHADER}},
@@ -55,12 +52,24 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   ide->defaultShader[DEFAULT_CHAR_SHADER] = ideCompileShaders(ide, shaderInfos[DEFAULT_CHAR_SHADER], 2);
   if (!ide->defaultShader[0] || !ide->defaultShader[1]) { IDE_destroy(ide); glfwTerminate(); }
 
-  ide->mainWindow = Window_new(ide, handle, "xide");
-  if (!ide->mainWindow) { return nullptr; }
-  glfwSetWindowUserPointer(ide->mainWindow->handle, ide);
+  Window *window = Window_new(ide, handle, "xide");
+  if (!window) { return nullptr; }
+  Widget *_window = (Widget *)window;
+  IDE_pushHovered(ide, &_window);
+  ide->mainWindow = window;
 
   return ide;
 }
+inline void IDE_pushHovered(IDE *ide, Widget **ppWidget) {
+  Stack_push(ide->hoveredWidgetStack, ppWidget, sizeof(Widget *));
+}
+inline void IDE_popHovered(IDE *ide, Widget **ppWidget) {
+  Stack_pop(ide->hoveredWidgetStack, ppWidget, sizeof(Widget *));
+}
+inline void IDE_topHovered(IDE *ide, Widget **ppWidget) {
+  Stack_top(ide->hoveredWidgetStack, ppWidget, sizeof(Widget *));
+}
+
 void IDE_destroy(IDE *ide) {
   Window_destroy(ide->mainWindow);
   Array_reset(ide->drawTaskArray, (destruct_t *) xglDestroyDrawTask);
@@ -70,41 +79,4 @@ void IDE_destroy(IDE *ide) {
   Array_destroy(ide->atlasManager);
   FontManager_destroy(ide->fontManager);
   ide->allocator->free(ide);
-}
-
-GLFWwindow *ideInitGlfwGLContext(IDE *ide, int width, int height) {
-  rt_message("Using GLFW Version: %d.%d, build from source code", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
-  // Required OpenGL version: 4.6.0
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
-  glfwWindowHint(GLFW_DECORATED, GLFW_WIN_DECO_NO_TITLE_BAR);
-
-  // TODO: loadPluginsFrom(directory) async;
-  // TODO: loadProjectFrom(directory) async;
-  // TODO: setupUiFrom(filepath) main thread;
-
-  GLFWwindow *handle = glfwCreateWindow(width, height, "", nullptr, nullptr);
-  if (!handle) {
-    const char_t *err_msg = nullptr;
-    glfwGetError(&err_msg);
-    rt_error("failed to create GLFW window: %s", err_msg);
-    return nullptr;
-  }
-  // make context
-  glfwMakeContextCurrent(handle);
-  // set swap interval
-  glfwSwapInterval(1);
-  // initialize glad
-  if (initializeGlad()) { return nullptr; }
-  // set opengl viewport
-  glViewport(0, 0, width, height);
-
-  glfwSetWindowSizeCallback(handle, glfwWindowResize);
-  glfwSetWindowRefreshCallback(handle, glfwWindowRefresh);
-  return handle;
 }

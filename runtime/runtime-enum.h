@@ -37,6 +37,11 @@ enum IDE_OBJECT {
   enum_IDE_TEXTURE_ATLAS,
 };
 
+enum IDE_EVENT {
+  enum_EVENT_NONE,
+  enum_EVENT_CURSOR_ENTER,
+  enum_EVENT_CURSOR_LEAVE,
+};
 
 #define DEFAULT_SHADER 0
 #define DEFAULT_CHAR_SHADER 1

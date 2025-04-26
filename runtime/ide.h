@@ -31,7 +31,7 @@
 #include "Window.h"
 #include "array.h"
 #include "font-manage.h"
-#include "GLFW/glfw3.h"
+#include "stack.h"
 
 typedef struct IDE {
   const Allocator *allocator;
@@ -41,11 +41,16 @@ typedef struct IDE {
   Array *shaderProgramArray;  // Array<GLuint>
   FontManager *fontManager;
   TextureAtlasManager *atlasManager;
+  Stack *hoveredWidgetStack; // Stack<Widget *>
 
   REFER(GLuint) defaultShader[2];
 } IDE;
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator);
 void IDE_destroy(IDE *ide);
+
+void IDE_pushHovered(IDE *ide, Widget **ppWidget);
+void IDE_popHovered(IDE *ide, Widget **ppWidget);
+void IDE_topHovered(IDE *ide, Widget **ppWidget);
 
 #endif  // XIDE_IDE_H

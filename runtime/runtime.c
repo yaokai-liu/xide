@@ -29,6 +29,7 @@
 #include "minmax.h"
 #include <pthread.h>
 #include <stdio.h>
+#include "callback.h"
 #ifndef PATH_MAX
   #define PATH_MAX 256
 #endif
@@ -114,7 +115,7 @@ GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count) {
   return Array_last_virt(ide->shaderProgramArray);
 }
 
-int initializeGlad() {
+int ideInitializeGlad() {
   int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
   if (!status) {
     rt_error("failed to initialize GLAD%s", "");
@@ -128,7 +129,7 @@ int initializeGlad() {
     rt_message("%s", "Debug Enabled");
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(xglDebugOutput, nullptr);
+    glDebugMessageCallback(xglCallback_debugOutput, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
   }
   return 0;
@@ -139,7 +140,7 @@ void ideSwitchWindow(Window *window) {
   glfwSwapInterval(1);
 }
 
-GLFWmonitor *switchMonitor(int index) {
+GLFWmonitor *ideSwitchMonitor(int index) {
   int monitorCount;
   GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
   rt_message("found monitors: %d", monitorCount);
@@ -178,9 +179,9 @@ void ideDrawUiOnce(IDE *ide) {
 
 void *ideRepeatDrawUi(IDE *ide) {
   while (!ideShouldStopRender(ide->mainWindow)) {
-    Window_processInput(ide->mainWindow);
+    ideWindowProcessInput(ide->mainWindow);
     ideDrawUiOnce(ide);
-    glfwPollEvents();
+    glfwWaitEvents();
   }
   return nullptr;
 }
@@ -197,4 +198,59 @@ void ideWindowShow(IDE *ide) {
   //  while (!ideShouldStopRender(ide->window)) { glfwPollEvents(); }
   //  void *res;
   //  pthread_join(uiThread, &res);
+}
+
+GLFWwindow *ideInitGlfwGLContext(int width, int height) {
+  rt_message("Using GLFW Version: %d.%d, build from source code", GLFW_VERSION_MAJOR, GLFW_VERSION_MINOR);
+  // Required OpenGL version: 4.6.0
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+  glfwWindowHint(GLFW_SAMPLES, 0);
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+  glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+  glfwWindowHint(GLFW_DECORATED, GLFW_WIN_DECO_NO_TITLE_BAR);
+
+  // TODO: loadPluginsFrom(directory) async;
+  // TODO: loadProjectFrom(directory) async;
+  // TODO: setupUiFrom(filepath) main thread;
+
+  GLFWwindow *handle = glfwCreateWindow(width, height, "", nullptr, nullptr);
+  if (!handle) {
+    const char_t *err_msg = nullptr;
+    glfwGetError(&err_msg);
+    rt_error("failed to create GLFW window: %s", err_msg);
+    return nullptr;
+  }
+  // make context
+  glfwMakeContextCurrent(handle);
+  // set swap interval
+  glfwSwapInterval(1);
+  // initialize glad
+  if (ideInitializeGlad()) { return nullptr; }
+  // set opengl viewport
+  glViewport(0, 0, width, height);
+
+  glfwSetCursorPosCallback(handle, ideCallback_cursorPosition);
+  glfwSetWindowSizeCallback(handle, ideCallback_windowResize);
+  glfwSetWindowRefreshCallback(handle, ideCallback_windowRefresh);
+  return handle;
+}
+
+void ideUpdateHoveredWidgetStack(IDE *ide, uint32_t position[2]) {
+  Widget *widget = nullptr;
+  while (!widget) { IDE_popHovered(ide, &widget); }
+  IdeWidget_global2local(widget, position);
+  while (!IdeWidget_testLocal(widget, position)) {
+    rt_debug("cursor leaves %p", widget);
+    IDE_popHovered(ide, &widget);
+    if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_LEAVE, nullptr); }
+  }
+  while (widget && IdeWidget_testLocal(widget, position)) {
+    rt_debug("cursor enters %p", widget);
+    IDE_pushHovered(ide, &widget);
+    if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_ENTER, nullptr); }
+    widget = widget->getSubWidget ? widget->getSubWidget(widget, position) : nullptr;
+  }
 }

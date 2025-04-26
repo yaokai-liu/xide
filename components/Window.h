@@ -43,13 +43,15 @@ typedef struct Window {
 } Window, Dialog;
 
 Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title);
+void Window_destroy(Window *window);
 
 void Window_draw(Widget *_window);
 void Window_update(Widget *_window);
+Widget *Window_getSubWidget(Widget *_window, uint32_t local_coord[2]);
 void ideMakeWindow(IDE *ide, Widget *_window);
 
+void ideWindowProcessInput(Window *window);
 void Window_setTextTitle(Window *window, const char_t *title);
-void Window_processInput(Window *window);
-void Window_destroy(Window *window);
+void Window_getWidget(Window *window, uint32_t pos_x, uint32_t pos_y);
 
 #endif  // XIDE_WINDOW_H

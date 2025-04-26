@@ -25,33 +25,14 @@
  **/
 
 #include "Window.h"
+#include "callback.h"
 #include "color.h"
 #include "minmax.h"
 #include "runtime.h"
+#include "widgets.h"
 
-inline void Window_resize(Window *window, int32_t width, int32_t height) {
-  glfwWindowResize(window->handle, width, height);
-}
-
-
-void Topbar_update(Widget *_topbar) {
-  Box *topbar = (Box *)_topbar;
-  _topbar->box[BG_X] = 0;
-  _topbar->box[BG_Y] = 0;
-  Box_update(_topbar);
-  // topbar as wide as the window
-  _topbar->box[BG_W] = Widget_width((Widget *)_topbar->parent);
-  uint32_t stoke = _topbar->padding[BE_T];
-  if (topbar->children) {
-    uint32_t n_children = Array_length(topbar->children);
-    Widget * const*children = Array_first_real(topbar->children);
-    for (uint32_t i = 0; i < n_children; i++) {
-      stoke = max(stoke, Widget_getBottom(children[i]));
-    }
-  }
-  _topbar->box[BG_H] = stoke + _topbar->padding[BE_B];
-  ideMakeBox(_topbar->runtimeContext, _topbar);
-}
+void Topbar_update(Widget *_topbar);
+void Topbar_onHover(Widget *_topbar, uint32_t local_coord[2]);
 
 #define lenof(_array)  (sizeof(_array) / sizeof(_array[0]))
 inline void Window_setTextTitle(Window *window, const char_t *title) {
@@ -66,6 +47,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     topbar->SUPER.box[BE_T] = 0;
     topbar->SUPER.funcDraw = Box_draw;
     topbar->SUPER.funcRange = nullptr;
+    topbar->SUPER.getSubWidget = Box_getSubWidget;
     topbar->SUPER.funcUpdate = Topbar_update;
     topbar->SUPER.padding[BE_L] = 10;
     topbar->SUPER.padding[BE_R] = 10;
@@ -83,12 +65,12 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     text->SUPER.allocator = window->SUPER.allocator;
     text->SUPER.funcDraw = Text_draw;
     text->SUPER.funcUpdate = Text_update;
+    text->SUPER.box[BE_L] = topbar->SUPER.padding[BE_L];
+    text->SUPER.box[BE_T] = topbar->SUPER.padding[BE_T] + 10;
     text->text = title;
     text->font = IDE_DEFAULT_FONT;
     text->mode = TS_RIGHT | TS_V_CENTER | TS_HORIZONTAL;
     text->color = RGB_WHITE;
-    text->SUPER.box[BE_L] = topbar->SUPER.padding[BE_L];
-    text->SUPER.box[BE_T] = topbar->SUPER.padding[BE_T] + 10;
 
     Box_append(topbar, (Widget *) text);
 
@@ -104,18 +86,20 @@ Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title) {
   window->SUPER.allocator = ide->allocator;
   window->SUPER.runtimeContext = ide;
   window->SUPER.parent = nullptr;
-  window->SUPER.funcDraw = Window_draw;
   window->SUPER.funcRange = nullptr;
+  window->SUPER.funcDraw = Window_draw;
   window->SUPER.funcUpdate = Window_update;
+  window->SUPER.getSubWidget = Window_getSubWidget;
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
   window->SUPER.box[BG_X] = viewport[BG_X];
   window->SUPER.box[BG_Y] = viewport[BG_Y];
   window->SUPER.box[BG_W] = viewport[BG_W];
   window->SUPER.box[BG_H] = viewport[BG_H];
+  Window_setTextTitle(window, title);
 
   window->handle = handle;
-  Window_setTextTitle(window, title);
+  glfwSetWindowUserPointer(window->handle, window);
 
   return window;
 }
@@ -143,4 +127,35 @@ void Window_draw(Widget *_window) {
   if (window->bars[BE_B]) { Widget_draw(window->bars[BE_B]); }
 }
 
+#define bar(b) (window->bars[b])
+#define testLocal(w, c) ((w) && IdeWidget_testLocal(w, c))
+Widget *Window_getSubWidget(Widget *_window, uint32_t local_coord[2]) {
+  Window *window = (Window *)_window;
+  if (testLocal(bar(BE_L), local_coord)) { return bar(BE_L); }
+  if (testLocal(bar(BE_T), local_coord)) { return bar(BE_T); }
+  if (testLocal(bar(BE_R), local_coord)) { return bar(BE_R); }
+  if (testLocal(bar(BE_B), local_coord)) { return bar(BE_B); }
+  if (testLocal(window->central, local_coord)) { return window->central; }
+  return nullptr;
+}
+
 void ideMakeWindow(IDE *ide, Widget *_window) {}
+
+void Topbar_update(Widget *_topbar) {
+  Box *topbar = (Box *)_topbar;
+  _topbar->box[BG_X] = 0;
+  _topbar->box[BG_Y] = 0;
+  Box_update(_topbar);
+  // topbar as wide as the window
+  _topbar->box[BG_W] = Widget_width((Widget *)_topbar->parent);
+  uint32_t stoke = _topbar->padding[BE_T];
+  if (topbar->children) {
+    uint32_t n_children = Array_length(topbar->children);
+    Widget * const*children = Array_first_real(topbar->children);
+    for (uint32_t i = 0; i < n_children; i++) {
+      stoke = max(stoke, Widget_bottom(children[i]));
+    }
+  }
+  _topbar->box[BG_H] = stoke + _topbar->padding[BE_B];
+  ideMakeBox(_topbar->runtimeContext, _topbar);
+}
