@@ -38,9 +38,10 @@ typedef struct Box {
   Array *corners; // Array<PixelVertex2D>
 } Box;
 
-Widget *Box_getSubWidget(Widget *_box, uint32_t local_coord[2]);
 void Box_update(Widget *_box);
 void Box_draw(Widget *_box);
+Widget *Box_getSubWidget(Widget *_box, uint32_t coord[2]);
+void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args);
 void ideMakeBox(IDE *ide, Widget *_box);
 
 void Box_append(Box *box, Widget *child);

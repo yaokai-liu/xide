@@ -31,6 +31,7 @@
 void ideCallback_windowRefresh(GLFWwindow *handle);
 void ideCallback_windowResize(GLFWwindow *handle, int width, int height);
 void ideCallback_cursorPosition(GLFWwindow* handle, double pos_x, double pos_y);
+void ideCallback_cursorEnterOrLEave(GLFWwindow* handle, int entered);
 
 void APIENTRY xglCallback_debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                              const GLchar *message, const void *userParam);

@@ -41,16 +41,12 @@ typedef struct IDE {
   Array *shaderProgramArray;  // Array<GLuint>
   FontManager *fontManager;
   TextureAtlasManager *atlasManager;
-  Stack *hoveredWidgetStack; // Stack<Widget *>
+  Widget *hoveredWidget;
 
   REFER(GLuint) defaultShader[2];
 } IDE;
 
 IDE *IDE_new(const char_t *workdir, const Allocator *allocator);
 void IDE_destroy(IDE *ide);
-
-void IDE_pushHovered(IDE *ide, Widget **ppWidget);
-void IDE_popHovered(IDE *ide, Widget **ppWidget);
-void IDE_topHovered(IDE *ide, Widget **ppWidget);
 
 #endif  // XIDE_IDE_H

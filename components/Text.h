@@ -41,6 +41,7 @@ typedef struct Text {
 
 void Text_draw(Widget *_text);
 void Text_update(Widget *_text);
+void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args);
 void ideMakeText(IDE *ide, Text *text);
 
 #endif  // XIDE_TEXT_H

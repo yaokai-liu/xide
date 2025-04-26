@@ -27,6 +27,7 @@
 
 #include "Text.h"
 #include "draw.h"
+#include "runtime-msg.h"
 
 void Text_draw(Widget *_text) {
   if (_text->drawTask) { ideDraw(_text->drawTask, _text->runtimeContext); }
@@ -61,4 +62,18 @@ void ideMakeText(IDE *ide, Text *text) {
                      ? Array_virt2real(ide->shaderProgramArray, text->SUPER.shader)
                      :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_CHAR_SHADER]);
   xglBindShaderProgram(text->SUPER.drawTask, *shader);
+}
+
+void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args) {
+  switch (event_id) {
+    case enum_EVENT_CURSOR_LEAVE: {
+      if (_text->status & WS_HOVERED) { rt_debug("leave text"); }
+      break;
+    }
+    case enum_EVENT_CURSOR_ENTER: {
+      if (!(_text->status & WS_HOVERED)) { rt_debug("enter text"); }
+      break;
+    }
+  }
+  return IdeWidget_eventProcess(_text, event_id, args);
 }

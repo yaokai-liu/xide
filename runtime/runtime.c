@@ -235,22 +235,27 @@ GLFWwindow *ideInitGlfwGLContext(int width, int height) {
   glfwSetCursorPosCallback(handle, ideCallback_cursorPosition);
   glfwSetWindowSizeCallback(handle, ideCallback_windowResize);
   glfwSetWindowRefreshCallback(handle, ideCallback_windowRefresh);
+  glfwSetCursorEnterCallback(handle, ideCallback_cursorEnterOrLEave);
+
   return handle;
 }
 
-void ideUpdateHoveredWidgetStack(IDE *ide, uint32_t position[2]) {
-  Widget *widget = nullptr;
-  while (!widget) { IDE_popHovered(ide, &widget); }
+void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]) {
+  if (!ide->hoveredWidget) { return ; }
+  Widget *widget = ide->hoveredWidget;
   IdeWidget_global2local(widget, position);
-  while (!IdeWidget_testLocal(widget, position)) {
-    rt_debug("cursor leaves %p", widget);
-    IDE_popHovered(ide, &widget);
+  while (widget && !IdeWidget_testLocal(widget, position)) {
     if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_LEAVE, nullptr); }
+    IdeWidget_local2parent(widget, position);
+    widget = widget->parent;
   }
-  while (widget && IdeWidget_testLocal(widget, position)) {
-    rt_debug("cursor enters %p", widget);
-    IDE_pushHovered(ide, &widget);
+  if (!widget) { return; }
+  while (IdeWidget_testLocal(widget, position)) {
     if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_ENTER, nullptr); }
-    widget = widget->getSubWidget ? widget->getSubWidget(widget, position) : nullptr;
+    Widget *sub_widget = widget->getSubWidget ? widget->getSubWidget(widget, position) : nullptr;
+    if (!sub_widget) { break; }
+    IdeWidget_parent2local(sub_widget, position);
+    widget = sub_widget;
   }
+  ide->hoveredWidget = widget;
 }

@@ -49,8 +49,20 @@ void ideCallback_windowRefresh(GLFWwindow *handle) {
 void ideCallback_cursorPosition(GLFWwindow* handle, double pos_x, double pos_y) {
   Widget *_window = glfwGetWindowUserPointer(handle);
   uint32_t pos[2] = { [AXIS_X] = (int) pos_x, [AXIS_Y] = (int) pos_y };
-  ideUpdateHoveredWidgetStack(_window->runtimeContext, pos);
+  ideUpdateHoveredWidget(_window->runtimeContext, pos);
 }
+
+void ideCallback_cursorEnterOrLEave(GLFWwindow* handle, int entered) {
+  Widget *_window = glfwGetWindowUserPointer(handle);
+  if (entered) {
+    _window->runtimeContext->hoveredWidget = _window;
+  } else {
+    uint32_t pos[2] = { [AXIS_X] = -1, [AXIS_Y] = -1 };
+    ideUpdateHoveredWidget(_window->runtimeContext, pos);
+    _window->runtimeContext->hoveredWidget = nullptr;
+  }
+}
+
 
 void ideWindowProcessInput(Window *window) {
   GLFWwindow *handle = window->handle;

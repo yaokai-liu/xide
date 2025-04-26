@@ -48,6 +48,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     topbar->SUPER.funcDraw = Box_draw;
     topbar->SUPER.funcRange = nullptr;
     topbar->SUPER.getSubWidget = Box_getSubWidget;
+    topbar->SUPER.funcEventProc = Box_eventProcess;
     topbar->SUPER.funcUpdate = Topbar_update;
     topbar->SUPER.padding[BE_L] = 10;
     topbar->SUPER.padding[BE_R] = 10;
@@ -65,6 +66,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     text->SUPER.allocator = window->SUPER.allocator;
     text->SUPER.funcDraw = Text_draw;
     text->SUPER.funcUpdate = Text_update;
+    text->SUPER.funcEventProc = Text_eventProcess;
     text->SUPER.box[BE_L] = topbar->SUPER.padding[BE_L];
     text->SUPER.box[BE_T] = topbar->SUPER.padding[BE_T] + 10;
     text->text = title;

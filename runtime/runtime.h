@@ -50,6 +50,6 @@ void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram);
 
 void ideWindowShow(IDE *ide);
 bool ideShouldStopRender(Window *window);
-void ideUpdateHoveredWidgetStack(IDE *ide, uint32_t position[2]);
+void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]);
 
 #endif  // XIDE_RUNTIME_H

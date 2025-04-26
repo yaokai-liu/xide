@@ -27,7 +27,7 @@
 
 #include "Box.h"
 #include "draw.h"
-
+#include "runtime-msg.h"
 
 void Box_append(Box *box, Widget *child) {
   if (box->children) {
@@ -59,6 +59,21 @@ void Box_draw(Widget *_box) {
   }
 }
 
+void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args) {
+  switch (event_id) {
+    case enum_EVENT_CURSOR_LEAVE: {
+      if (_box->status & WS_HOVERED) { rt_debug("leave box"); }
+      break;
+    }
+    case enum_EVENT_CURSOR_ENTER: {
+      if (!(_box->status & WS_HOVERED)) { rt_debug("enter box"); }
+      break;
+    }
+  }
+  return IdeWidget_eventProcess(_box, event_id, args);
+}
+
+
 void ideMakeBox(IDE *ide, Widget *_box) {
   Vertex2D corners[] = {
     {(float) _box->box[BE_L],  (float) _box->box[BE_T], 0x3c3f41ff},
@@ -77,14 +92,18 @@ void ideMakeBox(IDE *ide, Widget *_box) {
   releasePrimeArray(vertex_array);
 }
 
-#define testLocal(w, c) ((w) && IdeWidget_testLocal(w, c))
-Widget *Box_getSubWidget(Widget *_box, uint32_t local_coord[2]) {
+#define testLocal(w, c) ((w) && )
+Widget *Box_getSubWidget(Widget *_box, uint32_t coord[2]) {
   Box *box = (Box *)_box;
   if (!box->children) { return nullptr; }
   uint32_t n_children = Array_length(box->children);
   Widget * const*children = Array_first_real(box->children);
   for (uint32_t i = 0; i < n_children; i++) {
-    if (testLocal(children[i], local_coord)) { return children[i]; }
+    if (!children[i]) { continue; }
+    uint32_t local_coord[2] = {[AXIS_X] = coord[AXIS_X],
+                               [AXIS_Y] = coord[AXIS_Y]};
+    IdeWidget_parent2local(children[i], local_coord);
+    if (IdeWidget_testLocal(children[i], local_coord)) { return children[i]; }
   }
   return nullptr;
 }

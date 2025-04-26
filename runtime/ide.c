@@ -40,7 +40,6 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   ide->fontManager = FontManager_new(allocator);
   ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-  ide->hoveredWidgetStack = Stack_new(allocator);
   GLFWwindow *handle = ideInitGlfwGLContext(1000, 1000);
   ShaderInfo shaderInfos[][2] = {
     [DEFAULT_SHADER] = {{"shaders/vert-default.glsl", GL_VERTEX_SHADER},
@@ -52,22 +51,11 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   ide->defaultShader[DEFAULT_CHAR_SHADER] = ideCompileShaders(ide, shaderInfos[DEFAULT_CHAR_SHADER], 2);
   if (!ide->defaultShader[0] || !ide->defaultShader[1]) { IDE_destroy(ide); glfwTerminate(); }
 
-  Window *window = Window_new(ide, handle, "xide");
-  if (!window) { return nullptr; }
-  Widget *_window = (Widget *)window;
-  IDE_pushHovered(ide, &_window);
-  ide->mainWindow = window;
+  ide->mainWindow = Window_new(ide, handle, "xide");
+  if (!ide->mainWindow) { return nullptr; }
+  ide->hoveredWidget = (Widget *)ide->mainWindow;
 
   return ide;
-}
-inline void IDE_pushHovered(IDE *ide, Widget **ppWidget) {
-  Stack_push(ide->hoveredWidgetStack, ppWidget, sizeof(Widget *));
-}
-inline void IDE_popHovered(IDE *ide, Widget **ppWidget) {
-  Stack_pop(ide->hoveredWidgetStack, ppWidget, sizeof(Widget *));
-}
-inline void IDE_topHovered(IDE *ide, Widget **ppWidget) {
-  Stack_top(ide->hoveredWidgetStack, ppWidget, sizeof(Widget *));
 }
 
 void IDE_destroy(IDE *ide) {
