@@ -32,12 +32,12 @@
 void Text_draw(Widget *_text) {
   if (_text->drawTask) { ideDraw(_text->drawTask, _text->runtimeContext); }
 }
-void Text_update(Widget *_text) {
-  Text *text = (Text *)_text;
-  ideMakeText(_text->runtimeContext, text);
+void Text_setup(Widget *_text) {
+  ideMakeText(_text->runtimeContext, _text);
 }
 
-void ideMakeText(IDE *ide, Text *text) {
+void ideMakeText(IDE *ide, Widget *_text) {
+  Text *text = (Text *)_text;
   PixelVertex2D pixel_anchor = {.coord = {0, 0}, .color = text->color};
 
   IdeWidget_local2global((Widget *) text, pixel_anchor.coord);
@@ -66,14 +66,11 @@ void ideMakeText(IDE *ide, Text *text) {
 
 void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args) {
   switch (event_id) {
-    case enum_EVENT_CURSOR_LEAVE: {
-      if (_text->status & WS_HOVERED) { rt_debug("leave text"); }
-      break;
+    case enum_EVENT_MAKE_GRAPHIC: {
+      ideMakeText(_text->runtimeContext, _text);
+      return nullptr;
     }
-    case enum_EVENT_CURSOR_ENTER: {
-      if (!(_text->status & WS_HOVERED)) { rt_debug("enter text"); }
-      break;
-    }
+    default: {}
   }
   return IdeWidget_eventProcess(_text, event_id, args);
 }

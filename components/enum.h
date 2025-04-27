@@ -130,7 +130,7 @@ typedef enum IDEWidgetStatusEnum : uint32_t {
   WS_NORMAL  = 0x0,
   WS_FOCUSED = 0x1,
   WS_HOVERED = 0x2,
-  WS_CLICKED = 0x4,
+  WS_PRESSED = 0x4,
   WS_HIDDEN  = 0x8,
 } WSEnum;
 

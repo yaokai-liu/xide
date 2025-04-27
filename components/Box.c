@@ -36,16 +36,6 @@ void Box_append(Box *box, Widget *child) {
     child->parent = (Widget *) box;
   }
 }
-void Box_update(Widget *_box) {
-  Box *box = (Box *)_box;
-  if (!(_box->property & WP_RE_GEO_TO_CHILDREN)) { return ; }
-  if (!box->children) { return ; }
-  uint32_t n_children = Array_length(box->children);
-  Widget * const*children = Array_first_real(box->children);
-  for (uint32_t i = 0; i < n_children; i++) {
-    Widget_update(children[i]);
-  }
-}
 
 void Box_draw(Widget *_box) {
   Box *box = (Box *)_box;
@@ -60,26 +50,20 @@ void Box_draw(Widget *_box) {
 }
 
 void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args) {
-  switch (event_id) {
-    case enum_EVENT_CURSOR_LEAVE: {
-      if (_box->status & WS_HOVERED) { rt_debug("leave box"); }
-      break;
-    }
-    case enum_EVENT_CURSOR_ENTER: {
-      if (!(_box->status & WS_HOVERED)) { rt_debug("enter box"); }
-      break;
-    }
-  }
   return IdeWidget_eventProcess(_box, event_id, args);
 }
 
-
 void ideMakeBox(IDE *ide, Widget *_box) {
+  if (!Widget_width(_box) || !Widget_height(_box)) {
+    if (_box->drawTask) { xglDestroyDrawTask(_box->drawTask, ide->allocator); }
+    _box->drawTask = nullptr;
+    return;
+  }
   Vertex2D corners[] = {
-    {(float) _box->box[BE_L],  (float) _box->box[BE_T], 0x3c3f41ff},
+    {(float) _box->box[BE_L],  (float) _box->box[BE_T], 0xe68266ff},
     {(float) _box->box[BE_R], (float) _box->box[BE_T], 0x3c3f41ff},
     {(float) _box->box[BE_R], (float) _box->box[BE_B], 0x3c3f41ff},
-    {(float) _box->box[BE_L],  (float) _box->box[BE_B], 0x3c3f41ff},
+    {(float) _box->box[BE_L],  (float) _box->box[BE_B], 0xe68266ff},
   };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, _box->allocator);
   Array_append(vertex_array, corners, 4);

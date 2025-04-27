@@ -55,6 +55,8 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   if (!ide->mainWindow) { return nullptr; }
   ide->hoveredWidget = (Widget *)ide->mainWindow;
 
+  ideSetupUi(ide);
+
   return ide;
 }
 

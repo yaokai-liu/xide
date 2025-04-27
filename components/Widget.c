@@ -120,11 +120,19 @@ inline bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]) {
 void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args) {
   switch (event_id) {
     case enum_EVENT_CURSOR_ENTER: {
-      widget->status |= WS_HOVERED;
+      Widget_setBit(widget->status, WS_HOVERED);
       return nullptr;
     }
     case enum_EVENT_CURSOR_LEAVE: {
-      widget->status &= ~WS_HOVERED;
+      Widget_unsetBit(widget->status, WS_PRESSED | WS_HOVERED);
+      return nullptr;
+    }
+    case enum_EVENT_MOUSE_PRESS: {
+      Widget_setBit(widget->status, WS_PRESSED);
+      return nullptr;
+    }
+    case enum_EVENT_MOUSE_RELEASE: {
+      Widget_unsetBit(widget->status, WS_PRESSED);
       return nullptr;
     }
     default:{ return nullptr; }

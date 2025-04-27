@@ -179,7 +179,7 @@ void ideDrawUiOnce(IDE *ide) {
 
 void *ideRepeatDrawUi(IDE *ide) {
   while (!ideShouldStopRender(ide->mainWindow)) {
-    ideWindowProcessInput(ide->mainWindow);
+    ideCallback_keyboardKeyEvent(ide->mainWindow);
     ideDrawUiOnce(ide);
     glfwWaitEvents();
   }
@@ -206,10 +206,12 @@ GLFWwindow *ideInitGlfwGLContext(int width, int height) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
   glfwWindowHint(GLFW_SAMPLES, 0);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+  glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
   glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_TRUE);
+  glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_FALSE);
   glfwWindowHint(GLFW_DECORATED, GLFW_WIN_DECO_NO_TITLE_BAR);
 
   // TODO: loadPluginsFrom(directory) async;
@@ -235,6 +237,7 @@ GLFWwindow *ideInitGlfwGLContext(int width, int height) {
   glfwSetCursorPosCallback(handle, ideCallback_cursorPosition);
   glfwSetWindowSizeCallback(handle, ideCallback_windowResize);
   glfwSetWindowRefreshCallback(handle, ideCallback_windowRefresh);
+  glfwSetMouseButtonCallback(handle, ideCallback_mouseButtonEvent);
   glfwSetCursorEnterCallback(handle, ideCallback_cursorEnterOrLEave);
 
   return handle;
@@ -258,4 +261,39 @@ void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]) {
     widget = sub_widget;
   }
   ide->hoveredWidget = widget;
+}
+
+void ideUpdateMouseMovement(IDE *ide, uint32_t position[2]) {
+  if (!ide->hoveredWidget) { return ; }
+  Widget *widget = ide->hoveredWidget;
+  while (widget && !widget->funcEventProc) { widget = widget->parent; }
+  if (!widget) { return ; }
+  widget->funcEventProc(widget, enum_EVENT_CURSOR_MOVE, position);
+}
+
+void idePassMouseLeftButtonEvent(IDE *ide, uint32_t event, uint32_t mods) {
+  if (!ide->hoveredWidget) { return ; }
+  Widget *widget = ide->hoveredWidget;
+  while (widget && !widget->funcEventProc) { widget = widget->parent; }
+  if (!widget) { return ; }
+  widget->funcEventProc(widget, event, &mods);
+}
+
+void ideShiftWindowPos(IDE *ide, const uint32_t vector[2]) {
+  GLFWwindow *const handle = ide->mainWindow->handle;
+  int pos_x = 0, pos_y = 0;
+  glfwGetWindowPos(handle, &pos_x, &pos_y);
+  pos_x += *(int *) &vector[AXIS_X];
+  pos_y += *(int *) &vector[AXIS_Y];
+  glfwSetWindowPos(handle, pos_x, pos_y);
+}
+
+void ideResizeWindow(IDE *ide, GLint viewport[4]) {
+  Widget *_window = (Widget *)ide->mainWindow;
+  uint32_t _viewport[4] = {viewport[0], viewport[1], viewport[2], viewport[3]};
+  Window_resize(_window, _viewport);
+}
+
+void ideSetupUi(IDE *ide) {
+  Window_makeGraphic(ide->mainWindow);
 }

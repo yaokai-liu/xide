@@ -34,11 +34,7 @@ void ideCallback_windowResize(GLFWwindow *handle, int width, int height) {
   Window *window = glfwGetWindowUserPointer(handle);
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
-  window->SUPER.box[BG_X] = viewport[BG_X];
-  window->SUPER.box[BG_Y] = viewport[BG_Y];
-  window->SUPER.box[BG_W] = viewport[BG_W];
-  window->SUPER.box[BG_H] = viewport[BG_H];
-  window->SUPER.funcUpdate((Widget *)window);
+  ideResizeWindow(window->SUPER.runtimeContext, viewport);
 }
 
 void ideCallback_windowRefresh(GLFWwindow *handle) {
@@ -50,6 +46,7 @@ void ideCallback_cursorPosition(GLFWwindow* handle, double pos_x, double pos_y) 
   Widget *_window = glfwGetWindowUserPointer(handle);
   uint32_t pos[2] = { [AXIS_X] = (int) pos_x, [AXIS_Y] = (int) pos_y };
   ideUpdateHoveredWidget(_window->runtimeContext, pos);
+  ideUpdateMouseMovement(_window->runtimeContext, pos);
 }
 
 void ideCallback_cursorEnterOrLEave(GLFWwindow* handle, int entered) {
@@ -63,8 +60,20 @@ void ideCallback_cursorEnterOrLEave(GLFWwindow* handle, int entered) {
   }
 }
 
+void ideCallback_mouseButtonEvent(GLFWwindow* handle, int button, int action, int mods) {
+  Widget *_window = glfwGetWindowUserPointer(handle);
+  if (button == GLFW_MOUSE_BUTTON_LEFT) {
+    uint32_t event = enum_EVENT_NONE;
+    switch (action) {
+      case GLFW_PRESS: { event = enum_EVENT_MOUSE_PRESS; break; }
+      case GLFW_RELEASE: { event = enum_EVENT_MOUSE_RELEASE; break; }
+      default:{}
+    }
+    idePassMouseLeftButtonEvent(_window->runtimeContext, event, mods);
+  }
+}
 
-void ideWindowProcessInput(Window *window) {
+void ideCallback_keyboardKeyEvent(Window *window) {
   GLFWwindow *handle = window->handle;
   if (glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(handle, true); }
 }
