@@ -32,7 +32,7 @@
 #include "texture-manage.h"
 #include "utils.h"
 
-IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
+IDE *IDE_new(const char_t *workdir, const int width, const int height, const Allocator *allocator) {
   IDE *ide = allocator->calloc(1, sizeof(IDE));
   ide->allocator = allocator;
   ide->workdir = workdir;
@@ -40,7 +40,7 @@ IDE *IDE_new(const char_t *workdir, const Allocator *allocator) {
   ide->fontManager = FontManager_new(allocator);
   ide->drawTaskArray = Array_new(sizeof(DrawTask), enum_XGL_DRAW_TASK, allocator);
   ide->shaderProgramArray = Array_new(sizeof(GLuint), enum_XGL_SHADER_PROG, allocator);
-  GLFWwindow *handle = ideInitGlfwGLContext(1000, 1000);
+  GLFWwindow *handle = ideInitGlfwGLContext(width, height);
   ShaderInfo shaderInfos[][2] = {
     [DEFAULT_SHADER] = {{"shaders/vert-default.glsl", GL_VERTEX_SHADER},
      {"shaders/frag-default.glsl", GL_FRAGMENT_SHADER}},

@@ -9,3 +9,6 @@
 	path = freetype
 	url = git@github.com:yaokai-liu/freetype.git
 	branch = master
+[submodule "xglm"]
+	path = xglm
+	url = git@github.com:yaokai-liu/xglm.git

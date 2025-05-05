@@ -38,14 +38,16 @@ typedef struct GLFWwindow GLFWwindow;
 typedef struct Window {
   Widget SUPER;
   void * handle;
+  Widget *menu;
   Widget *central;
   Widget *bars[4];
+  uint32_t geometry[4];
 } Window, Dialog;
 
 Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title);
 void Window_destroy(Window *window);
 
-void Window_makeGraphic(Window *window);
+void Window_makeGraph(Widget *_window);
 void Window_draw(Widget *_window);
 void Window_resize(Widget *_window, const uint32_t viewport[4]);
 Widget *Window_getSubWidget(Widget *_window, uint32_t local_coord[2]);
@@ -54,5 +56,6 @@ void *Window_eventProcess(Widget *_window, uint32_t event_id, void *args);
 void ideMakeWindow(IDE *ide, Widget *_window);
 
 void Window_setTextTitle(Window *window, const char_t *title);
+void Window_setMainContent(Window *window, Widget *_central);
 
 #endif  // XIDE_WINDOW_H

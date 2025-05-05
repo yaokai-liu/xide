@@ -40,9 +40,11 @@ typedef struct Widget Widget;
 
 #define OVERRIDE // means this function not need to call the SUPER's function
 #define EXTEND   // means this function needs to call the SUPER's function
-#define PASS_DOWN // means this function needs to call the same function of sub-widgets
+#define PASSDOWN // means this function needs to call the same function of some sub-widgets
+#define PASSOVER // means this function needs to call the same function of parent
 
 typedef void fn_draw(Widget *widget);
+typedef void fn_grap(Widget *widget);
 typedef bool fn_area(Widget *widget, uint32_t local_coord[2]);
 typedef Widget *fn_subs(Widget *widget, uint32_t local_coord[2]);
 typedef void *fn_event(Widget *widget, uint32_t event_id, void *args);
@@ -69,11 +71,12 @@ typedef struct Widget {
   uint64_t property;
   const Allocator *allocator;
   Widget *parent;
-  IDE *runtimeContext;
-  OVERRIDE fn_draw *funcDraw;
-  OVERRIDE fn_area *funcRange;
-  OVERRIDE fn_subs *getSubWidget;
-  EXTEND fn_event *funcEventProc;
+  IDE * runtime;
+  fn_draw * OVERRIDE funcDraw;
+  fn_area * OVERRIDE funcRange;
+  fn_subs * OVERRIDE getSubWidget;
+  fn_grap * PASSDOWN funcMakeGraph;
+  fn_event *  EXTEND funcEventProc;
   DrawTask *drawTask;
   REFER(uint32_t) shader;
   void *   msgData[2];
@@ -88,14 +91,22 @@ int32_t IdeWidget_adjust_box(Widget *widget);
 bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]);
 int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]);
 int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]);
-int32_t IdeWidget_parent2local(Widget *widget, uint32_t coord[2]);
-int32_t IdeWidget_local2parent(Widget *widget, uint32_t coord[2]);
+void IdeWidget_parent2local(Widget *widget, uint32_t coord[2]);
+void IdeWidget_local2parent(Widget *widget, uint32_t coord[2]);
 
 void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
 
 #define Widget_getBit(widget_field, bit_field) (widget_field & (bit_field))
 #define Widget_setBit(widget_field, bit_field) (widget_field |= (bit_field))
 #define Widget_unsetBit(widget_field, bit_field) (widget_field &= ~(bit_field))
+
+#define Widget_getStatus(widget, bit_field) ((widget)->status & (bit_field))
+#define Widget_setStatus(widget, bit_field) ((widget)->status |= (bit_field))
+#define Widget_unsetStatus(widget, bit_field) ((widget)->status &= ~(bit_field))
+
+#define Widget_getProperty(widget, bit_field) ((widget)->property & (bit_field))
+#define Widget_setProperty(widget, bit_field) ((widget)->property |= (bit_field))
+#define Widget_unsetProperty(widget, bit_field) ((widget)->property &= ~(bit_field))
 
 #define  Widget_width(widget) ( \
   ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] : (widget)->box[BE_R] - (widget)->box[BE_L] \
@@ -116,7 +127,7 @@ void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
     if ((widget)->funcEventProc) (widget)->funcEventProc(widget, enum_EVENT_RE_GEOMETRY, viewport); \
   } while (false)
 #define Widget_makeGraphic(widget) do { \
-    if ((widget)->funcEventProc) (widget)->funcEventProc(widget, enum_EVENT_MAKE_GRAPHIC, nullptr); \
+    if ((widget)->funcMakeGraph) (widget)->funcMakeGraph(widget); \
   } while (false)
 #define Widget_draw(widget) do { if ((widget)->funcDraw) (widget)->funcDraw(widget); } while (false)
 

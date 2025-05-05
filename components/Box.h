@@ -30,15 +30,12 @@
 
 #include "Widget.h"
 
-#define BOX_DEFAULT_STOKE 20
-
 typedef struct Box {
   Widget SUPER;
   Array *children; // Array<Widget *>
   Array *corners; // Array<PixelVertex2D>
 } Box;
 
-void Box_resize(Widget *_box);
 void Box_draw(Widget *_box);
 Widget *Box_getSubWidget(Widget *_box, uint32_t coord[2]);
 void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args);

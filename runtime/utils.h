@@ -27,7 +27,6 @@
 #ifndef XIDE_UTILS_H
 #define XIDE_UTILS_H
 
-#include "glad/glad.h"
 #include "xgl-object.h"
 
 float xglNormalize(float *vertex, int dim);

@@ -27,7 +27,7 @@
 
 #include "texture-manage.h"
 #include "array.h"
-#include "glad/glad.h"
+#include "xgl-object.h"
 
 void releaseTextureAtlas(TextureAtlas *atlas, const Allocator *) {
   glDeleteTextures(1, &atlas->texture);

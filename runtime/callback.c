@@ -34,29 +34,30 @@ void ideCallback_windowResize(GLFWwindow *handle, int width, int height) {
   Window *window = glfwGetWindowUserPointer(handle);
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
-  ideResizeWindow(window->SUPER.runtimeContext, viewport);
+  ideResizeWindow(window->SUPER.runtime, viewport);
 }
 
 void ideCallback_windowRefresh(GLFWwindow *handle) {
   Window *window = glfwGetWindowUserPointer(handle);
-  ideDrawUiOnce(window->SUPER.runtimeContext);
+  ideDrawUiOnce(window->SUPER.runtime);
   glFinish();
 }
 void ideCallback_cursorPosition(GLFWwindow* handle, double pos_x, double pos_y) {
   Widget *_window = glfwGetWindowUserPointer(handle);
-  uint32_t pos[2] = { [AXIS_X] = (int) pos_x, [AXIS_Y] = (int) pos_y };
-  ideUpdateHoveredWidget(_window->runtimeContext, pos);
-  ideUpdateMouseMovement(_window->runtimeContext, pos);
+  uint32_t pos_hovered[2] = { [AXIS_X] = (int) pos_x, [AXIS_Y] = (int) pos_y };
+  ideUpdateHoveredWidget(_window->runtime, pos_hovered);
+  uint32_t pos_moved[2] = { [AXIS_X] = (int) pos_x, [AXIS_Y] = (int) pos_y };
+  ideUpdateMouseMovement(_window->runtime, pos_moved);
 }
 
 void ideCallback_cursorEnterOrLEave(GLFWwindow* handle, int entered) {
   Widget *_window = glfwGetWindowUserPointer(handle);
   if (entered) {
-    _window->runtimeContext->hoveredWidget = _window;
+    _window->runtime->hoveredWidget = _window;
   } else {
-    uint32_t pos[2] = { [AXIS_X] = -1, [AXIS_Y] = -1 };
-    ideUpdateHoveredWidget(_window->runtimeContext, pos);
-    _window->runtimeContext->hoveredWidget = nullptr;
+    uint32_t cursor_position[2] = { [AXIS_X] = -1, [AXIS_Y] = -1 };
+    ideUpdateHoveredWidget(_window->runtime, cursor_position);
+    _window->runtime->hoveredWidget = nullptr;
   }
 }
 
@@ -69,7 +70,7 @@ void ideCallback_mouseButtonEvent(GLFWwindow* handle, int button, int action, in
       case GLFW_RELEASE: { event = enum_EVENT_MOUSE_RELEASE; break; }
       default:{}
     }
-    idePassMouseLeftButtonEvent(_window->runtimeContext, event, mods);
+    idePassMouseLeftButtonEvent(_window->runtime, event, mods);
   }
 }
 

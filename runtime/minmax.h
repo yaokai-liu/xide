@@ -14,4 +14,7 @@
   #endif
 #endif
 
+#define minmax(a, b, c) min(max(a, min(b, c)), max(b, c))
+#define maxmin(a, b, c) max(min(a, max(b, c)), min(b, c))
+
 #endif  // XIDE_MINMAX_H

@@ -42,13 +42,13 @@ int main(int argc, char *argv[]) {
   getcwd(workdir, PATH_MAX);
 
   if (!glfwInit()) { return -1; }
-  IDE *ide = IDE_new(workdir, allocator);
+  IDE *ide = IDE_new(workdir, 200, 200, allocator);
   if (!ide) { glfwTerminate(); return -1; }
 
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  ideWindowShow(ide);
+  ideShowWindow(ide);
 
   IDE_destroy(ide);
   glfwTerminate();

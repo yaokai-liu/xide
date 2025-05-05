@@ -114,6 +114,8 @@ typedef enum IDEWidgetPropertyEnum : uint64_t {
   // `parent` field is a virtual pointer
   WP_PARENT_REFER = 0x01,
 
+  WP_CURSOR_CAPTURABLE = 0x02,
+
   // Box field interpret as geometry.
   WP_BOX_AS_GEOMETRY = 0x01LL << 8,
   // Box always adjust to widget range.
@@ -127,11 +129,12 @@ typedef enum IDEWidgetPropertyEnum : uint64_t {
 } WPEnum;
 
 typedef enum IDEWidgetStatusEnum : uint32_t {
-  WS_NORMAL  = 0x0,
-  WS_FOCUSED = 0x1,
-  WS_HOVERED = 0x2,
-  WS_PRESSED = 0x4,
-  WS_HIDDEN  = 0x8,
+  WS_NORMAL  = 0x00,
+  WS_FOCUSED = 0x01,
+  WS_HOVERED = 0x02,
+  WS_PRESSED = 0x04,
+  WS_CAPTURE = 0x08,
+  WS_HIDDEN  = 0x10,
 } WSEnum;
 
 #endif  // XIDE_ENUM_H

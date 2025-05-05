@@ -14,13 +14,26 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # set(CMAKE_VERBOSE_MAKEFILE ON CACHE INTERNAL "")
 
-find_package(OpenGL REQUIRED)
-
 aux_source_directory(meman MEMAN_SRC)
 add_library(meman STATIC ${MEMAN_SRC})
 
-add_library(glad STATIC glad/src/glad.c)
-include_directories(glad/include)
+add_subdirectory(xglm)
+include_directories(xglm/src)
+
+set(XIDE_USE_VULKAN OFF)
+
+if (XIDE_USE_VULKAN)
+    find_package(Vulkan REQUIRED)
+    include_directories()
+    set(XIDE_GL ${Vulkan_LIBRARIES})
+    include_directories(${Vulkan_INCLUDE_DIRS})
+    add_compile_definitions("XIDE_USE_VULKAN")
+else ()
+    find_package(OpenGL REQUIRED)
+    add_library(glad STATIC glad/src/glad.c)
+    include_directories(glad/include)
+    set(XIDE_GL glad)
+endif ()
 
 add_subdirectory(glfw)
 include_directories(glfw/include)
@@ -40,7 +53,7 @@ link_libraries(meman)
 
 aux_source_directory(runtime RT_SRC)
 add_library(runtime STATIC ${RT_SRC})
-target_link_libraries(runtime PRIVATE glad com-geo components freetype)
+target_link_libraries(runtime PRIVATE ${XIDE_GL} com-geo components freetype)
 
 aux_source_directory(components UI_SRC)
 add_library(components STATIC ${UI_SRC})
@@ -50,4 +63,4 @@ add_library(com-geo STATIC ${COM_GEO_SRC})
 
 add_executable(xide main.c)
 target_link_libraries(xide PRIVATE
-        ${OPENGL_LIBRARIES} glad glfw com-geo components runtime)
+        ${OPENGL_LIBRARIES} ${XIDE_GL} glfw com-geo components runtime)

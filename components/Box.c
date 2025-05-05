@@ -32,14 +32,14 @@
 void Box_append(Box *box, Widget *child) {
   if (box->children) {
     Array_append(box->children, &child, 1);
-    child->runtimeContext = box->SUPER.runtimeContext;
+    child->runtime = box->SUPER.runtime;
     child->parent = (Widget *) box;
   }
 }
 
 void Box_draw(Widget *_box) {
   Box *box = (Box *)_box;
-  if (_box->drawTask) { ideDraw(_box->drawTask, _box->runtimeContext); }
+  if (_box->drawTask) { ideDraw(_box->runtime, _box->drawTask); }
   if (box->corners) { }
   if (!box->children) { return ; }
   uint32_t n_children = Array_length(box->children);
@@ -54,19 +54,24 @@ void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args) {
 }
 
 void ideMakeBox(IDE *ide, Widget *_box) {
+  Box *box = (Box *) _box;
   if (!Widget_width(_box) || !Widget_height(_box)) {
     if (_box->drawTask) { xglDestroyDrawTask(_box->drawTask, ide->allocator); }
     _box->drawTask = nullptr;
     return;
   }
-  Vertex2D corners[] = {
-    {(float) _box->box[BE_L],  (float) _box->box[BE_T], 0xe68266ff},
-    {(float) _box->box[BE_R], (float) _box->box[BE_T], 0x3c3f41ff},
-    {(float) _box->box[BE_R], (float) _box->box[BE_B], 0x3c3f41ff},
-    {(float) _box->box[BE_L],  (float) _box->box[BE_B], 0xe68266ff},
-  };
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, _box->allocator);
-  Array_append(vertex_array, corners, 4);
+  if (!box->corners) {
+    Vertex2D corners[] = {
+      {(float) _box->box[BE_L], (float) _box->box[BE_T], 0xffffffff},
+      {(float) _box->box[BE_R], (float) _box->box[BE_T], 0xffffffff},
+      {(float) _box->box[BE_R], (float) _box->box[BE_B], 0xffffffff},
+      {(float) _box->box[BE_L], (float) _box->box[BE_B], 0xffffffff},
+    };
+    Array_append(vertex_array, corners, 4);
+  } else {
+    Array_concat(vertex_array, box->corners);
+  }
   if (_box->drawTask) { xglDestroyDrawTask(_box->drawTask, ide->allocator); }
   _box->drawTask = ideCreatePolygon2D(vertex_array, 0, true, _box->allocator);
   GLuint *shader = (_box->shader)

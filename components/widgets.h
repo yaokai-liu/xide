@@ -32,5 +32,6 @@
 #include "Widget.h"
 #include "Window.h"
 #include "enum.h"
+#include "GLView.h"
 
 #endif  // XIDE_WIDGETS_H

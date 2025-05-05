@@ -99,15 +99,13 @@ inline int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]) {
   return 0;
 }
 
-inline int32_t IdeWidget_parent2local(Widget *widget, uint32_t coord[2]) {
+inline void IdeWidget_parent2local(Widget *widget, uint32_t coord[2]) {
   coord[AXIS_X] -= widget->box[BE_L];
   coord[AXIS_Y] -= widget->box[BE_T];
-  return 0;
 }
-inline int32_t IdeWidget_local2parent(Widget *widget, uint32_t coord[2]) {
+inline void IdeWidget_local2parent(Widget *widget, uint32_t coord[2]) {
   coord[AXIS_X] += widget->box[BE_L];
   coord[AXIS_Y] += widget->box[BE_T];
-  return 0;
 }
 
 inline bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]) {
@@ -120,21 +118,22 @@ inline bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]) {
 void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args) {
   switch (event_id) {
     case enum_EVENT_CURSOR_ENTER: {
-      Widget_setBit(widget->status, WS_HOVERED);
-      return nullptr;
+      Widget_setStatus(widget, WS_HOVERED);
+      break;
     }
     case enum_EVENT_CURSOR_LEAVE: {
-      Widget_unsetBit(widget->status, WS_PRESSED | WS_HOVERED);
-      return nullptr;
+      Widget_unsetStatus(widget, WS_HOVERED);
+      break;
     }
     case enum_EVENT_MOUSE_PRESS: {
-      Widget_setBit(widget->status, WS_PRESSED);
-      return nullptr;
+      Widget_setStatus(widget, WS_PRESSED);
+      break;
     }
     case enum_EVENT_MOUSE_RELEASE: {
-      Widget_unsetBit(widget->status, WS_PRESSED);
-      return nullptr;
+      Widget_unsetStatus(widget, WS_PRESSED);
+      break;
     }
-    default:{ return nullptr; }
+    default:{}
   }
+  return nullptr;
 }

@@ -31,6 +31,7 @@
 #include "widgets.h"
 
 void Topbar_resize(Widget *_topbar);
+void Topbar_makeGraph(Widget *_topbar);
 void *Topbar_eventProcess(Widget *_topbar, uint32_t event_id, void *args);
 
 #define lenof(_array)  (sizeof(_array) / sizeof(_array[0]))
@@ -38,9 +39,9 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     Box *topbar = window->SUPER.allocator->calloc(1, sizeof(Box));
     topbar->SUPER.type = WT_BAR;
     topbar->SUPER.status = WS_FOCUSED;
-    topbar->SUPER.property = WP_RE_GEO_TO_CHILDREN | WP_BOX_AS_GEOMETRY;
+    topbar->SUPER.property = WP_RE_GEO_TO_CHILDREN | WP_BOX_AS_GEOMETRY | WP_CURSOR_CAPTURABLE;
     topbar->SUPER.allocator = window->SUPER.allocator;
-    topbar->SUPER.runtimeContext = window->SUPER.runtimeContext;
+    topbar->SUPER.runtime = window->SUPER.runtime;
     topbar->SUPER.parent = (Widget *) window;
     topbar->SUPER.box[BG_X] = 0;
     topbar->SUPER.box[BG_Y] = 0;
@@ -48,6 +49,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     topbar->SUPER.box[BG_H] = 0;
     topbar->SUPER.funcDraw = Box_draw;
     topbar->SUPER.funcRange = nullptr;
+    topbar->SUPER.funcMakeGraph = Topbar_makeGraph;
     topbar->SUPER.getSubWidget = Box_getSubWidget;
     topbar->SUPER.funcEventProc = Topbar_eventProcess;
     topbar->SUPER.padding[BE_L] = 10;
@@ -66,17 +68,22 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     text->SUPER.allocator = window->SUPER.allocator;
     text->SUPER.funcDraw = Text_draw;
     text->SUPER.funcRange = nullptr;
-    text->SUPER.funcEventProc = Text_eventProcess;
+    text->SUPER.funcEventProc = nullptr;
+    text->SUPER.funcMakeGraph = Text_makeGraph;
     text->SUPER.box[BE_L] = topbar->SUPER.padding[BE_L];
     text->SUPER.box[BE_T] = topbar->SUPER.padding[BE_T] + 10;
     text->text = title;
     text->font = IDE_DEFAULT_FONT;
     text->mode = TS_RIGHT | TS_V_CENTER | TS_HORIZONTAL;
-    text->color = RGB_WHITE;
+    text->color = RGBA_BLACK;
 
     Box_append(topbar, (Widget *) text);
 
     window->bars[BE_T] = (Widget *) topbar;
+}
+
+inline void Window_setMainContent(Window *window, Widget *_central) {
+
 }
 
 Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title) {
@@ -85,10 +92,11 @@ Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title) {
   window->SUPER.property = WP_BOX_AS_GEOMETRY | WP_RE_GEO_TO_CHILDREN;
   window->SUPER.status = WS_FOCUSED;
   window->SUPER.allocator = ide->allocator;
-  window->SUPER.runtimeContext = ide;
+  window->SUPER.runtime = ide;
   window->SUPER.parent = nullptr;
   window->SUPER.funcRange = nullptr;
   window->SUPER.funcDraw = Window_draw;
+  window->SUPER.funcMakeGraph = Window_makeGraph;
   window->SUPER.getSubWidget = Window_getSubWidget;
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
@@ -97,8 +105,15 @@ Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title) {
   window->SUPER.box[BG_W] = viewport[BG_W];
   window->SUPER.box[BG_H] = viewport[BG_H];
   Window_setTextTitle(window, title);
+  Window_setMainContent(window, nullptr);
 
   window->handle = handle;
+  glfwGetWindowPos(handle,
+                   (int *) &window->geometry[BG_X],
+                   (int *) &window->geometry[BG_Y]);
+  glfwGetWindowSize(handle,
+                    (int *) &window->geometry[BG_W],
+                    (int *) &window->geometry[BG_H]);
   glfwSetWindowUserPointer(window->handle, window);
 
   return window;
@@ -111,16 +126,19 @@ void Window_destroy(Window *window) {
   window->SUPER.allocator->free(window);
 }
 
-void Window_makeGraphic(Window *window) {
+void Window_makeGraph(Widget *_window) {
+  Window *window = (Window *)_window;
   if (window->central) { Widget_makeGraphic(window->central); }
   if (bar(BE_L)) { Widget_makeGraphic(bar(BE_L)); }
   if (bar(BE_T)) { Widget_makeGraphic(bar(BE_T)); }
   if (bar(BE_R)) { Widget_makeGraphic(bar(BE_R)); }
   if (bar(BE_B)) { Widget_makeGraphic(bar(BE_B)); }
+  ideMakeWindow(_window->runtime, _window);
 }
 
 void Window_draw(Widget *_window) {
   Window *window = (Window *)_window;
+  if (_window->drawTask) { ideDraw(_window->runtime, _window->drawTask); }
   if (window->central) { Widget_draw(window->central); }
   if (bar(BE_L)) { Widget_draw(bar(BE_L)); }
   if (bar(BE_T)) { Widget_draw(bar(BE_T)); }
@@ -128,16 +146,13 @@ void Window_draw(Widget *_window) {
   if (bar(BE_B)) { Widget_draw(bar(BE_B)); }
 }
 
-#define barEventProcess(b, eid, args) do { \
-if (bar(b) && bar(b)->funcEventProc) { bar(b)->funcEventProc(bar(b), eid, args); } \
-} while (false)
 void Window_resize(Widget *_window, const uint32_t viewport[4]) {
   _window->box[BG_X] = viewport[BG_X];
   _window->box[BG_Y] = viewport[BG_Y];
   _window->box[BG_W] = viewport[BG_W];
   _window->box[BG_H] = viewport[BG_H];
   Window *window = (Window *)_window;
-  Topbar_resize(bar(BE_T));
+  if (bar(BE_T)) { Topbar_resize(bar(BE_T)); }
 }
 
 Widget *Window_getSubWidget(Widget *_window, uint32_t local_coord[2]) {
@@ -156,7 +171,7 @@ void *Window_eventProcess(Widget *_window, uint32_t event_id, void *args) {
 
 void ideMakeWindow(IDE *ide, Widget *_window) {}
 
-void Topbar_makeGraphic(Widget *_topbar) {
+void Topbar_makeGraph(Widget *_topbar) {
   Box *topbar = (Box *)_topbar;
   if (topbar->children) {
     uint32_t n_children = Array_length(topbar->children);
@@ -165,7 +180,7 @@ void Topbar_makeGraphic(Widget *_topbar) {
       Widget_makeGraphic(children[i]);
     }
   }
-  ideMakeBox(_topbar->runtimeContext, _topbar);
+  ideMakeBox(_topbar->runtime, _topbar);
 }
 
 void Topbar_resize(Widget *_topbar) {
@@ -192,27 +207,23 @@ void Topbar_resize(Widget *_topbar) {
     }
   }
   _topbar->box[BG_H] = stoke + _topbar->padding[BE_B];
-  ideMakeBox(_topbar->runtimeContext, _topbar);
+  ideMakeBox(_topbar->runtime, _topbar);
 }
 
 void *Topbar_eventProcess(Widget *_topbar, uint32_t event_id, void *args) {
   switch (event_id) {
     case enum_EVENT_CURSOR_MOVE: {
-      uint32_t *position = args;
-      if (Widget_getBit(_topbar->status, WS_PRESSED)) {
+      uint32_t *global_position = args;
+      if (Widget_getStatus(_topbar, WS_PRESSED)) {
         uint32_t vector[2] = {
-          [AXIS_X] = position[AXIS_X] - (uint32_t) (uint64_t) _topbar->msgData[AXIS_X],
-          [AXIS_Y] = position[AXIS_Y] - (uint32_t) (uint64_t) _topbar->msgData[AXIS_Y],
+          [AXIS_X] = global_position[AXIS_X] - (uint32_t) (uint64_t) _topbar->msgData[AXIS_X],
+          [AXIS_Y] = global_position[AXIS_Y] - (uint32_t) (uint64_t) _topbar->msgData[AXIS_Y],
         };
-        ideShiftWindowPos(_topbar->runtimeContext, vector);
+        ideShiftWindow(_topbar->runtime, vector);
       } else {
-        _topbar->msgData[AXIS_X] = (void *) (uint64_t) position[AXIS_X];
-        _topbar->msgData[AXIS_Y] = (void *) (uint64_t) position[AXIS_Y];
+        _topbar->msgData[AXIS_X] = (void *) (uint64_t) global_position[AXIS_X];
+        _topbar->msgData[AXIS_Y] = (void *) (uint64_t) global_position[AXIS_Y];
       }
-      break;
-    }
-    case enum_EVENT_MAKE_GRAPHIC: {
-      Topbar_makeGraphic(_topbar);
       break;
     }
     default:{}

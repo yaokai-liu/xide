@@ -42,11 +42,12 @@ typedef struct IDE {
   FontManager *fontManager;
   TextureAtlasManager *atlasManager;
   Widget *hoveredWidget;
+  Widget *capturedWidget;
 
   REFER(GLuint) defaultShader[2];
 } IDE;
 
-IDE *IDE_new(const char_t *workdir, const Allocator *allocator);
+IDE *IDE_new(const char_t *workdir, int width, int height, const Allocator *allocator);
 void IDE_destroy(IDE *ide);
 
 #endif  // XIDE_IDE_H

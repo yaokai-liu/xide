@@ -49,12 +49,12 @@ void ideDrawUiOnce(IDE *ide);
 void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram);
 
 void ideSetupUi(IDE *ide);
-void ideWindowShow(IDE *ide);
+void ideShowWindow(IDE *ide);
 bool ideShouldStopRender(Window *window);
 void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]);
 void ideUpdateMouseMovement(IDE *ide, uint32_t position[2]);
 void idePassMouseLeftButtonEvent(IDE *ide, uint32_t event, uint32_t mods);
-void ideShiftWindowPos(IDE *ide, const uint32_t vector[2]);
+void ideShiftWindow(IDE *ide, const uint32_t vector[2]);
 void ideResizeWindow(IDE *ide, GLint viewport[4]);
 
 #endif  // XIDE_RUNTIME_H

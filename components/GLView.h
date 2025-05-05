@@ -18,23 +18,26 @@
  *
  *
  * Project Name: xide
- * Module Name: runtime
- * Filename: color.h
+ * Module Name: components
+ * Filename: GLView.h
  * Creator: Yaokai Liu
- * Create Date: 2025-04-25
+ * Create Date: 2025-05-03
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_COLOR_H
-#define XIDE_COLOR_H
+#ifndef XIDE_GLVIEW_H
+#define XIDE_GLVIEW_H
 
-enum RGBA_COLOR_PRESET {
-  RGBA_CLEAR = 0x00000000,
-  RGBA_BLACK = 0x000000FF,
-  RGBA_WHITE = 0xFFFFFFFF,
-  RGBA_RED = 0xFF0000FF,
-  RGBA_BLUE = 0x0000FFFF,
-  RGBA_GREEN = 0x00FF00FF,
-};
+#include "Widget.h"
 
-#endif  // XIDE_COLOR_H
+typedef struct GLView {
+  Widget SUPER;
+} GLView;
+
+void GLView_draw(Widget *_text);
+void GLView_makeGraph(Widget *_text);
+void *GLView_eventProcess(Widget *_text, uint32_t event_id, void *args);
+void ideMakeGLView(IDE *ide, Widget *_text);
+
+
+#endif  // XIDE_GLVIEW_H

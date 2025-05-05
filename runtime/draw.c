@@ -27,7 +27,6 @@
 #include "draw.h"
 #include "GLFW/glfw3.h"
 #include "cg2d.h"
-#include "glad/glad.h"
 #include "minmax.h"
 #include "print.h"
 #include "runtime-enum.h"
@@ -148,7 +147,7 @@ inline void xglBindShaderProgram(DrawTask *task, GLuint program) {
   task->program = program;
 }
 
-DrawTask *ideCreatePixelLines(const Array * const line_array, const uint32_t plane_index,
+DrawTask *ideCreatePixelLines2D(const Array * const line_array, const uint32_t plane_index,
                               const Allocator * const allocator) {
   const int count = (int) Array_length(line_array);
   const Line * const lines = Array_real_addr(line_array, 0);
@@ -471,7 +470,7 @@ void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[4]) {
   glBindVertexArray(0);
 }
 
-inline void ideDraw(const DrawTask * const task, IDE *ide) {
+inline void ideDraw(IDE *ide, const DrawTask * const task) {
   const uint32_t *const viewport = ide->mainWindow->SUPER.box;
   switch (task->task_type) {
     case TT_LINES: {

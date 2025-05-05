@@ -190,14 +190,8 @@ bool ideShouldStopRender(Window *window) {
   return glfwWindowShouldClose(window->handle);
 }
 
-void ideWindowShow(IDE *ide) {
+void ideShowWindow(IDE *ide) {
   ideRepeatDrawUi(ide);
-  //  pthread_t uiThread;
-  //  pthread_create(&uiThread, nullptr, (void *(*) (void *) ) ideRepeatDrawUi, ide);
-  //  pthread_detach(uiThread);
-  //  while (!ideShouldStopRender(ide->window)) { glfwPollEvents(); }
-  //  void *res;
-  //  pthread_join(uiThread, &res);
 }
 
 GLFWwindow *ideInitGlfwGLContext(int width, int height) {
@@ -248,13 +242,13 @@ void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]) {
   Widget *widget = ide->hoveredWidget;
   IdeWidget_global2local(widget, position);
   while (widget && !IdeWidget_testLocal(widget, position)) {
-    if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_LEAVE, nullptr); }
+    if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_LEAVE, position); }
     IdeWidget_local2parent(widget, position);
     widget = widget->parent;
   }
   if (!widget) { return; }
   while (IdeWidget_testLocal(widget, position)) {
-    if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_ENTER, nullptr); }
+    if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_ENTER, position); }
     Widget *sub_widget = widget->getSubWidget ? widget->getSubWidget(widget, position) : nullptr;
     if (!sub_widget) { break; }
     IdeWidget_parent2local(sub_widget, position);
@@ -264,6 +258,10 @@ void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]) {
 }
 
 void ideUpdateMouseMovement(IDE *ide, uint32_t position[2]) {
+  if (ide->capturedWidget) {
+    ide->capturedWidget->funcEventProc(ide->capturedWidget, enum_EVENT_CURSOR_MOVE, position);
+    return;
+  }
   if (!ide->hoveredWidget) { return ; }
   Widget *widget = ide->hoveredWidget;
   while (widget && !widget->funcEventProc) { widget = widget->parent; }
@@ -276,15 +274,20 @@ void idePassMouseLeftButtonEvent(IDE *ide, uint32_t event, uint32_t mods) {
   Widget *widget = ide->hoveredWidget;
   while (widget && !widget->funcEventProc) { widget = widget->parent; }
   if (!widget) { return ; }
+  if (event == enum_EVENT_MOUSE_PRESS && Widget_getProperty(widget, WP_CURSOR_CAPTURABLE)) {
+    ide->capturedWidget = widget;
+  }
+  if (event == enum_EVENT_MOUSE_RELEASE) { ide->capturedWidget = nullptr; }
   widget->funcEventProc(widget, event, &mods);
 }
 
-void ideShiftWindowPos(IDE *ide, const uint32_t vector[2]) {
+void ideShiftWindow(IDE *ide, const uint32_t vector[2]) {
   GLFWwindow *const handle = ide->mainWindow->handle;
-  int pos_x = 0, pos_y = 0;
-  glfwGetWindowPos(handle, &pos_x, &pos_y);
-  pos_x += *(int *) &vector[AXIS_X];
-  pos_y += *(int *) &vector[AXIS_Y];
+  uint32_t *geometry = ide->mainWindow->geometry;
+  geometry[BG_X] += vector[AXIS_X];
+  geometry[BG_Y] += vector[AXIS_Y];
+  const int pos_x = *(int *) &geometry[BG_X];
+  const int pos_y = *(int *) &geometry[BG_Y];
   glfwSetWindowPos(handle, pos_x, pos_y);
 }
 
@@ -295,5 +298,5 @@ void ideResizeWindow(IDE *ide, GLint viewport[4]) {
 }
 
 void ideSetupUi(IDE *ide) {
-  Window_makeGraphic(ide->mainWindow);
+  Window_makeGraph((Widget *) ide->mainWindow);
 }

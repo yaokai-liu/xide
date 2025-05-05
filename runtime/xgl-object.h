@@ -28,7 +28,10 @@
 #define XIDE_XGL_OBJECT_H
 
 #include "array.h"
+#ifndef XIDE_USE_VULKAN
 #include "glad/glad.h"
+#endif
+
 
 enum XGL_OBJECT : uint32_t {
   enum_XGL_NONE = 0x00,

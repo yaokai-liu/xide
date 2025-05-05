@@ -27,13 +27,12 @@
 
 #include "Text.h"
 #include "draw.h"
-#include "runtime-msg.h"
 
 void Text_draw(Widget *_text) {
-  if (_text->drawTask) { ideDraw(_text->drawTask, _text->runtimeContext); }
+  if (_text->drawTask) { ideDraw(_text->runtime, _text->drawTask); }
 }
-void Text_setup(Widget *_text) {
-  ideMakeText(_text->runtimeContext, _text);
+void Text_makeGraph(Widget *_text) {
+  ideMakeText(_text->runtime, _text);
 }
 
 void ideMakeText(IDE *ide, Widget *_text) {
@@ -62,15 +61,4 @@ void ideMakeText(IDE *ide, Widget *_text) {
                      ? Array_virt2real(ide->shaderProgramArray, text->SUPER.shader)
                      :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_CHAR_SHADER]);
   xglBindShaderProgram(text->SUPER.drawTask, *shader);
-}
-
-void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args) {
-  switch (event_id) {
-    case enum_EVENT_MAKE_GRAPHIC: {
-      ideMakeText(_text->runtimeContext, _text);
-      return nullptr;
-    }
-    default: {}
-  }
-  return IdeWidget_eventProcess(_text, event_id, args);
 }

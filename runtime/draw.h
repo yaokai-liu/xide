@@ -64,7 +64,8 @@ DrawTask *ideCreateCurveArea2D(const Array *vertex_array, uint32_t plane_index, 
                                const Allocator *allocator);
 DrawTask *ideCreatePolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
 
-DrawTask *ideCreatePixelLines(const Array *line_array, uint32_t plane_index, const Allocator *allocator);
+DrawTask *ideCreatePixelLines2D(const Array *constline_array, const uint32_t plane_index,
+                                const Allocator *constallocator);
 DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid,
                                   const Allocator *allocator);
 DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle,
@@ -85,6 +86,6 @@ void ideDrawLines(const DrawTask *task, const uint32_t viewport[4]);
 void ideDrawArea(const DrawTask *task, const uint32_t viewport[4]);
 void ideDrawPolyline(const DrawTask *task, const uint32_t viewport[4]);
 void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[2]);
-void ideDraw(const DrawTask *task, IDE *ide);
+void ideDraw(IDE *ide, const DrawTask * const task);
 
 #endif  // XIDE_DRAW_H

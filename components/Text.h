@@ -40,7 +40,7 @@ typedef struct Text {
 } Text;
 
 void Text_draw(Widget *_text);
-void Text_setup(Widget *_text);
+void Text_makeGraph(Widget *_text);
 void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args);
 void ideMakeText(IDE *ide, Widget *_text);
 
