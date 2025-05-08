@@ -38,10 +38,16 @@ typedef struct DrawTask DrawTask;
 
 typedef struct Widget Widget;
 
-#define OVERRIDE // means this function not need to call the SUPER's function
-#define EXTEND   // means this function needs to call the SUPER's function
-#define PASSDOWN // means this function needs to call the same function of some sub-widgets
-#define PASSOVER // means this function needs to call the same function of parent
+/** means this function not need to call the SUPER's function */
+#define OVERRIDE
+/** means this function needs to call the SUPER's function */
+#define EXTEND
+/** means this function not need to call the same function of parent or sub-widgets */
+#define NONEPASS
+/** means this function may need to call the same function of some sub-widgets */
+#define PASSDOWN
+/** means this function may need to call the same function of parent */
+#define PASSOVER
 
 typedef void fn_draw(Widget *widget);
 typedef void fn_grap(Widget *widget);
@@ -62,28 +68,105 @@ typedef void *fn_event(Widget *widget, uint32_t event_id, void *args);
  **      can only just place `funcRange`.
  **/
 typedef struct Widget {
+  /**
+   * @description
+   * Type of the widget.
+   */
   uint32_t type;
+  /**
+   * @description
+   * Status of the widget to determine the widget's behaviors.
+   */
   uint32_t status;
   /**
-   ** If the `type` field's `WT_CUSTOM_WIDGET` set on,
-   ** this field will be a pointer to a custom defined address.
-   **/
+   * @description
+   * Property of the widget to determine the widget's behaviors.
+   * @escape
+   * If the `type` field's `WT_CUSTOM_WIDGET` set on,
+   * this field will be a pointer to a custom defined address.
+   */
   uint64_t property;
   const Allocator *allocator;
+  /**
+   * @description Parent widget of the widget.
+   */
   Widget *parent;
+  /**
+   * @description IDE runtime of the widget.
+   */
   IDE * runtime;
-  fn_draw * OVERRIDE funcDraw;
-  fn_area * OVERRIDE funcRange;
-  fn_subs * OVERRIDE getSubWidget;
-  fn_grap * PASSDOWN funcMakeGraph;
-  fn_event *  EXTEND funcEventProc;
+  /**
+   * @description
+   * The real draw command, must pass to all sub-widgets.
+   * @tags OVERRIDE PASSDOWN
+   * @param widget the widget itself
+   */
+  fn_draw * OVERRIDE PASSDOWN funcDraw;
+  /**
+   * @description
+   * Determinate if a position in the widget box is in the widget range.
+   * @tags OVERRIDE NONEPASS
+   * @param widget the widget itself
+   * @param local_coord the given position
+   */
+  fn_area * OVERRIDE NONEPASS funcRange;
+  /**
+   * @description
+   * Return a sub-widget the position is in.
+   * @tags OVERRIDE NONEPASS
+   * @param widget the widget itself
+   * @param local_coord the given position
+   */
+  fn_subs * OVERRIDE NONEPASS curSubWidget;
+  /**
+   * @descriptionp
+   * Prepare the draw task, must pass to all sub-widgets.
+   * Always used after the widget updated its UI.
+   * @tags OVERRIDE PASSDOWN
+   * @param widget the widget itself
+   */
+  fn_grap * OVERRIDE PASSDOWN funcMakeGraph;
+  /**
+   * @description
+   * Process event that happened on the widget.
+   * Some of the events may pass to its parent.
+   * @tags EXTEND PASSOVER
+   * @param widget the widget itself
+   * @param event_id the event id
+   * @param args arguments may used
+   */
+  fn_event *  EXTEND PASSOVER funcEventProc;
+  /**
+   * @description The draw task of the widget, not include sub-widgets.
+   */
   DrawTask *drawTask;
+  /**
+   * @description The graphics shader of the widget.
+   * @default     ide's default shader or ide's default text shader.
+   */
   REFER(uint32_t) shader;
+  /**
+   * @description Temporary datas to keep.
+   */
   void *   msgData[2];
-  /// Normally, using `enum BOX_EDGE` as index for box,
-  /// but if property `WP_BOX_AS_GEOMETRY` set on,
-  /// using `enum BOX_GEO` as index for box.
+  /**
+   * @Description
+   * The geometry box of the widget.
+   * @normally
+   * Data in the box is left, top, right and bottom sides of the widget.
+   * @escape
+   * If widget property `WP_BOX_AS_GEOMETRY` is set on,
+   * data in the box will be interpreted as position
+   * of left top corner, and size of the box.
+   * @behaivor
+   * If widget property `WP_BOX_ALWAYS_RE_ADJUST` is set on,
+   * the box size will always change after make graphics.
+   */
   uint32_t box[4];
+  /**
+   * @description
+   * Data in the box is left, top, right and bottom paddings of the widget.
+   */
   uint32_t padding[4];
 } Widget;
 

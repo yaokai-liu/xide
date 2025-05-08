@@ -249,7 +249,7 @@ void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]) {
   if (!widget) { return; }
   while (IdeWidget_testLocal(widget, position)) {
     if (widget->funcEventProc) { widget->funcEventProc(widget, enum_EVENT_CURSOR_ENTER, position); }
-    Widget *sub_widget = widget->getSubWidget ? widget->getSubWidget(widget, position) : nullptr;
+    Widget *sub_widget = widget->curSubWidget ? widget->curSubWidget(widget, position) : nullptr;
     if (!sub_widget) { break; }
     IdeWidget_parent2local(sub_widget, position);
     widget = sub_widget;

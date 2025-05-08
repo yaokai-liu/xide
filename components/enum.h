@@ -89,7 +89,6 @@ enum VERTEX_ORDER {
   VERT_RT = 1,
   VERT_RB = 2,
   VERT_LB = 3,
-
   // straight line vertex order
   VERT_BEGIN = 0,
   VERT_END = 1,
@@ -136,5 +135,12 @@ typedef enum IDEWidgetStatusEnum : uint32_t {
   WS_CAPTURE = 0x08,
   WS_HIDDEN  = 0x10,
 } WSEnum;
+
+typedef enum IDEBoxTypeEnum : uint32_t {
+  BT_PLAIN_BOX = 0,
+  BT_HORIZONTAL_LIST,
+  BT_VERTICAL_LIST
+} BTEnum;
+
 
 #endif  // XIDE_ENUM_H

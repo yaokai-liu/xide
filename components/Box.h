@@ -32,6 +32,8 @@
 
 typedef struct Box {
   Widget SUPER;
+  uint32_t box_type;
+  uint32_t property;
   Array *children; // Array<Widget *>
   Array *corners; // Array<PixelVertex2D>
 } Box;

@@ -50,7 +50,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
     topbar->SUPER.funcDraw = Box_draw;
     topbar->SUPER.funcRange = nullptr;
     topbar->SUPER.funcMakeGraph = Topbar_makeGraph;
-    topbar->SUPER.getSubWidget = Box_getSubWidget;
+    topbar->SUPER.curSubWidget = Box_getSubWidget;
     topbar->SUPER.funcEventProc = Topbar_eventProcess;
     topbar->SUPER.padding[BE_L] = 10;
     topbar->SUPER.padding[BE_R] = 10;
@@ -97,7 +97,7 @@ Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title) {
   window->SUPER.funcRange = nullptr;
   window->SUPER.funcDraw = Window_draw;
   window->SUPER.funcMakeGraph = Window_makeGraph;
-  window->SUPER.getSubWidget = Window_getSubWidget;
+  window->SUPER.curSubWidget = Window_getSubWidget;
   GLint viewport[4] = {};
   glGetIntegerv(GL_VIEWPORT, viewport);
   window->SUPER.box[BG_X] = viewport[BG_X];

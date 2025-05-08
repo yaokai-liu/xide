@@ -50,12 +50,14 @@ void ideMakeText(IDE *ide, Widget *_text) {
   text->SUPER.drawTask = ideCreateTextStr2DByStr(ide, text->text, &anchor, -0.1f, text->mode,
                                                  0, &text->font, fsize);
   uint32_t size[2] = { [AXIS_X] = (uint32_t) fsize[AXIS_X] + 1, [AXIS_Y] = (uint32_t) fsize[AXIS_Y] + 1 };
-  if (text->SUPER.property & WP_BOX_AS_GEOMETRY) {
-    text->SUPER.box[BE_R] = size[AXIS_X];
-    text->SUPER.box[BE_B] = size[AXIS_Y];
-  } else {
-    text->SUPER.box[BE_R] = text->SUPER.box[BE_L] +  size[AXIS_X];
-    text->SUPER.box[BE_B] = text->SUPER.box[BE_T] +  size[AXIS_Y];
+  if (Widget_getProperty(_text, WP_BOX_ALWAYS_RE_ADJUST))  {
+    if (text->SUPER.property & WP_BOX_AS_GEOMETRY) {
+      text->SUPER.box[BE_R] = size[AXIS_X];
+      text->SUPER.box[BE_B] = size[AXIS_Y];
+    } else {
+      text->SUPER.box[BE_R] = text->SUPER.box[BE_L] + size[AXIS_X];
+      text->SUPER.box[BE_B] = text->SUPER.box[BE_T] + size[AXIS_Y];
+    }
   }
   GLuint *shader = (text->SUPER.shader)
                      ? Array_virt2real(ide->shaderProgramArray, text->SUPER.shader)

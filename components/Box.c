@@ -40,7 +40,6 @@ void Box_append(Box *box, Widget *child) {
 void Box_draw(Widget *_box) {
   Box *box = (Box *)_box;
   if (_box->drawTask) { ideDraw(_box->runtime, _box->drawTask); }
-  if (box->corners) { }
   if (!box->children) { return ; }
   uint32_t n_children = Array_length(box->children);
   Widget * const*children = Array_first_real(box->children);
