@@ -18,11 +18,20 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: Icon.c
+ * Module Name: widgets
+ * Filename: Icon.h
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "Icon.h"
+#ifndef XIDE_ICON_H
+#define XIDE_ICON_H
+
+#include "Widget.h"
+typedef struct Icon {
+  Widget SUPER;
+//  Picture *icon;
+} Icon;
+
+#endif  // XIDE_ICON_H

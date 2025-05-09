@@ -17,7 +17,7 @@
  *
  *
  * Project Name: xide
- * Module Name: components
+ * Module Name: widgets
  * Filename: enum.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-7
@@ -95,52 +95,58 @@ enum VERTEX_ORDER {
 };
 
 typedef enum IDEWidgetTypeEnum : uint32_t {
-  WT_NONE = 0,
-  WT_WIDGET,
-  WT_WINDOW,
-  WT_VIEW,
-  WT_ITEM,
-  WT_TEXT,
-  WT_BAR,
+  WIDGET_TYPE_NONE = 0,
+  WIDGET_TYPE_WIDGET,
+  WIDGET_TYPE_WINDOW,
+  WIDGET_TYPE_VIEW,
+  WIDGET_TYPE_ITEM,
+  WIDGET_TYPE_TEXT,
+  WIDGET_TYPE_BOX,
+  WIDGET_TYPE_BAR,
 
   // Re-interpret the widget as custom defined.
-  WT_CUSTOM_WIDGET = 0x80000000
-} WTEnum;
+  WIDGET_TYPE_CUSTOM_WIDGET = 0x80000000
+} IDEWidgetTypeEnum;
 
 typedef enum IDEWidgetPropertyEnum : uint64_t {
-  WP_NONE = 0x00LL,
+  WIDGET_PROPERTY_NONE = 0x00LL,
 
   // `parent` field is a virtual pointer
-  WP_PARENT_REFER = 0x01,
+  WIDGET_PROPERTY_PARENT_REFER = 0x01,
 
-  WP_CURSOR_CAPTURABLE = 0x02,
+  WIDGET_PROPERTY_CURSOR_CAPTURABLE = 0x02,
 
   // Box field interpret as geometry.
-  WP_BOX_AS_GEOMETRY = 0x01LL << 8,
+  WIDGET_PROPERTY_BOX_AS_GEOMETRY = 0x01LL << 8,
   // Box always adjust to widget range.
-  WP_BOX_ALWAYS_RE_ADJUST = 0x02LL << 8,
+  WIDGET_PROPERTY_BOX_ALWAYS_RE_ADJUST = 0x02LL << 8,
   // Geometry changed will influence the parent.
-  WP_RE_GEO_TO_PARENT = 0x01LL << 16,
+  WIDGET_PROPERTY_RE_GEO_TO_PARENT = 0x01LL << 16,
   // Geometry changed will influence children.
-  WP_RE_GEO_TO_CHILDREN = 0x02LL << 16,
+  WIDGET_PROPERTY_RE_GEO_TO_CHILDREN = 0x02LL << 16,
   // Geometry changed will influence children.
-  WP_RE_GEO_FROM_CHILDREN = 0x04LL << 16,
-} WPEnum;
+  WIDGET_PROPERTY_RE_GEO_FROM_CHILDREN = 0x04LL << 16,
+} IDEWidgetPropertyEnum;
 
 typedef enum IDEWidgetStatusEnum : uint32_t {
-  WS_NORMAL  = 0x00,
-  WS_FOCUSED = 0x01,
-  WS_HOVERED = 0x02,
-  WS_PRESSED = 0x04,
-  WS_CAPTURE = 0x08,
-  WS_HIDDEN  = 0x10,
-} WSEnum;
+  WIDGET_STATUS_NORMAL  = 0x00,
+  WIDGET_STATUS_FOCUSED = 0x01,
+  WIDGET_STATUS_HOVERED = 0x02,
+  WIDGET_STATUS_PRESSED = 0x04,
+  WIDGET_STATUS_CAPTURE = 0x08,
+  WIDGET_STATUS_HIDDEN  = 0x10,
+} IDEWidgetStatusEnum;
 
 typedef enum IDEBoxTypeEnum : uint32_t {
-  BT_PLAIN_BOX = 0,
-  BT_HORIZONTAL_LIST,
-  BT_VERTICAL_LIST
-} BTEnum;
+  BOX_TYPE_PLAIN_BOX = 0,
+  BOX_TYPE_HORIZONTAL_LIST,
+  BOX_TYPE_VERTICAL_LIST
+} IDEBoxTypeEnum;
+
+typedef enum IDEWindowPropertyEnum : uint32_t {
+  WINDOW_PROPERTY_LEFT_FULL = 0x01,
+  WINDOW_PROPERTY_RIGHT_FULL = 0x02
+} IDEWindowPropertyEnum;
 
 
 #endif  // XIDE_ENUM_H

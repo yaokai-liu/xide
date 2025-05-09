@@ -51,11 +51,9 @@ IDE *IDE_new(const char_t *workdir, const int width, const int height, const All
   ide->defaultShader[DEFAULT_CHAR_SHADER] = ideCompileShaders(ide, shaderInfos[DEFAULT_CHAR_SHADER], 2);
   if (!ide->defaultShader[0] || !ide->defaultShader[1]) { IDE_destroy(ide); glfwTerminate(); }
 
-  ide->mainWindow = Window_new(ide, handle, "xide");
+  ide->mainWindow = Window_new(ide, handle);
   if (!ide->mainWindow) { return nullptr; }
   ide->hoveredWidget = (Widget *)ide->mainWindow;
-
-  ideSetupUi(ide);
 
   return ide;
 }

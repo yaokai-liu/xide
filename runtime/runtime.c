@@ -88,7 +88,7 @@ GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count) {
   // shader program
   char_t resolved_path[PATH_MAX] = {};
   GLuint shaderProgram = glCreateProgram();
-  for (int i = 0; i < min(4, count); i++) {
+  for (uint32_t i = 0; i < min(4, count); i++) {
     char_t *path = ideResolveToAbsolutePath(ide, shaderInfo[i].path, resolved_path);
     const GLenum type = shaderInfo[i].type;
     if (path && type) {
@@ -274,7 +274,7 @@ void idePassMouseLeftButtonEvent(IDE *ide, uint32_t event, uint32_t mods) {
   Widget *widget = ide->hoveredWidget;
   while (widget && !widget->funcEventProc) { widget = widget->parent; }
   if (!widget) { return ; }
-  if (event == enum_EVENT_MOUSE_PRESS && Widget_getProperty(widget, WP_CURSOR_CAPTURABLE)) {
+  if (event == enum_EVENT_MOUSE_PRESS && Widget_getProperty(widget, WIDGET_PROPERTY_CURSOR_CAPTURABLE)) {
     ide->capturedWidget = widget;
   }
   if (event == enum_EVENT_MOUSE_RELEASE) { ide->capturedWidget = nullptr; }

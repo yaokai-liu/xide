@@ -17,26 +17,21 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: Item.h
+ * Module Name: computational-geometry
+ * Filename: cg2d.h
  * Creator: Yaokai Liu
- * Create Date: 2024-7-9
+ * Create Date: 2024-11-21
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_ITEM_H
-#define XIDE_ITEM_H
+#ifndef COMPUTATION_GEOMETRY_2D_H
+#define COMPUTATION_GEOMETRY_2D_H
 
-#include "Icon.h"
-#include "Text.h"
+#include "array.h"
 #include <stdint.h>
 
-typedef struct FolderItem {
-  Widget    SUPER;
-  Icon *    fIcon;
-  Icon *    iIcon;
-  Text *    text;
-  uint32_t  status;
-} FolderItem;
+Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *allocator);
 
-#endif  // XIDE_ITEM_H
+Array *xglRadialTriangulation2D(const Array *vert_array, bool cycle, const Allocator *allocator);
+
+#endif  // COMPUTATION_GEOMETRY_2D_H

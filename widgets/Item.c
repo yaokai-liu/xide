@@ -17,40 +17,11 @@
  *
  *
  * Project Name: xide
- * Module Name:
- * Filename: main.c
+ * Module Name: widgets
+ * Filename: Item.c
  * Creator: Yaokai Liu
- * Create Date: 2025-2-22
+ * Create Date: 2024-7-9
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "ide.h"
-#include "print.h"
-#include "runtime-enum.h"
-#include "runtime.h"
-#include <stdio.h>
-#if defined(_WIN32) || defined(_WIN64)
-  #include <direct.h>
-#else
-#include <unistd.h>
-#endif
-
-int main(int argc, char *argv[]) {
-  const Allocator * const allocator = &STDAllocator;
-
-  char_t workdir[PATH_MAX] = {};
-  getcwd(workdir, PATH_MAX);
-
-  if (!glfwInit()) { return -1; }
-  IDE *ide = IDE_new(workdir, 200, 200, allocator);
-  if (!ide) { glfwTerminate(); return -1; }
-
-  glEnable(GL_MULTISAMPLE);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  ideShowWindow(ide);
-
-  IDE_destroy(ide);
-  glfwTerminate();
-  return 0;
-}
+#include "Item.h"

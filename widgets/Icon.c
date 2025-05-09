@@ -18,12 +18,11 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: GLView.c
+ * Module Name: widgets
+ * Filename: Icon.c
  * Creator: Yaokai Liu
- * Create Date: 2025-05-03
+ * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "GLView.h"
-
+#include "Icon.h"

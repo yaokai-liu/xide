@@ -17,7 +17,7 @@
  *
  *
  * Project Name: xide
- * Module Name: components
+ * Module Name: widgets
  * Filename: widgets.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-6

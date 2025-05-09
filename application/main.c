@@ -17,19 +17,43 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: shape2d.c
+ * Module Name: application
+ * Filename: main.c
  * Creator: Yaokai Liu
- * Create Date: 2024-7-9
+ * Create Date: 2025-2-22
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#include "shape2d.h"
-#include "enum.h"
-#include <math.h>
+#include "print.h"
+#include "runtime-enum.h"
+#include "runtime.h"
+#include <stdio.h>
+#include "application.h"
+#if defined(_WIN32) || defined(_WIN64)
+  #include <direct.h>
+#else
+#include <unistd.h>
+#endif
 
-inline float SLine_length(const Line line) {
-  uint32_t len_sq = (line[1].coord[AXIS_X] - line[0].coord[AXIS_X]) * (line[1].coord[AXIS_X] - line[0].coord[AXIS_X])
-                    + (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y]) * (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y]);
-  return sqrtf((float) len_sq);
+int main(int , char *[]) {
+  const Allocator * const allocator = &STDAllocator;
+
+  char_t workdir[PATH_MAX] = {};
+  getcwd(workdir, PATH_MAX);
+
+  if (!glfwInit()) { return -1; }
+  IDE *ide = IDE_new(workdir, 1920 / 2, 1080 / 4 * 3, allocator);
+  if (!ide) { glfwTerminate(); return -1; }
+  Window_setTextTitle(ide->mainWindow, "xide");
+  Window_setMainContent(ide->mainWindow, nullptr);
+  ideSetupUi(ide);
+
+  glEnable(GL_MULTISAMPLE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  ideShowWindow(ide);
+
+  IDE_destroy(ide);
+  glfwTerminate();
+  return 0;
 }

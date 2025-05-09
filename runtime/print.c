@@ -33,7 +33,7 @@
 #include "runtime.h"
 #include "utils.h"
 
-inline void xglGenCharCoord2D(const CharModel *model, const Vertex2D *center, const TextureAtlas *atlas,
+inline void xglGenCharCoord2D(const CharModel *model, const Vertex2D *center, const TextureAtlas *atlas[[maybe_unused]],
                               XGLVertex dest[4]) {
   constexpr float scale = 0.5f;
   dest[BC_LT].coord[AXIS_X] = ((float) center->coord[AXIS_X]) - ((float) model->size[AXIS_X]) * scale;

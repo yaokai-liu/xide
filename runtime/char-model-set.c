@@ -187,8 +187,8 @@ Array /*<Vertex2D>*/ *CharModelSet_genHCoordArray(const CharModelSet *set, const
   return vertex_array;
 }
 
-Array /*<Vertex2D>*/ *CharModelSet_genVCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
-                                                  const Vertex2D *anchor, float c_space, uint32_t mode,
-                                                  XGLVector2D feedback_vec, const Allocator *allocator) {
+Array /*<Vertex2D>*/ *CharModelSet_genVCoordArray(const CharModelSet *, const Array /*<char_t>*/ *,
+                                                  const Vertex2D *, float , uint32_t ,
+                                                  XGLVector2D , const Allocator *) {
   return nullptr;
 }

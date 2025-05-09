@@ -60,16 +60,12 @@ DrawTask *ideCreateTexturedDrawTask(const Array *vertex_array, const Array *inde
 void xglDestroyDrawTask(DrawTask *task, const Allocator *allocator);
 
 DrawTask *ideCreatePolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);
-DrawTask *ideCreateCurveArea2D(const Array *vertex_array, uint32_t plane_index, bool cycle, bool solid,
-                               const Allocator *allocator);
 DrawTask *ideCreatePolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
+DrawTask *ideCreateCurveArea2D(const Array *vertex_array, uint32_t plane_index, bool cycle, bool solid, const Allocator *allocator);
 
-DrawTask *ideCreatePixelLines2D(const Array *constline_array, const uint32_t plane_index,
-                                const Allocator *constallocator);
-DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid,
-                                  const Allocator *allocator);
-DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle,
-                                   const Allocator *allocator);
+DrawTask *ideCreatePixelLines2D(const Array *line_array, uint32_t plane_index, const Allocator *allocator);
+DrawTask *ideCreatePixelPolygon2D(const Array *vertex_array, uint32_t plane_index, bool solid, const Allocator *allocator);
+DrawTask *ideCreatePixelPolyline2D(const Array *vertex_array, uint32_t plane_index, bool cycle, const Allocator *allocator);
 
 DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *anchor_array, const CharModelSet *set,
                                 uint32_t plane_index, const Font *font);
@@ -85,7 +81,7 @@ void xglBindShaderProgram(DrawTask *task, GLuint program);
 void ideDrawLines(const DrawTask *task, const uint32_t viewport[4]);
 void ideDrawArea(const DrawTask *task, const uint32_t viewport[4]);
 void ideDrawPolyline(const DrawTask *task, const uint32_t viewport[4]);
-void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[2]);
-void ideDraw(IDE *ide, const DrawTask * const task);
+void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[4]);
+void ideDraw(IDE *ide, const DrawTask *task);
 
 #endif  // XIDE_DRAW_H

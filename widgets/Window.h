@@ -17,7 +17,7 @@
  *
  *
  * Project Name: xide
- * Module Name: components
+ * Module Name: widgets
  * Filename: Window.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-6
@@ -42,20 +42,20 @@ typedef struct Window {
   Widget *central;
   Widget *bars[4];
   uint32_t geometry[4];
+  uint32_t property;
 } Window, Dialog;
 
-Window *Window_new(IDE *ide, GLFWwindow *handle, const char_t *title);
+Window *Window_new(IDE *ide, GLFWwindow *handle);
 void Window_destroy(Window *window);
 
-void Window_makeGraph(Widget *_window);
 void Window_draw(Widget *_window);
+void Window_makeGraph(Widget *_window);
 void Window_resize(Widget *_window, const uint32_t viewport[4]);
-Widget *Window_getSubWidget(Widget *_window, uint32_t local_coord[2]);
+Widget *Window_curSubWidget(Widget *_window, uint32_t local_coord[2]);
 void *Window_eventProcess(Widget *_window, uint32_t event_id, void *args);
-
 void ideMakeWindow(IDE *ide, Widget *_window);
 
-void Window_setTextTitle(Window *window, const char_t *title);
-void Window_setMainContent(Window *window, Widget *_central);
+void Window_measureBox(Window *window, uint32_t box[4], uint32_t box_edge);
+void Window_measureCentral(Window *window, uint32_t box[4]);
 
 #endif  // XIDE_WINDOW_H

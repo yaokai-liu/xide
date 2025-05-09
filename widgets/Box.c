@@ -18,7 +18,7 @@
  *
  *
  * Project Name: xide
- * Module Name: components
+ * Module Name: widgets
  * Filename: Box.c
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
@@ -30,11 +30,10 @@
 #include "runtime-msg.h"
 
 void Box_append(Box *box, Widget *child) {
-  if (box->children) {
-    Array_append(box->children, &child, 1);
-    child->runtime = box->SUPER.runtime;
-    child->parent = (Widget *) box;
+  if (!box->children) {
+     box->children = Array_new(sizeof(Widget *), WIDGET_TYPE_WIDGET, box->SUPER.allocator);
   }
+  Array_append(box->children, &child, 1);
 }
 
 void Box_draw(Widget *_box) {
@@ -52,36 +51,9 @@ void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args) {
   return IdeWidget_eventProcess(_box, event_id, args);
 }
 
-void ideMakeBox(IDE *ide, Widget *_box) {
-  Box *box = (Box *) _box;
-  if (!Widget_width(_box) || !Widget_height(_box)) {
-    if (_box->drawTask) { xglDestroyDrawTask(_box->drawTask, ide->allocator); }
-    _box->drawTask = nullptr;
-    return;
-  }
-  Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, _box->allocator);
-  if (!box->corners) {
-    Vertex2D corners[] = {
-      {(float) _box->box[BE_L], (float) _box->box[BE_T], 0xffffffff},
-      {(float) _box->box[BE_R], (float) _box->box[BE_T], 0xffffffff},
-      {(float) _box->box[BE_R], (float) _box->box[BE_B], 0xffffffff},
-      {(float) _box->box[BE_L], (float) _box->box[BE_B], 0xffffffff},
-    };
-    Array_append(vertex_array, corners, 4);
-  } else {
-    Array_concat(vertex_array, box->corners);
-  }
-  if (_box->drawTask) { xglDestroyDrawTask(_box->drawTask, ide->allocator); }
-  _box->drawTask = ideCreatePolygon2D(vertex_array, 0, true, _box->allocator);
-  GLuint *shader = (_box->shader)
-                     ? Array_virt2real(ide->shaderProgramArray, _box->shader)
-                     :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_SHADER]);
-  xglBindShaderProgram(_box->drawTask, *shader);
-  releasePrimeArray(vertex_array);
-}
+void ideMakeBox(IDE *, Widget *) {}
 
-#define testLocal(w, c) ((w) && )
-Widget *Box_getSubWidget(Widget *_box, uint32_t coord[2]) {
+Widget *Box_curSubWidget(Widget *_box, uint32_t coord[2]) {
   Box *box = (Box *)_box;
   if (!box->children) { return nullptr; }
   uint32_t n_children = Array_length(box->children);
@@ -94,4 +66,16 @@ Widget *Box_getSubWidget(Widget *_box, uint32_t coord[2]) {
     if (IdeWidget_testLocal(children[i], local_coord)) { return children[i]; }
   }
   return nullptr;
+}
+
+void Box_makeGraph(Widget *_box) {
+  Box *box = (Box *) _box;
+  if (box->children) {
+    uint32_t n_children = Array_length(box->children);
+    Widget * const*children = Array_first_real(box->children);
+    for (uint32_t i = 0; i < n_children; i++) {
+      Widget_makeGraphic(children[i]);
+    }
+  }
+  ideMakeBox(_box->runtime, _box);
 }

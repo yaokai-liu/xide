@@ -79,8 +79,8 @@ void ideCallback_keyboardKeyEvent(Window *window) {
   if (glfwGetKey(handle, GLFW_KEY_ESCAPE) == GLFW_PRESS) { glfwSetWindowShouldClose(handle, true); }
 }
 
-void APIENTRY xglCallback_debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                             const GLchar *message, const void *userParam) {
+void APIENTRY xglCallback_debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length[[maybe_unused]],
+                             const GLchar *message, const void *userParam[[maybe_unused]]) {
   if (id == 131169 || id == 131185 || id == 131218 || id == 131204) { return; }
   rt_debug("Debug message (%d): %s", id, message);
 

@@ -17,7 +17,7 @@
  *
  *
  * Project Name: xide
- * Module Name: components
+ * Module Name: widgets
  * Filename: Widget.h
  * Creator: Yaokai Liu
  * Create Date: 2024-7-6
@@ -56,12 +56,13 @@ typedef Widget *fn_subs(Widget *widget, uint32_t local_coord[2]);
 typedef void *fn_event(Widget *widget, uint32_t event_id, void *args);
 
 /**
- ** If the `type` field's `WT_CUSTOM_WIDGET` set on,
+ * @Notice
+ ** If the `type` field's `WIDGET_TYPE_CUSTOM_WIDGET` set on,
  **   1. `property` will be interpret as a pointer to a custom defined address;
  **   2. fields after `parent` will not be access by default widget methods.
  **      These fields can be used for other purpose if necessary.
  **
- ** Suggestion:
+ ** @Suggestion
  **   1. The geometry object defined by `funcRange`
  **      is suggested most convex and most connected.
  **   2. The `geometry` is suggested smallest that
@@ -82,10 +83,13 @@ typedef struct Widget {
    * @description
    * Property of the widget to determine the widget's behaviors.
    * @escape
-   * If the `type` field's `WT_CUSTOM_WIDGET` set on,
+   * If the `type` field's `WIDGET_TYPE_CUSTOM_WIDGET` set on,
    * this field will be a pointer to a custom defined address.
    */
   uint64_t property;
+  /**
+   * @description Memory allocator of widget.
+   */
   const Allocator *allocator;
   /**
    * @description Parent widget of the widget.
@@ -104,17 +108,21 @@ typedef struct Widget {
   fn_draw * OVERRIDE PASSDOWN funcDraw;
   /**
    * @description
-   * Determinate if a position in the widget box is in the widget range.
+   * Determine if a position in the widget box is in the widget range.
+   * To determine if it responses the cursor events in widget's box.
    * @tags OVERRIDE NONEPASS
    * @param widget the widget itself
-   * @param local_coord the given position
+   * @param local_coord the given position,
+   * has been converted to widget local coord
+   * @default nullptr, means response area of the widget is whole widget box.
    */
   fn_area * OVERRIDE NONEPASS funcRange;
   /**
    * @description
    * Return a sub-widget the position is in.
    * @tags OVERRIDE NONEPASS
-   * @param widget the widget itself
+   * @param widget the widget itself,
+   * has been converted to widget local coord
    * @param local_coord the given position
    */
   fn_subs * OVERRIDE NONEPASS curSubWidget;
@@ -141,7 +149,7 @@ typedef struct Widget {
    */
   DrawTask *drawTask;
   /**
-   * @description The graphics shader of the widget.
+   * @description The graphic shader of the widget.
    * @default     ide's default shader or ide's default text shader.
    */
   REFER(uint32_t) shader;
@@ -155,12 +163,12 @@ typedef struct Widget {
    * @normally
    * Data in the box is left, top, right and bottom sides of the widget.
    * @escape
-   * If widget property `WP_BOX_AS_GEOMETRY` is set on,
+   * If widget property `WIDGET_PROPERTY_BOX_AS_GEOMETRY` is set on,
    * data in the box will be interpreted as position
    * of left top corner, and size of the box.
    * @behaivor
-   * If widget property `WP_BOX_ALWAYS_RE_ADJUST` is set on,
-   * the box size will always change after make graphics.
+   * If widget property `WIDGET_PROPERTY_BOX_ALWAYS_RE_ADJUST` is set on,
+   * the box size will always change after make graphic.
    */
   uint32_t box[4];
   /**
@@ -192,18 +200,18 @@ void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
 #define Widget_unsetProperty(widget, bit_field) ((widget)->property &= ~(bit_field))
 
 #define  Widget_width(widget) ( \
-  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] : (widget)->box[BE_R] - (widget)->box[BE_L] \
+  ((widget)->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] : (widget)->box[BE_R] - (widget)->box[BE_L] \
 )
 #define  Widget_height(widget) ( \
-  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] : (widget)->box[BE_B] - (widget)->box[BE_T] \
+  ((widget)->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] : (widget)->box[BE_B] - (widget)->box[BE_T] \
 )
 #define Widget_left(widget) ((widget)->box[BE_L])
 #define Widget_top(widget) ((widget)->box[BE_T])
 #define Widget_right(widget) ( \
-  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] + (widget)->box[BE_L] : (widget)->box[BE_R] \
+  ((widget)->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] + (widget)->box[BE_L] : (widget)->box[BE_R] \
 )
 #define Widget_bottom(widget) ( \
-  ((widget)->property & WP_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] + (widget)->box[BE_T] : (widget)->box[BE_B] \
+  ((widget)->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? (widget)->box[BG_H] + (widget)->box[BE_T] : (widget)->box[BE_B] \
 )
 
 #define Widget_reGeometry(widget, viewport) do { \
@@ -213,5 +221,11 @@ void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
     if ((widget)->funcMakeGraph) (widget)->funcMakeGraph(widget); \
   } while (false)
 #define Widget_draw(widget) do { if ((widget)->funcDraw) (widget)->funcDraw(widget); } while (false)
+
+void Widget_geo2box(Widget *widget);
+void Widget_box2geo(Widget *widget);
+
+uint32_t *geo2box(const uint32_t * restrict geo, uint32_t * restrict box);
+uint32_t *box2geo(const uint32_t * restrict box, uint32_t * restrict geo);
 
 #endif  // XIDE_WIDGET_H

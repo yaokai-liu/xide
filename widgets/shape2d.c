@@ -17,21 +17,19 @@
  *
  *
  * Project Name: xide
- * Module Name: com-geo
- * Filename: com-geo.h
+ * Module Name: widgets
+ * Filename: shape2d.c
  * Creator: Yaokai Liu
- * Create Date: 2024-11-21
+ * Create Date: 2024-7-9
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef COMPUTATION_GEOMETRY_2D_H
-#define COMPUTATION_GEOMETRY_2D_H
+#include "shape2d.h"
+#include "enum.h"
+#include <math.h>
 
-#include "array.h"
-#include <stdint.h>
-
-Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *allocator);
-
-Array *xglRadialTriangulation2D(const Array *vert_array, bool cycle, const Allocator *allocator);
-
-#endif  // COMPUTATION_GEOMETRY_2D_H
+inline float SLine_length(const Line line) {
+  uint32_t len_sq = (line[1].coord[AXIS_X] - line[0].coord[AXIS_X]) * (line[1].coord[AXIS_X] - line[0].coord[AXIS_X])
+                    + (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y]) * (line[1].coord[AXIS_Y] - line[0].coord[AXIS_Y]);
+  return sqrtf((float) len_sq);
+}

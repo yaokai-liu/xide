@@ -18,7 +18,7 @@
  *
  *
  * Project Name: xide
- * Module Name: components
+ * Module Name: widgets
  * Filename: Text.c
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
@@ -50,8 +50,8 @@ void ideMakeText(IDE *ide, Widget *_text) {
   text->SUPER.drawTask = ideCreateTextStr2DByStr(ide, text->text, &anchor, -0.1f, text->mode,
                                                  0, &text->font, fsize);
   uint32_t size[2] = { [AXIS_X] = (uint32_t) fsize[AXIS_X] + 1, [AXIS_Y] = (uint32_t) fsize[AXIS_Y] + 1 };
-  if (Widget_getProperty(_text, WP_BOX_ALWAYS_RE_ADJUST))  {
-    if (text->SUPER.property & WP_BOX_AS_GEOMETRY) {
+  if (Widget_getProperty(_text, WIDGET_PROPERTY_BOX_ALWAYS_RE_ADJUST))  {
+    if (text->SUPER.property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) {
       text->SUPER.box[BE_R] = size[AXIS_X];
       text->SUPER.box[BE_B] = size[AXIS_Y];
     } else {
@@ -63,4 +63,18 @@ void ideMakeText(IDE *ide, Widget *_text) {
                      ? Array_virt2real(ide->shaderProgramArray, text->SUPER.shader)
                      :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_CHAR_SHADER]);
   xglBindShaderProgram(text->SUPER.drawTask, *shader);
+}
+
+void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args) {
+  switch (event_id) {
+    case enum_EVENT_RE_GEOMETRY: {
+      return nullptr;
+    }
+    default: {}
+  }
+  Widget *parent = _text->parent;
+  if (parent->funcEventProc) {
+    return parent->funcEventProc(parent, event_id, args);
+  }
+  return nullptr;
 }

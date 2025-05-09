@@ -18,26 +18,35 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: GLView.h
+ * Module Name: widgets
+ * Filename: Box.h
  * Creator: Yaokai Liu
- * Create Date: 2025-05-03
+ * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_GLVIEW_H
-#define XIDE_GLVIEW_H
+#ifndef XIDE_BOX_H
+#define XIDE_BOX_H
 
 #include "Widget.h"
 
-typedef struct GLView {
+typedef struct Box Box;
+
+typedef Array *fn_shape(Box *box);
+
+typedef struct Box {
   Widget SUPER;
-} GLView;
+  uint32_t box_type;
+  uint32_t property;
+  Array *children; // Array<Widget *>
+} Box;
 
-void GLView_draw(Widget *_text);
-void GLView_makeGraph(Widget *_text);
-void *GLView_eventProcess(Widget *_text, uint32_t event_id, void *args);
-void ideMakeGLView(IDE *ide, Widget *_text);
+void Box_draw(Widget *_box);
+void Box_makeGraph(Widget *_box);
+Widget *Box_curSubWidget(Widget *_box, uint32_t coord[2]);
+void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args);
+void ideMakeBox(IDE *ide, Widget *_box);
 
+void Box_append(Box *box, Widget *child);
 
-#endif  // XIDE_GLVIEW_H
+#endif  // XIDE_BOX_H

@@ -18,20 +18,30 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: Icon.h
+ * Module Name: widgets
+ * Filename: Text.h
  * Creator: Yaokai Liu
  * Create Date: 2025-04-15
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_ICON_H
-#define XIDE_ICON_H
+#ifndef XIDE_TEXT_H
+#define XIDE_TEXT_H
 
 #include "Widget.h"
-typedef struct Icon {
-  Widget SUPER;
-//  Picture *icon;
-} Icon;
+#include "font-manage.h"
 
-#endif  // XIDE_ICON_H
+typedef struct Text {
+  Widget SUPER;
+  string_t text;
+  Font    font;
+  uint32_t mode;
+  uint32_t color;
+} Text;
+
+void Text_draw(Widget *_text);
+void Text_makeGraph(Widget *_text);
+void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args);
+void ideMakeText(IDE *ide, Widget *_text);
+
+#endif  // XIDE_TEXT_H

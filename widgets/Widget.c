@@ -17,7 +17,7 @@
  *
  *
  * Project Name: xide
- * Module Name: components
+ * Module Name: widgets
  * Filename: Widget.c
  * Creator: Yaokai Liu
  * Create Date: 2024-7-6
@@ -28,8 +28,6 @@
 #include "enum.h"
 #include "minmax.h"
 #include "runtime-enum.h"
-uint32_t *geo2box(const uint32_t * restrict geo, uint32_t * restrict box);
-uint32_t *box2geo(const uint32_t * restrict box, uint32_t * restrict geo);
 
 inline uint32_t *geo2box(const uint32_t * restrict geo, uint32_t * restrict box) {
   box[BE_L] = geo[BG_X];
@@ -47,15 +45,35 @@ inline uint32_t *box2geo(const uint32_t * restrict box, uint32_t * restrict geo)
   return geo;
 }
 
+void Widget_geo2box(Widget *widget) {
+  if (Widget_getProperty(widget, WIDGET_PROPERTY_BOX_AS_GEOMETRY)) {
+    widget->box[BE_L] = widget->box[BG_X];
+    widget->box[BE_T] = widget->box[BG_Y];
+    widget->box[BE_R] = widget->box[BG_X] + widget->box[BG_W];
+    widget->box[BE_B] = widget->box[BG_Y] + widget->box[BG_H];
+    Widget_unsetProperty(widget, WIDGET_PROPERTY_BOX_AS_GEOMETRY);
+  }
+}
+
+void Widget_box2geo(Widget *widget) {
+  if (!Widget_getProperty(widget, WIDGET_PROPERTY_BOX_AS_GEOMETRY)) {
+    widget->box[BG_X] = widget->box[BE_L];
+    widget->box[BG_Y] = widget->box[BE_T];
+    widget->box[BG_W] = widget->box[BE_R] - widget->box[BE_L];
+    widget->box[BG_H] = widget->box[BE_B] - widget->box[BE_T];
+    Widget_setProperty(widget, WIDGET_PROPERTY_BOX_AS_GEOMETRY);
+  }
+}
+
 int32_t IdeWidget_adjust_box(Widget *widget) {
-  if (widget->type & WT_CUSTOM_WIDGET) { return -1; }
+  if (widget->type & WIDGET_TYPE_CUSTOM_WIDGET) { return -1; }
   uint32_t *box = widget->box;
   if (box[BE_L] > box[BE_R] || box[BE_T] > box[BE_B]) { return -1; }
 
   if (!widget->funcRange) { return 0; }
 
   uint32_t BOX[4] = {};
-  box = (widget->property & WP_BOX_AS_GEOMETRY) ? geo2box(widget->box, BOX) : widget->box;
+  box = (widget->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? geo2box(widget->box, BOX) : widget->box;
   uint32_t left = box[BE_R], right = box[BE_L];
   uint32_t top = box[BE_B], bottom = box[BE_T];
   for (uint32_t i = box[BE_T]; i <= box[BE_B]; i++) {
@@ -74,7 +92,7 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
   box[BE_R] = min(right, box[BE_R]);
   box[BE_T] = max(top, box[BE_T]);
   box[BE_B] = min(bottom, box[BE_B]);
-  (widget->property & WP_BOX_AS_GEOMETRY) ? box2geo(box, widget->box) : widget->box;
+  (widget->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? box2geo(box, widget->box) : widget->box;
 
   return 0;
 }
@@ -83,7 +101,7 @@ inline int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]) {
   do {
     coord[AXIS_X] += widget->box[BE_L];
     coord[AXIS_Y] += widget->box[BE_T];
-    if (widget->property & WP_PARENT_REFER) { return 1; }
+    if (widget->property & WIDGET_PROPERTY_PARENT_REFER) { return 1; }
     widget = widget->parent;
   } while (widget);
   return 0;
@@ -93,7 +111,7 @@ inline int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]) {
   do {
     coord[AXIS_X] -= widget->box[BE_L];
     coord[AXIS_Y] -= widget->box[BE_T];
-    if (widget->property & WP_PARENT_REFER) { return 1; }
+    if (widget->property & WIDGET_PROPERTY_PARENT_REFER) { return 1; }
     widget = widget->parent;
   } while (widget);
   return 0;
@@ -115,22 +133,22 @@ inline bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]) {
   return in_box && widget->funcRange(widget, coord);
 }
 
-void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args) {
+void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *) {
   switch (event_id) {
     case enum_EVENT_CURSOR_ENTER: {
-      Widget_setStatus(widget, WS_HOVERED);
+      Widget_setStatus(widget, WIDGET_STATUS_HOVERED);
       break;
     }
     case enum_EVENT_CURSOR_LEAVE: {
-      Widget_unsetStatus(widget, WS_HOVERED);
+      Widget_unsetStatus(widget, WIDGET_STATUS_HOVERED);
       break;
     }
     case enum_EVENT_MOUSE_PRESS: {
-      Widget_setStatus(widget, WS_PRESSED);
+      Widget_setStatus(widget, WIDGET_STATUS_PRESSED);
       break;
     }
     case enum_EVENT_MOUSE_RELEASE: {
-      Widget_unsetStatus(widget, WS_PRESSED);
+      Widget_unsetStatus(widget, WIDGET_STATUS_PRESSED);
       break;
     }
     default:{}

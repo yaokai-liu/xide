@@ -247,7 +247,7 @@ DrawTask *ideCreateCurveArea2D(const Array * const vertex_array, const uint32_t 
 DrawTask *ideCreatePixelPolygon2D(const Array * const vertex_array, const uint32_t plane_index, bool solid,
                                   const Allocator *allocator) {
   const int count = (int) Array_length(vertex_array);
-  const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
+  const PixelVertex2D * const vertices = Array_real_addr(vertex_array, 0);
   Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   for (int i = 0; i < count; i++) {
@@ -315,7 +315,7 @@ DrawTask *ideCreatePolyline2D(const Array * const vertex_array, const uint32_t p
 DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, const uint32_t plane_index, bool cycle,
                                    const Allocator *allocator) {
   const int count = (int) Array_length(vertex_array);
-  const Vertex2D * const vertices = Array_real_addr(vertex_array, 0);
+  const PixelVertex2D * const vertices = Array_real_addr(vertex_array, 0);
   Array *coord_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
   Array *color_array = Array_new(sizeof(XGLColor), enum_XGL_COLOR, allocator);
   Array *index_array = Array_new(sizeof(GLint), enum_XGL_INDEX, allocator);

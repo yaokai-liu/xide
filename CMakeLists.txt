@@ -2,23 +2,12 @@ cmake_minimum_required(VERSION 3.28)
 project(xide C)
 
 set(CMAKE_C_STANDARD 23)
-#add_compile_options("-O3")
-add_compile_options("-ftree-vectorize" "-msse3")
-add_compile_definitions("nullptr=NULL")
-add_compile_definitions("GLFW_WINDOW_DECORATION_USING_ENUM")
-
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 # set(CMAKE_VERBOSE_MAKEFILE ON CACHE INTERNAL "")
-
-aux_source_directory(meman MEMAN_SRC)
-add_library(meman STATIC ${MEMAN_SRC})
-
-add_subdirectory(xglm)
-include_directories(xglm/src)
 
 set(XIDE_USE_VULKAN OFF)
 
@@ -35,32 +24,45 @@ else ()
     set(XIDE_GL glad)
 endif ()
 
+add_compile_definitions("GLFW_WINDOW_DECORATION_USING_ENUM")
 add_subdirectory(glfw)
 include_directories(glfw/include)
 
 add_subdirectory(freetype)
 include_directories(freetype/include)
 
+#add_compile_options("-O3")
+add_compile_options("-Werror" "-Wall" "-Wextra")
+add_compile_options("-ftree-vectorize" "-msse4" "-mavx2")
+
+aux_source_directory(meman MEMAN_SRC)
+add_library(meman STATIC ${MEMAN_SRC})
+
+add_subdirectory(xglm)
+include_directories(xglm/src)
+link_libraries(xglm)
+
 include_directories(
         runtime
-        components
+        widgets
         style
-        com-geo
+        computational-geometry
         meman
 )
 
 link_libraries(meman)
 
-aux_source_directory(runtime RT_SRC)
-add_library(runtime STATIC ${RT_SRC})
-target_link_libraries(runtime PRIVATE ${XIDE_GL} com-geo components freetype)
-
-aux_source_directory(components UI_SRC)
-add_library(components STATIC ${UI_SRC})
-
-aux_source_directory(com-geo COM_GEO_SRC)
+aux_source_directory(computational-geometry COM_GEO_SRC)
 add_library(com-geo STATIC ${COM_GEO_SRC})
 
-add_executable(xide main.c)
+aux_source_directory(widgets UI_SRC)
+add_library(widgets STATIC ${UI_SRC})
+
+aux_source_directory(runtime RT_SRC)
+add_library(runtime STATIC ${RT_SRC})
+target_link_libraries(runtime PRIVATE ${XIDE_GL} com-geo widgets freetype)
+
+aux_source_directory(application APP_SRC)
+add_executable(xide ${APP_SRC})
 target_link_libraries(xide PRIVATE
-        ${OPENGL_LIBRARIES} ${XIDE_GL} glfw com-geo components runtime)
+        ${OPENGL_LIBRARIES} ${XIDE_GL} glfw com-geo widgets runtime)

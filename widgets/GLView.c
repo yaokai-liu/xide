@@ -18,30 +18,12 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: Text.h
+ * Module Name: widgets
+ * Filename: GLView.c
  * Creator: Yaokai Liu
- * Create Date: 2025-04-15
+ * Create Date: 2025-05-03
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_TEXT_H
-#define XIDE_TEXT_H
+#include "GLView.h"
 
-#include "Widget.h"
-#include "font-manage.h"
-
-typedef struct Text {
-  Widget SUPER;
-  string_t text;
-  Font    font;
-  uint32_t mode;
-  uint32_t color;
-} Text;
-
-void Text_draw(Widget *_text);
-void Text_makeGraph(Widget *_text);
-void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args);
-void ideMakeText(IDE *ide, Widget *_text);
-
-#endif  // XIDE_TEXT_H

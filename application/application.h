@@ -1,6 +1,6 @@
 /* License
  *
- * xide - An integrated development environment
+ * ${PROJ_DESCRIPTION}
  * Copyright (C) 2025 Yaokai Liu
  *
  * This program is free software: you can redistribute it and/or modify
@@ -18,31 +18,20 @@
  *
  *
  * Project Name: xide
- * Module Name: components
- * Filename: Box.h
+ * Module Name: application
+ * Filename: application.h
  * Creator: Yaokai Liu
- * Create Date: 2025-04-15
+ * Create Date: 2025-05-09
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_BOX_H
-#define XIDE_BOX_H
+#ifndef XIDE_APPLICATION_H
+#define XIDE_APPLICATION_H
 
-#include "Widget.h"
+#include "topbar.h"
+#include "leftbar.h"
+#include "rightbar.h"
+#include "bottombar.h"
+#include "main-content.h"
 
-typedef struct Box {
-  Widget SUPER;
-  uint32_t box_type;
-  uint32_t property;
-  Array *children; // Array<Widget *>
-  Array *corners; // Array<PixelVertex2D>
-} Box;
-
-void Box_draw(Widget *_box);
-Widget *Box_getSubWidget(Widget *_box, uint32_t coord[2]);
-void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args);
-void ideMakeBox(IDE *ide, Widget *_box);
-
-void Box_append(Box *box, Widget *child);
-
-#endif  // XIDE_BOX_H
+#endif  // XIDE_APPLICATION_H

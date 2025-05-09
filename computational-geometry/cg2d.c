@@ -17,7 +17,7 @@
  *
  *
  * Project Name: xide
- * Module Name: com-geo
+ * Module Name: computational-geometry
  * Filename: cg2d.c
  * Creator: Yaokai Liu
  * Create Date: 2024-11-21
@@ -47,7 +47,7 @@
 typedef int CG2DEdge[2];
 struct Triangle {
   float vertices[3][2];
-  uint32_t indices[3];
+  int   indices[3];
 };
 struct Circle {
   float center[2];
@@ -234,7 +234,7 @@ inline bool isEarVNI(const VNI *vni) {
 
 inline VNI *findEarVNI(VNI * const vnies, const uint32_t count) {
   VNI *vni = nullptr;
-  for (int i = 0; i < count; i++) {
+  for (uint32_t i = 0; i < count; i++) {
     VNI *vni2 = &vnies[i];
     bool a = isEarVNI(vni2);
     if (!a) { continue; }
@@ -268,7 +268,7 @@ inline bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert) {
 
 int32_t calculatePolygonWinding(const XGLCoord *vertices, const uint32_t n_vertices) {
   double sum = 0.0;
-  for (int i = 0; i < n_vertices - 1; i++) {
+  for (uint32_t i = 0; i < n_vertices - 1; i++) {
     sum += (vertices[i + 1][AXIS_X] - vertices[i][AXIS_X]) * (vertices[i + 1][AXIS_Y] + vertices[i][AXIS_Y]);
   }
   sum += (vertices[0][AXIS_X] - vertices[n_vertices - 1][AXIS_X]) * (vertices[0][AXIS_Y] + vertices[n_vertices - 1][AXIS_Y]);
@@ -437,7 +437,7 @@ Array *xglEarClippingTriangulate2D_clockwise(const Array *vert_array, const Allo
   allocator->free(triangles);
 
   releasePrimeArray(pVNI_array);
-  for (int i = 0; i < count; i++) { Array_reset(arrays_get(inc_arrays, i), nullptr); }
+  for (uint32_t i = 0; i < count; i++) { Array_reset(arrays_get(inc_arrays, i), nullptr); }
   allocator->free(inc_arrays);
 
   return index_array;
