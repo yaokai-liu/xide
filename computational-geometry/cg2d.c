@@ -30,7 +30,7 @@
 #include <float.h>
 #include <math.h>
 
-#define epsilon 1e-8f
+#define epsilon 1e-15f
 #define pi      3.14159265358979323846f
 
 #ifndef max
