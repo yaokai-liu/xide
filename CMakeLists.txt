@@ -62,6 +62,10 @@ aux_source_directory(runtime RT_SRC)
 add_library(runtime STATIC ${RT_SRC})
 target_link_libraries(runtime PRIVATE ${XIDE_GL} com-geo widgets freetype)
 
+aux_source_directory(components COMPONENT_SRC)
+add_library(components STATIC ${COMPONENT_SRC})
+target_include_directories(components PRIVATE runtime widgets)
+
 aux_source_directory(application APP_SRC)
 add_executable(xide ${APP_SRC})
 target_link_libraries(xide PRIVATE

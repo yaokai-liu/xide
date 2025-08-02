@@ -24,12 +24,12 @@
  * Copyright (c) 2024 Yaokai Liu. All rights reserved.
  **/
 
-#ifndef XIDE_CHAR_T_H
-#define XIDE_CHAR_T_H
+#ifndef CHAR_T_H
+#define CHAR_T_H
 
 typedef char char_t;
 typedef const char_t *string_t;
 #define string_t(_str) _str
 
 
-#endif  // XIDE_CHAR_T_H
+#endif  // CHAR_T_H
