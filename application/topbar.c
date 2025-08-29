@@ -36,9 +36,8 @@ void Topbar_makeGraph(Widget *_topbar) {
   if (Widget_getProperty(_topbar, WIDGET_PROPERTY_RE_GEO_FROM_CHILDREN)) {
     uint32_t size[4] = {Widget_left(_topbar), Widget_top(_topbar), Widget_width(_topbar), Widget_height(_topbar)};
     Topbar_resize(_topbar, size);
-  } else {
-    ideMakeTopbar(_topbar->runtime, _topbar);
   }
+  ideMakeTopbar(_topbar->runtime, _topbar);
 }
 
 void Topbar_resize(Widget *_topbar, const uint32_t box[4]) {

@@ -199,6 +199,13 @@ void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
 #define Widget_setProperty(widget, bit_field) ((widget)->property |= (bit_field))
 #define Widget_unsetProperty(widget, bit_field) ((widget)->property &= ~(bit_field))
 
+#define Widget_setWidth(widget, width) ( \
+  ((widget)->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? ((widget)->box[BG_W] = (width)) : ((widget)->box[BE_R] = (widget)->box[BE_L] + (width)) \
+)
+#define Widget_setHeight(widget, width) ( \
+  ((widget)->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? ((widget)->box[BG_H] = (width)) : ((widget)->box[BE_B] = (widget)->box[BE_T] + (width)) \
+)
+
 #define  Widget_width(widget) ( \
   ((widget)->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? (widget)->box[BG_W] : (widget)->box[BE_R] - (widget)->box[BE_L] \
 )

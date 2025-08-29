@@ -26,7 +26,6 @@
 
 #include "runtime.h"
 #include "widgets.h"
-#include <stdbool.h>
 #include <stdio.h>
 
 void ideCallback_windowResize(GLFWwindow *handle, int width, int height) {
@@ -81,8 +80,16 @@ void ideCallback_keyboardKeyEvent(Window *window) {
 
 void APIENTRY xglCallback_debugOutput(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length[[maybe_unused]],
                              const GLchar *message, const void *userParam[[maybe_unused]]) {
-  if (id == 131169 || id == 131185 || id == 131218 || id == 131204) { return; }
-  rt_debug("Debug message (%d): %s", id, message);
+  // TODO: show debug message by custom severity level.
+  switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH: rt_debug("%s", "Severity: high"); break;
+    case GL_DEBUG_SEVERITY_MEDIUM: rt_debug("%s", "Severity: medium"); break;
+    case GL_DEBUG_SEVERITY_LOW: rt_debug("%s", "Severity: low"); break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: rt_debug("%s", "Severity: notification"); break;
+//    case GL_DEBUG_SEVERITY_NOTIFICATION: return;
+    default: {
+    }
+  }
 
   switch (source) {
     case GL_DEBUG_SOURCE_API: rt_debug("%s", "Source: API"); break;
@@ -108,12 +115,6 @@ void APIENTRY xglCallback_debugOutput(GLenum source, GLenum type, GLuint id, GLe
     default: {
     }
   }
-  switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH: rt_debug("%s", "Severity: high"); break;
-    case GL_DEBUG_SEVERITY_MEDIUM: rt_debug("%s", "Severity: medium"); break;
-    case GL_DEBUG_SEVERITY_LOW: rt_debug("%s", "Severity: low"); break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION: rt_debug("%s", "Severity: notification"); break;
-    default: {
-    }
-  }
+  rt_debug("Id: %d", id);
+  rt_debug("Message: %s", message);
 }

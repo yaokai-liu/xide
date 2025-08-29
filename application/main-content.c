@@ -53,6 +53,7 @@ inline void Window_setMainContent(Window *window, Widget *) {
 
 void Central_makeGraph(Widget *_central) {
   Box_makeGraph(_central);
+  Central_resize(_central, nullptr);
   ideMakeCentral(_central->runtime, _central);
 }
 

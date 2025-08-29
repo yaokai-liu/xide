@@ -27,7 +27,6 @@
 
 #include "Box.h"
 #include "draw.h"
-#include "runtime-msg.h"
 
 void Box_append(Box *box, Widget *child) {
   if (!box->children) {

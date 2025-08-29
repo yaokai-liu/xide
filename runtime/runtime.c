@@ -71,13 +71,13 @@ GLuint compileShader(const char_t *path, const GLenum type, const Allocator *all
   fread((void *) source, sizeof(char), length, file);
   source[length] = 0;
   GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, (const GLchar **) &source, NULL);
+  glShaderSource(shader, 1, (const GLchar **) &source, nullptr);
   glCompileShader(shader);
   int success;
   char infoLog[512];
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
   if (!success) {
-    glGetShaderInfoLog(shader, 512, NULL, infoLog);
+    glGetShaderInfoLog(shader, 512, nullptr, infoLog);
     rt_error("Failed to compile shader '%s': \n%s\n", path, infoLog);
   }
   return shader;
@@ -107,7 +107,7 @@ GLuint *ideCompileShaders(IDE *ide, ShaderInfo shaderInfo[], uint32_t count) {
   glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
   if (!status) {
     GLchar infoLog[512];
-    glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+    glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
     rt_error("Failed to link shaders program: \n%s", infoLog);
     return nullptr;
   }
@@ -222,7 +222,7 @@ GLFWwindow *ideInitGlfwGLContext(int width, int height) {
   // make context
   glfwMakeContextCurrent(handle);
   // set swap interval
-  glfwSwapInterval(1);
+  glfwSwapInterval(2);
   // initialize glad
   if (ideInitializeGlad()) { return nullptr; }
   // set opengl viewport
