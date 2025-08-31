@@ -81,6 +81,11 @@ typedef struct Widget {
   uint32_t status;
   /**
    * @description
+   * the Identify Number of the widget.
+   */
+  uint64_t ident;
+  /**
+   * @description
    * Property of the widget to determine the widget's behaviors.
    * @escape
    * If the `type` field's `WIDGET_TYPE_CUSTOM_WIDGET` set on,
@@ -121,15 +126,15 @@ typedef struct Widget {
    * @description
    * Return a sub-widget the position is in.
    * @tags OVERRIDE NONEPASS
-   * @param widget the widget itself,
+   * @param widget the widget itself
+   * @param local_coord the given position,
    * has been converted to widget local coord
-   * @param local_coord the given position
    */
   fn_subs * OVERRIDE NONEPASS curSubWidget;
   /**
    * @descriptionp
-   * Prepare the draw task, must pass to all sub-widgets.
-   * Always used after the widget updated its UI.
+   * Prepare or update the draw task, must pass to all widgets depend it.
+   * Usually called when the UI have to update.
    * @tags OVERRIDE PASSDOWN
    * @param widget the widget itself
    */
@@ -154,6 +159,20 @@ typedef struct Widget {
    */
   REFER(uint32_t) shader;
   /**
+   * @description the last updating time
+   * which is the number of times external input entered.
+   */
+  uint64_t timestamp;
+  /**
+   * @description
+   * if this widget changed its UI, include box or geometry, graphics, range,
+   * all the linkages should update.
+   * @details
+   * Array<Widget *> or Array<REFER(Widget)> or Array<INDEX(Widget)> or Array<ID(Widget)>
+   * depends the interpretation of the widget.
+   */
+  Array *linkages;
+  /**
    * @description Temporary datas to keep.
    */
   void *   msgData[2];
@@ -161,7 +180,7 @@ typedef struct Widget {
    * @Description
    * The geometry box of the widget.
    * @normally
-   * Data in the box is left, top, right and bottom sides of the widget.
+   * left, top, right and bottom sides of the widget.
    * @escape
    * If widget property `WIDGET_PROPERTY_BOX_AS_GEOMETRY` is set on,
    * data in the box will be interpreted as position
@@ -173,7 +192,7 @@ typedef struct Widget {
   uint32_t box[4];
   /**
    * @description
-   * Data in the box is left, top, right and bottom paddings of the widget.
+   * left, top, right and bottom paddings of the widget.
    */
   uint32_t padding[4];
 } Widget;

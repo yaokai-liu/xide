@@ -29,7 +29,6 @@
 #include "color.h"
 #include "runtime.h"
 #include "minmax.h"
-#define lenof(_array)  (sizeof(_array) / sizeof(_array[0]))
 
 void Topbar_makeGraph(Widget *_topbar) {
   Box_makeGraph(_topbar);
@@ -98,10 +97,10 @@ void ideMakeTopbar(IDE *ide, Widget *_topbar) {
     return;
   }
   PixelVertex2D corners[] = {
-    {{_topbar->box[BG_X], _topbar->box[BG_Y]}, 0xffffffff},
-    {{_topbar->box[BG_X] + _topbar->box[BG_W], _topbar->box[BG_Y]}, 0xffffffff},
-    {{_topbar->box[BG_X] + _topbar->box[BG_W], (_topbar->box[BG_Y] + _topbar->box[BG_H])}, 0xffffffff},
-    {{_topbar->box[BG_X], (_topbar->box[BG_Y] + _topbar->box[BG_H])}, 0xffffffff},
+    {{_topbar->box[BG_X], _topbar->box[BG_Y]}, RGBA_WHITE},
+    {{_topbar->box[BG_X] + _topbar->box[BG_W], _topbar->box[BG_Y]}, RGBA_WHITE},
+    {{_topbar->box[BG_X] + _topbar->box[BG_W], (_topbar->box[BG_Y] + _topbar->box[BG_H])}, RGBA_WHITE},
+    {{_topbar->box[BG_X], (_topbar->box[BG_Y] + _topbar->box[BG_H])}, RGBA_WHITE},
   };
   Array *vertex_array = Array_new(sizeof(PixelVertex2D), enum_XGL_COORD, _topbar->allocator);
   Array_append(vertex_array, corners, 4);
@@ -139,7 +138,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
   topbar->SUPER.padding[BE_B] = 5 ;
 
   // set window title
-  const Font IDE_DEFAULT_FONT = {.path = "fonts/msyh.ttc", .index = 0, .size = 12};
+  const Font IDE_DEFAULT_FONT = {.path = "fonts/JetBrainsMono-Regular.ttf", .index = 0, .size = 12};
 
   Text *text = window->SUPER.allocator->calloc(1, sizeof(Text));
   text->SUPER.type = WIDGET_TYPE_TEXT;
