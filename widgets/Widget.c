@@ -70,7 +70,8 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
   uint32_t *box = widget->box;
   if (box[BE_L] > box[BE_R] || box[BE_T] > box[BE_B]) { return -1; }
 
-  if (!widget->funcRange) { return 0; }
+  if (!widget->graphic || !widget->graphic->funcRange) { return 0; }
+  fn_area *funcRange = widget->graphic->funcRange;
 
   uint32_t BOX[4] = {};
   box = (widget->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? geo2box(widget->box, BOX) : widget->box;
@@ -79,12 +80,12 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
   for (uint32_t i = box[BE_T]; i <= box[BE_B]; i++) {
     uint32_t j = box[BE_L];
     uint32_t coord[2] = {j, i};
-    while (j <= box[BE_R] && !widget->funcRange(widget, coord)) { j++, coord[0] = j; }
+    while (j <= box[BE_R] && !funcRange(widget->graphic, coord)) { j++, coord[0] = j; }
     left = min(left, j);
-    if (top >= box[BE_B] && widget->funcRange(widget, coord)) { top = i; }
-    if (bottom <= box[BE_T] && widget->funcRange(widget, coord)) { bottom = i; }
+    if (top >= box[BE_B] && funcRange(widget->graphic, coord)) { top = i; }
+    if (bottom <= box[BE_T] && funcRange(widget->graphic, coord)) { bottom = i; }
     for (; j <= box[BE_R]; j++, coord[0] = j) {
-      if (widget->funcRange(widget, coord)) { right = max(right, j); }
+      if (funcRange(widget->graphic, coord)) { right = max(right, j); }
     }
   }
   // update widget box
@@ -129,8 +130,9 @@ inline void IdeWidget_local2parent(Widget *widget, uint32_t coord[2]) {
 inline bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]) {
   bool in_box = coord[AXIS_X] <= Widget_width(widget)
              && coord[AXIS_Y] <= Widget_height(widget);
-  if (!widget->funcRange) { return in_box; }
-  return in_box && widget->funcRange(widget, coord);
+  if (!widget->graphic || !widget->graphic->funcRange) { return in_box; }
+  fn_area *funcRange = widget->graphic->funcRange;
+  return in_box && funcRange(widget->graphic, coord);
 }
 
 void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *) {

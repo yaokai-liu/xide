@@ -105,8 +105,8 @@ void ideMakeTopbar(IDE *ide, Widget *_topbar) {
   Array *vertex_array = Array_new(sizeof(PixelVertex2D), enum_XGL_COORD, _topbar->allocator);
   Array_append(vertex_array, corners, 4);
   _topbar->drawTask = ideCreatePixelPolygon2D(vertex_array, 0, true, _topbar->allocator);
-  GLuint *shader = (_topbar->shader)
-                     ? Array_virt2real(ide->shaderProgramArray, _topbar->shader)
+  GLuint *shader = (_topbar->graphic && _topbar->graphic->shader)
+                     ? Array_virt2real(ide->shaderProgramArray, _topbar->graphic->shader)
                      :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_SHADER]);
   xglBindShaderProgram(_topbar->drawTask, *shader);
   releasePrimeArray(vertex_array);
@@ -128,7 +128,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
   topbar->SUPER.box[BG_W] = Widget_width((Widget *)window);
   topbar->SUPER.box[BG_H] = 0;
   topbar->SUPER.funcDraw = Box_draw;
-  topbar->SUPER.funcRange = nullptr;
+  topbar->SUPER.graphic = nullptr;
   topbar->SUPER.funcMakeGraph = Topbar_makeGraph;
   topbar->SUPER.curSubWidget = Box_curSubWidget;
   topbar->SUPER.funcEventProc = Topbar_eventProcess;
@@ -139,6 +139,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
 
   // set window title
   const Font IDE_DEFAULT_FONT = {.path = "fonts/JetBrainsMono-Regular.ttf", .index = 0, .size = 12};
+  Graphic *textGraphic = window->SUPER.allocator->calloc(1, sizeof(Graphic));
 
   Text *text = window->SUPER.allocator->calloc(1, sizeof(Text));
   text->SUPER.type = WIDGET_TYPE_TEXT;
@@ -148,7 +149,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
   text->SUPER.parent = (Widget *) topbar;
   text->SUPER.runtime = window->SUPER.runtime;
   text->SUPER.funcDraw = Text_draw;
-  text->SUPER.funcRange = nullptr;
+  text->SUPER.graphic = textGraphic;
   text->SUPER.curSubWidget = nullptr;
   text->SUPER.funcEventProc = nullptr;
   text->SUPER.funcMakeGraph = Text_makeGraph;
@@ -158,6 +159,10 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
   text->font = IDE_DEFAULT_FONT;
   text->mode = TS_RIGHT | TS_V_CENTER | TS_HORIZONTAL;
   text->color = RGBA_BLACK;
+
+  textGraphic->widget = (Widget *) text;
+  textGraphic->funcRange = nullptr;
+  // todo: graphic complete
 
   Box_append(topbar, (Widget *) text);
 

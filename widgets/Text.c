@@ -59,8 +59,8 @@ void ideMakeText(IDE *ide, Widget *_text) {
       text->SUPER.box[BE_B] = text->SUPER.box[BE_T] + size[AXIS_Y];
     }
   }
-  GLuint *shader = (text->SUPER.shader)
-                     ? Array_virt2real(ide->shaderProgramArray, text->SUPER.shader)
+  GLuint *shader = (text->SUPER.graphic->shader)
+                     ? Array_virt2real(ide->shaderProgramArray, text->SUPER.graphic->shader)
                      :Array_virt2real(ide->shaderProgramArray, ide->defaultShader[DEFAULT_CHAR_SHADER]);
   xglBindShaderProgram(text->SUPER.drawTask, *shader);
 }

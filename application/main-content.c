@@ -36,7 +36,7 @@ inline void Window_setMainContent(Window *window, Widget *) {
   central->SUPER.runtime = window->SUPER.runtime;
   central->SUPER.parent = (Widget *) window;
   central->SUPER.funcDraw = Box_draw;
-  central->SUPER.funcRange = nullptr; // default range
+  central->SUPER.graphic = nullptr; // default range
   central->SUPER.funcMakeGraph = Central_makeGraph;
   central->SUPER.curSubWidget = Box_curSubWidget;
   central->SUPER.funcEventProc = nullptr; // not accept events

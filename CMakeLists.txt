@@ -43,9 +43,10 @@ include_directories(xglm/src)
 link_libraries(xglm)
 
 include_directories(
+        conventions
         runtime
         widgets
-        style
+        ui-config
         computational-geometry
         meman
 )
@@ -55,8 +56,12 @@ link_libraries(meman)
 aux_source_directory(computational-geometry COM_GEO_SRC)
 add_library(com-geo STATIC ${COM_GEO_SRC})
 
+aux_source_directory(ui-config UI_CONFIG_SRC)
+add_library(ui-config STATIC ${UI_CONFIG_SRC})
+
 aux_source_directory(widgets UI_SRC)
 add_library(widgets STATIC ${UI_SRC})
+target_link_libraries(widgets PUBLIC ui-config)
 
 aux_source_directory(runtime RT_SRC)
 add_library(runtime STATIC ${RT_SRC})

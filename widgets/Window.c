@@ -36,7 +36,7 @@ Window *Window_new(IDE *ide, GLFWwindow *handle) {
   window->SUPER.allocator = ide->allocator;
   window->SUPER.runtime = ide;
   window->SUPER.parent = nullptr;
-  window->SUPER.funcRange = nullptr;
+  window->SUPER.graphic = nullptr;
   window->SUPER.funcDraw = Window_draw;
   window->SUPER.funcMakeGraph = Window_makeGraph;
   window->SUPER.curSubWidget = Window_curSubWidget;

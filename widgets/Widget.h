@@ -30,28 +30,15 @@
 #include "array.h"
 #include "char_t.h"
 #include "enum.h"
+#include "graphic.h"
 #include "shape2d.h"
+#include "inherit.h"
+#include "ide-types.h"
 #include <stdint.h>
 
-typedef struct IDE IDE;
-typedef struct DrawTask DrawTask;
-
-typedef struct Widget Widget;
-
-/** means this function not need to call the SUPER's function */
-#define OVERRIDE
-/** means this function needs to call the SUPER's function */
-#define EXTEND
-/** means this function not need to call the same function of parent or sub-widgets */
-#define NONEPASS
-/** means this function may need to call the same function of some sub-widgets */
-#define PASSDOWN
-/** means this function may need to call the same function of parent */
-#define PASSOVER
 
 typedef void fn_draw(Widget *widget);
 typedef void fn_grap(Widget *widget);
-typedef bool fn_area(Widget *widget, uint32_t local_coord[2]);
 typedef Widget *fn_subs(Widget *widget, uint32_t local_coord[2]);
 typedef void *fn_event(Widget *widget, uint32_t event_id, void *args);
 
@@ -106,24 +93,6 @@ typedef struct Widget {
   IDE * runtime;
   /**
    * @description
-   * The real draw command, must pass to all sub-widgets.
-   * @tags OVERRIDE PASSDOWN
-   * @param widget the widget itself
-   */
-  fn_draw * OVERRIDE PASSDOWN funcDraw;
-  /**
-   * @description
-   * Determine if a position in the widget box is in the widget range.
-   * To determine if it responses the cursor events in widget's box.
-   * @tags OVERRIDE NONEPASS
-   * @param widget the widget itself
-   * @param local_coord the given position,
-   * has been converted to widget local coord
-   * @default nullptr, means response area of the widget is whole widget box.
-   */
-  fn_area * OVERRIDE NONEPASS funcRange;
-  /**
-   * @description
    * Return a sub-widget the position is in.
    * @tags OVERRIDE NONEPASS
    * @param widget the widget itself
@@ -131,14 +100,6 @@ typedef struct Widget {
    * has been converted to widget local coord
    */
   fn_subs * OVERRIDE NONEPASS curSubWidget;
-  /**
-   * @descriptionp
-   * Prepare or update the draw task, must pass to all widgets depend it.
-   * Usually called when the UI have to update.
-   * @tags OVERRIDE PASSDOWN
-   * @param widget the widget itself
-   */
-  fn_grap * OVERRIDE PASSDOWN funcMakeGraph;
   /**
    * @description
    * Process event that happened on the widget.
@@ -150,26 +111,43 @@ typedef struct Widget {
    */
   fn_event *  EXTEND PASSOVER funcEventProc;
   /**
-   * @description The draw task of the widget, not include sub-widgets.
+   * @descriptionp
+   * Prepare or update the draw task, must pass to all widgets depend it.
+   * Usually called when the UI have to update.
+   * @tags OVERRIDE PASSDOWN
+   * @param widget the widget itself
+   */
+  fn_grap * OVERRIDE PASSDOWN funcMakeGraph;
+  /**
+   * @description
+   * The real draw command, must pass to all sub-widgets.
+   * @tags OVERRIDE PASSDOWN
+   * @param widget the widget itself
+   */
+  fn_draw * OVERRIDE PASSDOWN funcDraw;
+  /**
+   * @description   the graphic interface of the widget
+   * User can choice different graphic to change the graphic of the widget.
+   * This graphic determines the widget's range to response cursor event,
+   * the widget's shape and style, and the real draw command.
+   * @escape        if is nullptr,
+   * means this widget will make directly by the `funcMakeGraph`
+   */
+  Graphic *graphic;
+  /**
+   * @description the draw task of the graphic
    */
   DrawTask *drawTask;
-  /**
-   * @description The graphic shader of the widget.
-   * @default     ide's default shader or ide's default text shader.
-   */
-  REFER(uint32_t) shader;
   /**
    * @description the last updating time
    * which is the number of times external input entered.
    */
   uint64_t timestamp;
   /**
-   * @description
-   * if this widget changed its UI, include box or geometry, graphics, range,
+   * @description   widgets that graphics depend on this widget
+   * If this widget changed its UI, include box or geometry, graphics, range,
    * all the linkages should update.
-   * @details
-   * Array<Widget *> or Array<REFER(Widget)> or Array<INDEX(Widget)> or Array<ID(Widget)>
-   * depends the interpretation of the widget.
+   * @type          Array<Widget *>
    */
   Array *linkages;
   /**
