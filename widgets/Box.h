@@ -41,11 +41,11 @@ typedef struct Box {
   Array *children; // Array<Widget *>
 } Box;
 
-void Box_draw(Widget *_box);
-void Box_makeGraph(Widget *_box);
-Widget *Box_curSubWidget(Widget *_box, uint32_t coord[2]);
+void Box_draw(const Widget *_box);
+void Box_updateGraph(Widget *_box);
+Widget *Box_curSubWidget(const Widget *_box, uint32_t coord[2]);
 void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args);
-void ideMakeBox(IDE *ide, Widget *_box);
+void ideMakeBox(Widget *_box);
 
 void Box_append(Box *box, Widget *child);
 

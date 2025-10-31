@@ -30,10 +30,10 @@
 #include "runtime-msg.h"
 #include "ide.h"
 
-CharModelSet *ideGenCharModelSet(IDE *ide, const Font *font);
-uint32_t ideUpdateCharacterTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, CharModelSet *set);
+CharModelSet *ideGenCharModelSet(const IDE *ide, const Font *font);
+uint32_t ideUpdateCharacterTextureAtlas(const IDE *ide, const Array /*<char_t>*/ *char_array, const CharModelSet *set);
 
-const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array) {
+const CharModelSet *ideUpdateCharModelSet(const IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array) {
   CharModelSet *set = ideGenCharModelSet(ide, font);
   if (!set) { return nullptr; }
   ideUpdateCharacterTextureAtlas(ide, char_array, set);
@@ -41,7 +41,7 @@ const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Arra
 }
 
 
-CharModelSet *ideGenCharModelSet(IDE *ide, const Font *font) {
+CharModelSet *ideGenCharModelSet(const IDE *ide, const Font *font) {
   CharModelSet *set = FontManager_loadFont(ide->fontManager, font);
   if (!set) { return nullptr; }
   set = FontManager_realCharModelSet(ide->fontManager, set);
@@ -52,7 +52,7 @@ CharModelSet *ideGenCharModelSet(IDE *ide, const Font *font) {
   return set;
 }
 
-uint32_t ideUpdateCharacterTextureAtlas(IDE *ide, const Array /*<char_t>*/ *char_array, CharModelSet *set) {
+uint32_t ideUpdateCharacterTextureAtlas(const IDE *ide, const Array /*<char_t>*/ *char_array, const CharModelSet *set) {
   const Allocator *allocator = ide->allocator;
   TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
   const uint32_t old_width = atlas->width, old_height = atlas->height;
@@ -170,6 +170,7 @@ Array /*<Vertex2D>*/ *CharModelSet_genHCoordArray(const CharModelSet *set, const
       for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_X] -= width; }
       break;
     }
+    default: ;
   }
   switch (mode & TS_V_MASK) {
     case TS_V_CENTER: {
@@ -180,6 +181,7 @@ Array /*<Vertex2D>*/ *CharModelSet_genHCoordArray(const CharModelSet *set, const
       for (uint32_t i = 0; i < count; i++) { vertices[i].coord[AXIS_Y] -= height; }
       break;
     }
+    default: ;
   }
   Array *vertex_array = Array_new(sizeof(Vertex2D), enum_XGL_COORD, allocator);
   Array_append(vertex_array, vertices, count);

@@ -30,8 +30,11 @@
 #include <pthread.h>
 #include <stdio.h>
 #include "callback.h"
-#ifndef PATH_MAX
-  #define PATH_MAX 256
+#if defined(_WIN32) || defined(_WIN64)
+  #include <direct.h>
+#include <shlwapi.h>
+#else
+#include <unistd.h>
 #endif
 
 enum PATH_TYPE {
@@ -41,12 +44,14 @@ enum PATH_TYPE {
 };
 
 uint32_t isAbsolutePath(const char_t *path) {
-  if (path[0] == '/') { return PT_UNIX_ABS; }
-  if ('A' <= path[0] && path[0] <= 'Z' && path[1] == ':' && path[2] == '\\') { return PT_WIN_ABS; }
-  return PT_RELATED;
+#if defined(_WIN32) || defined(_WIN64)
+  return (!PathIsRelativeA(path)) * PT_WIN_ABS;
+#else
+  return (path[0] == '/') * PT_UNIX_ABS;
+#endif
 }
 
-char_t *ideResolveToAbsolutePath(IDE *ide, char_t *path, char_t *dest) {
+char_t *ideResolveToAbsolutePath(const IDE *ide, char_t *path, char_t *dest) {
   if (isAbsolutePath(path) != PT_RELATED) { return path; }
   uint32_t dir_len = strlen(ide->workdir);
   uint32_t path_len = dir_len + strlen(path);
@@ -135,7 +140,7 @@ int ideInitializeGlad() {
   return 0;
 }
 
-void ideSwitchWindow(Window *window) {
+void ideSwitchWindow(const Window *window) {
   glfwMakeContextCurrent(window->handle);
   glfwSwapInterval(1);
 }
@@ -154,7 +159,7 @@ GLFWmonitor *ideSwitchMonitor(int index) {
   return monitor;
 }
 
-void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
+void ideAddTasks(const IDE *ide, DrawTask *task, GLuint *shaderProgram) {
   if (!task || !shaderProgram) { return; }
   shaderProgram = Array_virt2real(ide->shaderProgramArray, shaderProgram);
   xglBindShaderProgram(task, *shaderProgram);
@@ -170,7 +175,7 @@ void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram) {
   Array_insert(ide->drawTaskArray, ndx, task, 1);
 }
 
-void ideDrawUiOnce(IDE *ide) {
+void ideDrawUiOnce(const IDE *ide) {
 //  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
   Widget_draw((Widget *) ide->mainWindow);
@@ -186,7 +191,7 @@ void *ideRepeatDrawUi(IDE *ide) {
   return nullptr;
 }
 
-bool ideShouldStopRender(Window *window) {
+bool ideShouldStopRender(const Window *window) {
   return glfwWindowShouldClose(window->handle);
 }
 
@@ -257,7 +262,7 @@ void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]) {
   ide->hoveredWidget = widget;
 }
 
-void ideUpdateMouseMovement(IDE *ide, uint32_t position[2]) {
+void ideUpdateMouseMovement(const IDE *ide, uint32_t position[2]) {
   if (ide->capturedWidget) {
     ide->capturedWidget->funcEventProc(ide->capturedWidget, enum_EVENT_CURSOR_MOVE, position);
     return;
@@ -281,7 +286,7 @@ void idePassMouseLeftButtonEvent(IDE *ide, uint32_t event, uint32_t mods) {
   widget->funcEventProc(widget, event, &mods);
 }
 
-void ideShiftWindow(IDE *ide, const uint32_t vector[2]) {
+void ideShiftWindow(const IDE *ide, const uint32_t vector[2]) {
   GLFWwindow *const handle = ide->mainWindow->handle;
   uint32_t *geometry = ide->mainWindow->geometry;
   geometry[BG_X] += vector[AXIS_X];
@@ -291,12 +296,12 @@ void ideShiftWindow(IDE *ide, const uint32_t vector[2]) {
   glfwSetWindowPos(handle, pos_x, pos_y);
 }
 
-void ideResizeWindow(IDE *ide, GLint viewport[4]) {
+void ideResizeWindow(const IDE *ide, GLint viewport[4]) {
   Widget *_window = (Widget *)ide->mainWindow;
-  uint32_t _viewport[4] = {viewport[0], viewport[1], viewport[2], viewport[3]};
+  const uint32_t _viewport[4] = {viewport[0], viewport[1], viewport[2], viewport[3]};
   Window_resize(_window, _viewport);
 }
 
 void ideSetupUi(IDE *ide) {
-  Window_makeGraph((Widget *) ide->mainWindow);
+  Window_updateGraph((Widget *) ide->mainWindow);
 }

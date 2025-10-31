@@ -134,7 +134,7 @@ inline DrawTask *ideCreateTexturedDrawTask(const Array * const vertex_array, con
   return task;
 }
 
-inline void xglDestroyDrawTask(DrawTask * const task, const Allocator *) {
+inline void xglDestroyDrawTask(const DrawTask * const task, const Allocator *) {
   const iXGLVbo *buffer = (iXGLVbo *) Array_real_addr(task->VBOs, 0);
   glDeleteBuffers((GLint) Array_length(task->VBOs), buffer);
   glDeleteVertexArrays(1, &task->VAO);
@@ -352,11 +352,11 @@ DrawTask *ideCreatePixelPolyline2D(const Array * const vertex_array, const uint3
 
 #define lenof(array) (sizeof(array) / sizeof(typeof((array)[0])))
 
-inline DrawTask *ideCreateDrawTextTask(IDE *ide, const Array *char_array, const Array *vert_array,
-                                       const CharModelSet *set, uint32_t plane_index, const Font *font) {
+inline DrawTask *ideCreateDrawTextTask(const IDE *ide, const Array *char_array, const Array *vert_array,
+                                       const CharModelSet *set, const uint32_t plane_index, const Font *font) {
   if (!ide || !char_array || !vert_array || !set || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
-  TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
+  const TextureAtlas *atlas = Array_real_addr(ide->atlasManager, set->atlas - 1);
   Array *vertex_array = Array_new(sizeof(XGLVertex), enum_XGL_VERTEX, allocator);
   Array *index_array = Array_new(sizeof(GLuint), enum_XGL_INDEX, allocator);
   const uint32_t count = min(Array_length(vert_array), Array_length(char_array));
@@ -392,25 +392,21 @@ inline DrawTask *ideCreateText2DByArray(IDE *ide, const Array /*<char_t>*/ *char
   return ideCreateDrawTextTask(ide, char_array, vert_array, set, plane_index, font);
 }
 
-inline DrawTask *ideCreateTextStr2D(IDE *ide, const Array *char_array, const Vertex2D *anchor, const float c_space,
+inline DrawTask *ideCreateTextStr2D(const IDE *ide, const Array *char_array, const Vertex2D *anchor, const float c_space,
                                     const uint32_t mode, uint32_t plane_index, const Font *font,
                                     XGLVector2D feedback_vec) {
   if (!ide || !char_array || !anchor || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
   const CharModelSet *set = ideUpdateCharModelSet(ide, font, char_array);
-  Array *vertex_array = nullptr;
-  if ((mode & TS_D_MASK) == TS_VERTICAL) {
-    vertex_array = CharModelSet_genVCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
-  } else {
-    vertex_array = CharModelSet_genHCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
-  }
+  auto fn_genCoordArray = (mode & TS_D_MASK) == TS_VERTICAL ? CharModelSet_genVCoordArray : CharModelSet_genHCoordArray;
+  Array *vertex_array = fn_genCoordArray(set, char_array, anchor, c_space, mode, feedback_vec, allocator);
   DrawTask * const task = ideCreateDrawTextTask(ide, char_array, vertex_array, set, plane_index, font);
   if (vertex_array) { releasePrimeArray(vertex_array); }
   return task;
 }
 
-inline DrawTask *ideCreateTextStr2DByStr(IDE *ide, const char_t *string, const Vertex2D *anchor, float c_space,
-                                         uint32_t mode, uint32_t plane_index, const Font *font,
+inline DrawTask *ideCreateTextStr2DByStr(const IDE *ide, const char_t *string, const Vertex2D *anchor, const float c_space,
+                                         const uint32_t mode, const uint32_t plane_index, const Font *font,
                                          XGLVector2D feedback_vec) {
   if (!ide || !string || !anchor || !font) { return nullptr; }
   const Allocator *allocator = ide->allocator;
@@ -453,7 +449,7 @@ inline void ideDrawPolyline(const DrawTask *const task, const uint32_t viewport[
   glBindVertexArray(0);
 }
 
-void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[4]) {
+void ideDrawText(const IDE *ide, const DrawTask *task, const uint32_t viewport[4]) {
   const TextureAtlas *atlas = Array_real_addr(ide->atlasManager, task->atlas_index);
   const uint32_t atlas_size[2] = {[AXIS_X] = atlas->width, [AXIS_Y] = atlas->height};
   int loc_viewport = glGetUniformLocation(task->program, "viewport");
@@ -470,7 +466,7 @@ void ideDrawText(IDE *ide, const DrawTask *task, const uint32_t viewport[4]) {
   glBindVertexArray(0);
 }
 
-inline void ideDraw(IDE *ide, const DrawTask * const task) {
+inline void ideDraw(const IDE *ide, const DrawTask * const task) {
   const uint32_t *const viewport = ide->mainWindow->SUPER.box;
   switch (task->task_type) {
     case TT_LINES: {
@@ -486,5 +482,6 @@ inline void ideDraw(IDE *ide, const DrawTask * const task) {
     case TT_TEXT: {
       return ideDrawText(ide, task, viewport);
     }
+    default: ;
   }
 }

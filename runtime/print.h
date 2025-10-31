@@ -35,17 +35,19 @@
 #include "xgl-object.h"
 
 enum TEXT_STYLE {
-  TS_RIGHT = 0b00,
+  TS_DEFAULT = 0,
+
+  TS_RIGHT = TS_DEFAULT,
   TS_LEFT = 0b01,
   TS_H_CENTER = 0b10,
   TS_H_MASK = 0b11,
 
-  TS_V_CENTER = 0b0000,
+  TS_V_CENTER = TS_DEFAULT,
   TS_ABOVE = 0b0100,
   TS_BELOW = 0b1000,
   TS_V_MASK = 0b1100,
 
-  TS_HORIZONTAL = 0x00,
+  TS_HORIZONTAL = TS_DEFAULT,
   TS_VERTICAL = 0x10,
   TS_D_MASK = 0xF0,
 };

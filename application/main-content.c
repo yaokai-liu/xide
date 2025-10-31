@@ -37,7 +37,7 @@ inline void Window_setMainContent(Window *window, Widget *) {
   central->SUPER.parent = (Widget *) window;
   central->SUPER.funcDraw = Box_draw;
   central->SUPER.graphic = nullptr; // default range
-  central->SUPER.funcMakeGraph = Central_makeGraph;
+  central->SUPER.funcUpdateGraph = Central_updateGraph;
   central->SUPER.curSubWidget = Box_curSubWidget;
   central->SUPER.funcEventProc = nullptr; // not accept events
   central->SUPER.padding[BE_L] = 0;
@@ -51,10 +51,10 @@ inline void Window_setMainContent(Window *window, Widget *) {
   window->central = _central;
 }
 
-void Central_makeGraph(Widget *_central) {
-  Box_makeGraph(_central);
+void Central_updateGraph(Widget *_central) {
+  Box_updateGraph(_central);
   Central_resize(_central, nullptr);
-  ideMakeCentral(_central->runtime, _central);
+  ideMakeCentral(_central);
 }
 
 void Central_resize(Widget *_central, const uint32_t [4]) {
@@ -73,7 +73,7 @@ void Central_resize(Widget *_central, const uint32_t [4]) {
       Widget_reGeometry(children[i], _central->box);
     }
   }
-  ideMakeBox(_central->runtime, _central);
+  ideMakeBox(_central);
 }
 
-void ideMakeCentral(IDE *, Widget *) {}
+void ideMakeCentral(Widget *) {}

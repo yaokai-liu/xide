@@ -35,7 +35,7 @@ typedef struct FontManager FontManager;
 FontManager *FontManager_new(const Allocator *allocator);
 void FontManager_destroy(FontManager *manager);
 REFER(CharModelSet) FontManager_loadFont(FontManager *manager, const Font *font);
-REFER(CharModelSet) FontManager_findFont(FontManager *manager, const Font *font);
-CharModelSet *FontManager_realCharModelSet(FontManager *manager, REFER(CharModelSet) set);
+REFER(CharModelSet) FontManager_findFont(const FontManager *manager, const Font *font);
+CharModelSet *FontManager_realCharModelSet(const FontManager *manager, REFER(CharModelSet) set);
 
 #endif  // XIDE_FONT_MANAGE_H

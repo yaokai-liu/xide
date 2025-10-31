@@ -19,11 +19,25 @@
  *
  * Project Name: xide
  * Module Name: widgets
- * Filename: GLView.c
+ * Filename: GLViewer.h
  * Creator: Yaokai Liu
  * Create Date: 2025-05-03
  * Copyright (c) 2025 Yaokai Liu. All rights reserved.
  **/
 
-#include "GLView.h"
+#ifndef XIDE_GL_VIEWER_H
+#define XIDE_GL_VIEWER_H
 
+#include "Widget.h"
+
+typedef struct GLViewer {
+  Widget SUPER;
+} GLViewer;
+
+void GLViewer_draw(Widget *_text);
+void GLViewer_updateGraph(Widget *_text);
+void *GLViewer_eventProcess(Widget *_text, uint32_t event_id, void *args);
+void ideMakeGLViewer(Widget *_text);
+
+
+#endif  // XIDE_GL_VIEWER_H

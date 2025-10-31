@@ -73,13 +73,13 @@ bool vertInPolygon(const Array *vert_array, const XGLCoord vert);
 bool vertInTriangle(const GLfloat vertices[][4], const VNI *vni, uint32_t index);
 bool vertAtLeftOfSegment(const XGLCoord seg_verts[2], const XGLCoord vert);
 void getCircumscribedCircle(const struct Triangle *triangle, struct Circle *circle);
-struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge);
+struct SharedEdge *findEdge(const Array *edge_array, const CG2DEdge *edge);
 float outAngleValue(const XGLCoord *vertices, const VNI *vni);
 int32_t calculatePolygonWinding(const XGLCoord *vertices, uint32_t n_vertices);
 Array *buildVniAndIncArray(const Array *vert_array, Array *inc_arrays, const Allocator *allocator);
 bool isEarVNI(const VNI *vni);
 VNI *findEarVNI(VNI *vnies, uint32_t count);
-int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge);
+int oppositeVert(const struct Triangle *pTriangle, const CG2DEdge edge);
 bool vertInAngle(XGLCoord angle_vertices[3], const XGLCoord vert);
 bool isSameEdge(const CG2DEdge *edge1, const CG2DEdge *edge2);
 bool edgeInTriangle(const CG2DEdge *edge, const struct Triangle *triangle);
@@ -194,7 +194,7 @@ inline bool vertInTriangle(const GLfloat vertices[][4], const VNI *vni, uint32_t
   return false;
 }
 
-struct SharedEdge *findEdge(Array *edge_array, const CG2DEdge *edge) {
+struct SharedEdge *findEdge(const Array *edge_array, const CG2DEdge *edge) {
   const int count = (int) Array_length(edge_array);
   struct SharedEdge * const edges = Array_real_addr(edge_array, 0);
   for (int i = 0; i < count; i++) {
@@ -252,7 +252,7 @@ inline VNI *findEarVNI(VNI * const vnies, const uint32_t count) {
   return nullptr;
 }
 
-inline int oppositeVert(struct Triangle *pTriangle, const CG2DEdge edge) {
+inline int oppositeVert(const struct Triangle *pTriangle, const CG2DEdge edge) {
   for (int i = 0; i < 3; i++) {
     if (pTriangle->indices[i] != edge[0] && pTriangle->indices[i] != edge[1]) { return i; }
   }
@@ -338,9 +338,8 @@ Array *xglEarClippingTriangulate2D(const Array *vert_array, const Allocator *all
   const uint32_t count = Array_length(vert_array);
   const XGLCoord * const vertices = Array_real_addr(vert_array, 0);
   const int32_t order = calculatePolygonWinding(vertices, count);
-  Array *reversed_array = nullptr;
   if (order < 0) {
-    reversed_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
+    Array *reversed_array = Array_new(sizeof(XGLCoord), enum_XGL_COORD, allocator);
     for (uint32_t i = 0; i < count; i++) {
       Array_append(reversed_array, vertices[count - i - 1], 1);
     }

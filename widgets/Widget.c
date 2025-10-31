@@ -71,7 +71,7 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
   if (box[BE_L] > box[BE_R] || box[BE_T] > box[BE_B]) { return -1; }
 
   if (!widget->graphic || !widget->graphic->funcRange) { return 0; }
-  fn_area *funcRange = widget->graphic->funcRange;
+  fn_graphic_area *funcRange = widget->graphic->funcRange;
 
   uint32_t BOX[4] = {};
   box = (widget->property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) ? geo2box(widget->box, BOX) : widget->box;
@@ -98,7 +98,7 @@ int32_t IdeWidget_adjust_box(Widget *widget) {
   return 0;
 }
 
-inline int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]) {
+inline int32_t IdeWidget_local2global(const Widget *widget, uint32_t coord[2]) {
   do {
     coord[AXIS_X] += widget->box[BE_L];
     coord[AXIS_Y] += widget->box[BE_T];
@@ -108,7 +108,7 @@ inline int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]) {
   return 0;
 }
 
-inline int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]) {
+inline int32_t IdeWidget_global2local(const Widget *widget, uint32_t coord[2]) {
   do {
     coord[AXIS_X] -= widget->box[BE_L];
     coord[AXIS_Y] -= widget->box[BE_T];
@@ -118,20 +118,20 @@ inline int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]) {
   return 0;
 }
 
-inline void IdeWidget_parent2local(Widget *widget, uint32_t coord[2]) {
+inline void IdeWidget_parent2local(const Widget *widget, uint32_t coord[2]) {
   coord[AXIS_X] -= widget->box[BE_L];
   coord[AXIS_Y] -= widget->box[BE_T];
 }
-inline void IdeWidget_local2parent(Widget *widget, uint32_t coord[2]) {
+inline void IdeWidget_local2parent(const Widget *widget, uint32_t coord[2]) {
   coord[AXIS_X] += widget->box[BE_L];
   coord[AXIS_Y] += widget->box[BE_T];
 }
 
-inline bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]) {
+inline bool IdeWidget_testLocal(const Widget *widget, uint32_t coord[2]) {
   bool in_box = coord[AXIS_X] <= Widget_width(widget)
              && coord[AXIS_Y] <= Widget_height(widget);
   if (!widget->graphic || !widget->graphic->funcRange) { return in_box; }
-  fn_area *funcRange = widget->graphic->funcRange;
+  fn_graphic_area *funcRange = widget->graphic->funcRange;
   return in_box && funcRange(widget->graphic, coord);
 }
 

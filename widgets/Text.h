@@ -39,9 +39,9 @@ typedef struct Text {
   uint32_t color;
 } Text;
 
-void Text_draw(Widget *_text);
-void Text_makeGraph(Widget *_text);
-void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args);
-void ideMakeText(IDE *ide, Widget *_text);
+void Text_draw(const Widget *_text);
+void Text_updateGraph(Widget *_text);
+void *Text_eventProcess(const Widget *_text, uint32_t event_id, void *args);
+void ideMakeText(Widget *_text);
 
 #endif  // XIDE_TEXT_H

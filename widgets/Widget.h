@@ -37,15 +37,15 @@
 #include <stdint.h>
 
 
-typedef void fn_draw(Widget *widget);
-typedef void fn_grap(Widget *widget);
-typedef Widget *fn_subs(Widget *widget, uint32_t local_coord[2]);
+typedef void fn_update(Widget *widget);
+typedef void fn_draw(const Widget *widget);
 typedef void *fn_event(Widget *widget, uint32_t event_id, void *args);
+typedef Widget *fn_subs(const Widget *widget, uint32_t local_coord[2]);
 
 /**
  * @Notice
  ** If the `type` field's `WIDGET_TYPE_CUSTOM_WIDGET` set on,
- **   1. `property` will be interpret as a pointer to a custom defined address;
+ **   1. `property` will be interpreted as a pointer to a custom defined address;
  **   2. fields after `parent` will not be access by default widget methods.
  **      These fields can be used for other purpose if necessary.
  **
@@ -107,17 +107,17 @@ typedef struct Widget {
    * @tags EXTEND PASSOVER
    * @param widget the widget itself
    * @param event_id the event id
-   * @param args arguments may used
+   * @param args arguments may be passed
    */
   fn_event *  EXTEND PASSOVER funcEventProc;
   /**
    * @descriptionp
-   * Prepare or update the draw task, must pass to all widgets depend it.
+   * Prepare or update the draw task, must pass to all widgets depend on it.
    * Usually called when the UI have to update.
    * @tags OVERRIDE PASSDOWN
    * @param widget the widget itself
    */
-  fn_grap * OVERRIDE PASSDOWN funcMakeGraph;
+  fn_update * OVERRIDE PASSDOWN funcUpdateGraph;
   /**
    * @description
    * The real draw command, must pass to all sub-widgets.
@@ -127,11 +127,11 @@ typedef struct Widget {
   fn_draw * OVERRIDE PASSDOWN funcDraw;
   /**
    * @description   the graphic interface of the widget
-   * User can choice different graphic to change the graphic of the widget.
+   * User can choose different graphic to change the graphic of the widget.
    * This graphic determines the widget's range to response cursor event,
    * the widget's shape and style, and the real draw command.
    * @escape        if is nullptr,
-   * means this widget will make directly by the `funcMakeGraph`
+   * means this widget will make directly by the `funcUpdateGraph`
    */
   Graphic *graphic;
   /**
@@ -176,17 +176,17 @@ typedef struct Widget {
 } Widget;
 
 int32_t IdeWidget_adjust_box(Widget *widget);
-bool IdeWidget_testLocal(Widget *widget, uint32_t coord[2]);
-int32_t IdeWidget_local2global(Widget *widget, uint32_t coord[2]);
-int32_t IdeWidget_global2local(Widget *widget, uint32_t coord[2]);
-void IdeWidget_parent2local(Widget *widget, uint32_t coord[2]);
-void IdeWidget_local2parent(Widget *widget, uint32_t coord[2]);
+bool IdeWidget_testLocal(const Widget *widget, uint32_t coord[2]);
+int32_t IdeWidget_local2global(const Widget *widget, uint32_t coord[2]);
+int32_t IdeWidget_global2local(const Widget *widget, uint32_t coord[2]);
+void IdeWidget_parent2local(const Widget *widget, uint32_t coord[2]);
+void IdeWidget_local2parent(const Widget *widget, uint32_t coord[2]);
 
 void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
 
-#define Widget_getBit(widget_field, bit_field) (widget_field & (bit_field))
-#define Widget_setBit(widget_field, bit_field) (widget_field |= (bit_field))
-#define Widget_unsetBit(widget_field, bit_field) (widget_field &= ~(bit_field))
+#define Widget_getBit(widget_field, bit_field) ((widget_field) & (bit_field))
+#define Widget_setBit(widget_field, bit_field) ((widget_field) |= (bit_field))
+#define Widget_unsetBit(widget_field, bit_field) ((widget_field) &= ~(bit_field))
 
 #define Widget_getStatus(widget, bit_field) ((widget)->status & (bit_field))
 #define Widget_setStatus(widget, bit_field) ((widget)->status |= (bit_field))
@@ -221,8 +221,8 @@ void *IdeWidget_eventProcess(Widget *widget, uint32_t event_id, void *args);
 #define Widget_reGeometry(widget, viewport) do { \
     if ((widget)->funcEventProc) (widget)->funcEventProc(widget, enum_EVENT_RE_GEOMETRY, viewport); \
   } while (false)
-#define Widget_makeGraphic(widget) do { \
-    if ((widget)->funcMakeGraph) (widget)->funcMakeGraph(widget); \
+#define Widget_updateGraphic(widget) do { \
+    if ((widget)->funcUpdateGraph) (widget)->funcUpdateGraph(widget); \
   } while (false)
 #define Widget_draw(widget) do { if ((widget)->funcDraw) (widget)->funcDraw(widget); } while (false)
 

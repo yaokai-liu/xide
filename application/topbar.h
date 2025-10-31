@@ -30,10 +30,10 @@
 
 #include "widgets.h"
 
-void Topbar_makeGraph(Widget *_topbar);
+void Topbar_updateGraph(Widget *_topbar);
 void Topbar_resize(Widget *_topbar, const uint32_t box[4]);
 void *Topbar_eventProcess(Widget *_topbar, uint32_t event_id, void *args);
-void ideMakeTopbar(IDE *ide, Widget *_topbar);
+void ideMakeTopbar(Widget *_topbar);
 
 void Window_setTextTitle(Window *window, const char_t *title);
 

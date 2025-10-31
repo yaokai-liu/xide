@@ -45,7 +45,7 @@ typedef struct CharModelSet {
   AVLTree /*<uint64_t, uint64_t>*/ *charTree;
 } CharModelSet;
 
-const CharModelSet *ideUpdateCharModelSet(IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array);
+const CharModelSet *ideUpdateCharModelSet(const IDE *ide, const Font *font, const Array /*<char_t>*/ *char_array);
 
 Array /*<Vertex2D>*/ *CharModelSet_genHCoordArray(const CharModelSet *set, const Array /*<char_t>*/ *char_array,
                                                   const Vertex2D *anchor, float c_space, uint32_t mode,

@@ -39,7 +39,7 @@ typedef struct FontManager {
   Array /*<CharModelSet>*/ *setArray;
 } FontManager;
 
-void releaseCharModelSet(CharModelSet *set, const Allocator *) {
+void releaseCharModelSet(const CharModelSet *set, const Allocator *) {
   FT_Done_Face(set->face);
   releasePrimeArray(set->modelArray);
   AVLTree_destroy(set->charTree, nullptr);
@@ -87,7 +87,7 @@ inline CharModelSet *FontManager_loadFont(FontManager *manager, const Font *font
   return Array_last_virt(manager->setArray);
 }
 
-inline CharModelSet *FontManager_findFont(FontManager *manager, const Font *font) {
+inline CharModelSet *FontManager_findFont(const FontManager *manager, const Font *font) {
   if (Array_length(manager->setArray) == 0) { return nullptr; }
   CharModelSet *first = Array_first_real(manager->setArray);
   CharModelSet *last = Array_last_real(manager->setArray);
@@ -101,6 +101,6 @@ inline CharModelSet *FontManager_findFont(FontManager *manager, const Font *font
   return nullptr;
 }
 
-inline CharModelSet *FontManager_realCharModelSet(FontManager *manager, REFER(CharModelSet) set) {
+inline CharModelSet *FontManager_realCharModelSet(const FontManager *manager, REFER(CharModelSet) set) {
   return Array_virt2real(manager->setArray, set);
 }

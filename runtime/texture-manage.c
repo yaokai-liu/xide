@@ -29,6 +29,6 @@
 #include "array.h"
 #include "xgl-object.h"
 
-void releaseTextureAtlas(TextureAtlas *atlas, const Allocator *) {
+void releaseTextureAtlas(const TextureAtlas *atlas, const Allocator *) {
   glDeleteTextures(1, &atlas->texture);
 }

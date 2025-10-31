@@ -35,7 +35,7 @@ void Box_append(Box *box, Widget *child) {
   Array_append(box->children, &child, 1);
 }
 
-void Box_draw(Widget *_box) {
+void Box_draw(const Widget *_box) {
   Box *box = (Box *)_box;
   if (_box->drawTask) { ideDraw(_box->runtime, _box->drawTask); }
   if (!box->children) { return ; }
@@ -50,9 +50,9 @@ void *Box_eventProcess(Widget *_box, uint32_t event_id, void *args) {
   return IdeWidget_eventProcess(_box, event_id, args);
 }
 
-void ideMakeBox(IDE *, Widget *) {}
+void ideMakeBox(Widget *) {}
 
-Widget *Box_curSubWidget(Widget *_box, uint32_t coord[2]) {
+Widget *Box_curSubWidget(const Widget *_box, uint32_t coord[2]) {
   Box *box = (Box *)_box;
   if (!box->children) { return nullptr; }
   uint32_t n_children = Array_length(box->children);
@@ -67,14 +67,14 @@ Widget *Box_curSubWidget(Widget *_box, uint32_t coord[2]) {
   return nullptr;
 }
 
-void Box_makeGraph(Widget *_box) {
+void Box_updateGraph(Widget *_box) {
   Box *box = (Box *) _box;
   if (box->children) {
     uint32_t n_children = Array_length(box->children);
     Widget * const*children = Array_first_real(box->children);
     for (uint32_t i = 0; i < n_children; i++) {
-      Widget_makeGraphic(children[i]);
+      Widget_updateGraphic(children[i]);
     }
   }
-  ideMakeBox(_box->runtime, _box);
+  ideMakeBox(_box);
 }

@@ -31,8 +31,8 @@
 #include "widgets.h"
 
 void Central_resize(Widget *_central, const uint32_t [4]);
-void Central_makeGraph(Widget *_central);
-void ideMakeCentral(IDE *ide, Widget *_central);
+void Central_updateGraph(Widget *_central);
+void ideMakeCentral(Widget *_central);
 
 void Window_setMainContent(Window *window, Widget *_central);
 

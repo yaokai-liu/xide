@@ -36,8 +36,8 @@
 
 typedef struct Graphic Graphic;
 
-typedef void fn_make(Graphic *graphic);
-typedef bool fn_area(Graphic *graphic, uint32_t local_coord[2]);
+typedef void fn_graphic_make(Graphic *graphic);
+typedef bool fn_graphic_area(Graphic *graphic, uint32_t local_coord[2]);
 
 
 typedef struct Graphic {
@@ -50,7 +50,7 @@ typedef struct Graphic {
    * @tags OVERRIDE PASSDOWN
    * @param widget the widget itself
    */
-  fn_make * OVERRIDE PASSDOWN funcMake;
+  fn_graphic_make * OVERRIDE PASSDOWN funcMake;
   /**
    * @description
    * Determine if a position in the widget box is in the widget range.
@@ -61,7 +61,7 @@ typedef struct Graphic {
    * has been converted to widget local coord
    * @default nullptr, means response area of the widget is whole widget box
    */
-  fn_area * OVERRIDE NONEPASS funcRange;
+  fn_graphic_area * OVERRIDE NONEPASS funcRange;
   /**
    * @description   the graphic shader of the widget
    * @default       ide's default shader or ide's default text shader

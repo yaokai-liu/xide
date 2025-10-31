@@ -38,7 +38,7 @@ Window *Window_new(IDE *ide, GLFWwindow *handle) {
   window->SUPER.parent = nullptr;
   window->SUPER.graphic = nullptr;
   window->SUPER.funcDraw = Window_draw;
-  window->SUPER.funcMakeGraph = Window_makeGraph;
+  window->SUPER.funcUpdateGraph = Window_updateGraph;
   window->SUPER.curSubWidget = Window_curSubWidget;
   // events of window will be immediately processed by the ide.
   window->SUPER.funcEventProc = Window_eventProcess;
@@ -68,18 +68,18 @@ void Window_destroy(Window *window) {
   window->SUPER.allocator->free(window);
 }
 
-void Window_makeGraph(Widget *_window) {
+void Window_updateGraph(Widget *_window) {
   Window *window = (Window *)_window;
-  if (bar(BE_L)) { Widget_makeGraphic(bar(BE_L)); }
-  if (bar(BE_T)) { Widget_makeGraphic(bar(BE_T)); }
-  if (bar(BE_R)) { Widget_makeGraphic(bar(BE_R)); }
-  if (bar(BE_B)) { Widget_makeGraphic(bar(BE_B)); }
-  if (window->central) { Widget_makeGraphic(window->central); }
-  ideMakeWindow(_window->runtime, _window);
+  if (bar(BE_L)) { Widget_updateGraphic(bar(BE_L)); }
+  if (bar(BE_T)) { Widget_updateGraphic(bar(BE_T)); }
+  if (bar(BE_R)) { Widget_updateGraphic(bar(BE_R)); }
+  if (bar(BE_B)) { Widget_updateGraphic(bar(BE_B)); }
+  if (window->central) { Widget_updateGraphic(window->central); }
+  ideMakeWindow(_window);
 }
 
-void Window_draw(Widget *_window) {
-  Window *window = (Window *)_window;
+void Window_draw(const Widget *_window) {
+  const Window *window = (const Window *)_window;
   if (_window->drawTask) { ideDraw(_window->runtime, _window->drawTask); }
   if (window->central) { Widget_draw(window->central); }
   if (bar(BE_L)) { Widget_draw(bar(BE_L)); }
@@ -98,7 +98,7 @@ void Window_resize(Widget *_window, const uint32_t viewport[4]) {
   if (window->central) { Widget_reGeometry(window->central, _window->box); }
 }
 
-Widget *Window_curSubWidget(Widget *_window, uint32_t local_coord[2]) {
+Widget *Window_curSubWidget(const Widget *_window, uint32_t local_coord[2]) {
   Window *window = (Window *)_window;
   if (testLocal(bar(BE_L), local_coord)) { return bar(BE_L); }
   if (testLocal(bar(BE_T), local_coord)) { return bar(BE_T); }
@@ -136,4 +136,4 @@ void Window_measureCentral(Window *window, uint32_t box[4]) {
   box[BE_B] = window->bars[BE_B] ? (Widget_height(_window) - Widget_height(window->bars[BE_B])) : Widget_height(_window);
 }
 
-void ideMakeWindow(IDE *, Widget *) {}
+void ideMakeWindow(const Widget *) {}

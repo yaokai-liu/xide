@@ -28,14 +28,15 @@
 #include "Text.h"
 #include "draw.h"
 
-void Text_draw(Widget *_text) {
+void Text_draw(const Widget *_text) {
   if (_text->drawTask) { ideDraw(_text->runtime, _text->drawTask); }
 }
-void Text_makeGraph(Widget *_text) {
-  ideMakeText(_text->runtime, _text);
+void Text_updateGraph(Widget *_text) {
+  ideMakeText(_text);
 }
 
-void ideMakeText(IDE *ide, Widget *_text) {
+void ideMakeText(Widget *_text) {
+  const IDE *const ide = _text->runtime;
   Text *text = (Text *)_text;
   PixelVertex2D pixel_anchor = {.coord = {0, 0}, .color = text->color};
 
@@ -45,11 +46,11 @@ void ideMakeText(IDE *ide, Widget *_text) {
               [AXIS_Y] = (float) pixel_anchor.coord[AXIS_Y]},
     .color = pixel_anchor.color
   };
-  float fsize[2] = {};
+  float f_size[2] = {};
   if (text->SUPER.drawTask) { xglDestroyDrawTask(text->SUPER.drawTask, ide->allocator); }
   text->SUPER.drawTask = ideCreateTextStr2DByStr(ide, text->text, &anchor, -0.1f, text->mode,
-                                                 0, &text->font, fsize);
-  uint32_t size[2] = { [AXIS_X] = (uint32_t) fsize[AXIS_X] + 1, [AXIS_Y] = (uint32_t) fsize[AXIS_Y] + 1 };
+                                                 0, &text->font, f_size);
+  uint32_t size[2] = { [AXIS_X] = (uint32_t) f_size[AXIS_X] + 1, [AXIS_Y] = (uint32_t) f_size[AXIS_Y] + 1 };
   if (Widget_getProperty(_text, WIDGET_PROPERTY_BOX_ALWAYS_RE_ADJUST))  {
     if (text->SUPER.property & WIDGET_PROPERTY_BOX_AS_GEOMETRY) {
       text->SUPER.box[BE_R] = size[AXIS_X];
@@ -65,13 +66,8 @@ void ideMakeText(IDE *ide, Widget *_text) {
   xglBindShaderProgram(text->SUPER.drawTask, *shader);
 }
 
-void *Text_eventProcess(Widget *_text, uint32_t event_id, void *args) {
-  switch (event_id) {
-    case enum_EVENT_RE_GEOMETRY: {
-      return nullptr;
-    }
-    default: {}
-  }
+void *Text_eventProcess(const Widget *_text, const uint32_t event_id, void *args) {
+  if (event_id == enum_EVENT_RE_GEOMETRY) { }
   Widget *parent = _text->parent;
   if (parent->funcEventProc) {
     return parent->funcEventProc(parent, event_id, args);

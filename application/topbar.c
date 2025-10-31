@@ -30,13 +30,13 @@
 #include "runtime.h"
 #include "minmax.h"
 
-void Topbar_makeGraph(Widget *_topbar) {
-  Box_makeGraph(_topbar);
+void Topbar_updateGraph(Widget *_topbar) {
+  Box_updateGraph(_topbar);
   if (Widget_getProperty(_topbar, WIDGET_PROPERTY_RE_GEO_FROM_CHILDREN)) {
     uint32_t size[4] = {Widget_left(_topbar), Widget_top(_topbar), Widget_width(_topbar), Widget_height(_topbar)};
     Topbar_resize(_topbar, size);
   }
-  ideMakeTopbar(_topbar->runtime, _topbar);
+  ideMakeTopbar(_topbar);
 }
 
 void Topbar_resize(Widget *_topbar, const uint32_t box[4]) {
@@ -62,7 +62,6 @@ void Topbar_resize(Widget *_topbar, const uint32_t box[4]) {
     _topbar->box[BE_T] = 0;
     _topbar->box[BE_B] = min(Widget_width(_topbar->parent), old_height);
   }
-  ideMakeTopbar(_topbar->runtime, _topbar);
 }
 
 void *Topbar_eventProcess(Widget *_topbar, uint32_t event_id, void *args) {
@@ -83,6 +82,7 @@ void *Topbar_eventProcess(Widget *_topbar, uint32_t event_id, void *args) {
     }
     case enum_EVENT_RE_GEOMETRY: {
       Topbar_resize(_topbar, args);
+      ideMakeTopbar(_topbar);
       break;
     }
     default:{}
@@ -90,7 +90,8 @@ void *Topbar_eventProcess(Widget *_topbar, uint32_t event_id, void *args) {
   return Box_eventProcess(_topbar, event_id, args);
 }
 
-void ideMakeTopbar(IDE *ide, Widget *_topbar) {
+void ideMakeTopbar(Widget *_topbar) {
+  const IDE *const ide = _topbar->runtime;
   if (_topbar->drawTask) { xglDestroyDrawTask(_topbar->drawTask, ide->allocator); }
   if (!Widget_width(_topbar) || !Widget_height(_topbar)) {
     _topbar->drawTask = nullptr;
@@ -129,7 +130,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
   topbar->SUPER.box[BG_H] = 0;
   topbar->SUPER.funcDraw = Box_draw;
   topbar->SUPER.graphic = nullptr;
-  topbar->SUPER.funcMakeGraph = Topbar_makeGraph;
+  topbar->SUPER.funcUpdateGraph = Topbar_updateGraph;
   topbar->SUPER.curSubWidget = Box_curSubWidget;
   topbar->SUPER.funcEventProc = Topbar_eventProcess;
   topbar->SUPER.padding[BE_L] = 10;
@@ -152,7 +153,7 @@ inline void Window_setTextTitle(Window *window, const char_t *title) {
   text->SUPER.graphic = textGraphic;
   text->SUPER.curSubWidget = nullptr;
   text->SUPER.funcEventProc = nullptr;
-  text->SUPER.funcMakeGraph = Text_makeGraph;
+  text->SUPER.funcUpdateGraph = Text_updateGraph;
   text->SUPER.box[BE_L] = topbar->SUPER.padding[BE_L];
   text->SUPER.box[BE_T] = topbar->SUPER.padding[BE_T] + 10;
   text->text = title;

@@ -43,18 +43,18 @@ int ideInitializeGlad();
 GLFWwindow *ideInitGlfwGLContext(int width, int height);
 
 GLFWmonitor *ideSwitchMonitor(int index);
-void ideSwitchWindow(Window *window);
+void ideSwitchWindow(const Window *window);
 
-void ideDrawUiOnce(IDE *ide);
-void ideAddTasks(IDE *ide, DrawTask *task, GLuint *shaderProgram);
+void ideDrawUiOnce(const IDE *ide);
+void ideAddTasks(const IDE *ide, DrawTask *task, GLuint *shaderProgram);
 
 void ideSetupUi(IDE *ide);
 void ideShowWindow(IDE *ide);
-bool ideShouldStopRender(Window *window);
+bool ideShouldStopRender(const Window *window);
 void ideUpdateHoveredWidget(IDE *ide, uint32_t position[2]);
-void ideUpdateMouseMovement(IDE *ide, uint32_t position[2]);
+void ideUpdateMouseMovement(const IDE *ide, uint32_t position[2]);
 void idePassMouseLeftButtonEvent(IDE *ide, uint32_t event, uint32_t mods);
-void ideShiftWindow(IDE *ide, const uint32_t vector[2]);
-void ideResizeWindow(IDE *ide, GLint viewport[4]);
+void ideShiftWindow(const IDE *ide, const uint32_t vector[2]);
+void ideResizeWindow(const IDE *ide, GLint viewport[4]);
 
 #endif  // XIDE_RUNTIME_H
